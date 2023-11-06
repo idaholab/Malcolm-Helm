@@ -1,0 +1,18 @@
+{{- if .Values.istio.enabled }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: malcolm
+spec:
+  gateways:
+  - {{ .Values.istio.gateway }}
+  hosts:
+  - malcolm.{{ .Values.domain }}
+  http:
+  - route:
+    - destination:
+        host: nginx-proxy.malcolm.svc.cluster.local
+        port:
+          number: 443
+{{- end }}

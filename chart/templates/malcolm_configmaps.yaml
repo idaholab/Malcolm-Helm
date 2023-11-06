@@ -1,0 +1,253 @@
+---
+apiVersion: v1
+data:
+  NGINX_BASIC_AUTH: "true"
+  NGINX_LDAP_TLS_STUNNEL: "false"
+  NGINX_LDAP_TLS_STUNNEL_CHECK_HOST: ""
+  NGINX_LDAP_TLS_STUNNEL_CHECK_IP: ""
+  NGINX_LDAP_TLS_STUNNEL_VERIFY_LEVEL: "2"
+kind: ConfigMap
+metadata:
+  name: auth-common-env
+
+---
+apiVersion: v1
+data:
+  BEATS_SSL: "false"
+kind: ConfigMap
+metadata:
+  name: beats-common-env
+  
+---
+apiVersion: v1
+data:
+  CONNECTION_SECONDS_SEVERITY_THRESHOLD: "3600"
+  FREQ_LOOKUP: "true"
+  FREQ_SEVERITY_THRESHOLD: "2.0"
+  SENSITIVE_COUNTRY_CODES: AM,AZ,BY,CN,CU,DZ,GE,HK,IL,IN,IQ,IR,KG,KP,KZ,LY,MD,MO,PK,RU,SD,SS,SY,TJ,TM,TW,UA,UZ
+  TOTAL_MEGABYTES_SEVERITY_THRESHOLD: "1000"
+kind: ConfigMap
+metadata:
+  name: lookup-common-env
+
+---
+apiVersion: v1
+data:
+  NETBOX_CRON: "{{ .Values.netbox.enabled }}"
+  NETBOX_DEFAULT_SITE: infrastructure
+  NETBOX_DISABLED: "{{ not .Values.netbox.enabled }}"
+  NETBOX_POSTGRES_DISABLED: "{{ not .Values.netbox.enabled }}"
+  NETBOX_REDIS_DISABLED: "{{ not .Values.netbox.enabled }}"
+kind: ConfigMap
+metadata:
+  name: netbox-common-env
+
+---
+apiVersion: v1
+data:
+  BASE_PATH: netbox
+  CENSUS_REPORTING_ENABLED: "false"
+  CORS_ORIGIN_ALLOW_ALL: "True"
+  CSRF_TRUSTED_ORIGINS: {{ .Values.netbox.csrf_trusted_origins | default "http://* https://*" | quote }}
+  DB_HOST: netbox-postgres
+  DB_NAME: netbox
+  EMAIL_FROM: netbox@bar.com
+  EMAIL_PORT: "25"
+  EMAIL_SERVER: localhost
+  EMAIL_SSL_CERTFILE: ""
+  EMAIL_SSL_KEYFILE: ""
+  EMAIL_TIMEOUT: "5"
+  EMAIL_USE_SSL: "false"
+  EMAIL_USE_TLS: "false"
+  EXEMPT_VIEW_PERMISSIONS: '*'
+  GRAPHQL_ENABLED: "true"
+  HOUSEKEEPING_INTERVAL: "86400"
+  MAX_PAGE_SIZE: "1000"
+  MEDIA_ROOT: /opt/netbox/netbox/media
+  METRICS_ENABLED: "false"
+  NAPALM_TIMEOUT: "10"
+  REDIS_CACHE_DATABASE: "1"
+  REDIS_CACHE_HOST: netbox-redis-cache
+  REDIS_CACHE_INSECURE_SKIP_TLS_VERIFY: "false"
+  REDIS_CACHE_SSL: "false"
+  REDIS_DATABASE: "0"
+  REDIS_HOST: netbox-redis
+  REDIS_INSECURE_SKIP_TLS_VERIFY: "false"
+  REDIS_SSL: "false"
+  RELEASE_CHECK_URL: ""
+  REMOTE_AUTH_AUTO_CREATE_USER: "True"
+  REMOTE_AUTH_BACKEND: netbox.authentication.RemoteUserBackend
+  REMOTE_AUTH_DEFAULT_GROUPS: standard
+  REMOTE_AUTH_DEFAULT_PERMISSIONS: standard_permission
+  REMOTE_AUTH_ENABLED: "True"
+  REMOTE_AUTH_HEADER: HTTP_X_REMOTE_AUTH
+  REMOTE_AUTH_STAFF_GROUPS: administrator
+  REMOTE_AUTH_STAFF_USERS: ""
+  REMOTE_AUTH_SUPERUSER_GROUPS: administrator
+  REMOTE_AUTH_SUPERUSERS: ""
+  SKIP_STARTUP_SCRIPTS: "true"
+  SKIP_SUPERUSER: "false"
+  SUPERUSER_EMAIL: admin@example.com
+  WEBHOOKS_ENABLED: "true"
+kind: ConfigMap
+metadata:
+  name: netbox-env
+
+---
+apiVersion: v1
+data:
+  NGINX_LOG_ACCESS_AND_ERRORS: "false"
+  NGINX_SSL: "false"
+kind: ConfigMap
+metadata:
+  name: nginx-env
+
+---
+apiVersion: v1
+data:
+  MAX_LOCKED_MEMORY: unlimited
+  OPENSEARCH_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.primary.curlrc
+  OPENSEARCH_JAVA_OPTS: -server {{ .Values.opensearch.java_memory }}:-HeapDumpOnOutOfMemoryError
+    -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
+  OPENSEARCH_PRIMARY: "{{ include "malcolm.opensearchprimary" . }}"
+  OPENSEARCH_SECONDARY: "false"
+  OPENSEARCH_SECONDARY_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.secondary.curlrc
+  OPENSEARCH_SECONDARY_SSL_CERTIFICATE_VERIFICATION: "false"
+  OPENSEARCH_SECONDARY_URL: ""
+  OPENSEARCH_SSL_CERTIFICATE_VERIFICATION: "false"
+  OPENSEARCH_URL: "{{ include "malcolm.opensearchprimaryurl" . }}"
+  bootstrap.memory_lock: "true"
+  cluster.routing.allocation.disk.threshold_enabled: "false"
+  cluster.routing.allocation.node_initial_primaries_recoveries: "8"
+  discovery.type: single-node
+  indices.query.bool.max_clause_count: "4096"
+  logger.level: WARN
+  path.repo: /opt/opensearch/backup
+kind: ConfigMap
+metadata:
+  name: opensearch-env
+
+---
+apiVersion: v1
+data:
+  PCAP_ENABLE_NETSNIFF: "{{ .Values.pcap_capture_env.net_sniff }}"
+  PCAP_ENABLE_TCPDUMP: "{{ .Values.pcap_capture_env.tcpdump }}"
+  PCAP_FILTER: "{{ .Values.pcap_capture_env.pcap_filter }}"
+  PCAP_IFACE: "{{ .Values.pcap_capture_env.pcap_iface }}"
+  PCAP_IFACE_TWEAK: "false"
+  PCAP_ROTATE_MEGABYTES: "4096"
+  PCAP_ROTATE_MINUTES: "10"
+kind: ConfigMap
+metadata:
+  name: pcap-capture-env
+
+---
+apiVersion: v1
+data:
+  CONFIG_MAP_DIR: configmap;secretmap
+  PGID: "{{ .Values.process_env.pgid }}"
+  PUID: "{{ .Values.process_env.puid }}"
+  TINI_VERBOSITY: "1"
+kind: ConfigMap
+metadata:
+  name: process-env
+
+---
+apiVersion: v1
+data:
+  PUSER_CA_TRUST: /var/local/ca-trust
+kind: ConfigMap
+metadata:
+  name: ssl-env
+
+---
+apiVersion: v1
+data:
+  SURICATA_CUSTOM_RULES_ONLY: "false"
+  SURICATA_UPDATE_DEBUG: "false"
+  SURICATA_UPDATE_ETOPEN: "true"
+  SURICATA_UPDATE_RULES: "false"
+kind: ConfigMap
+metadata:
+  name: suricata-env
+
+---
+apiVersion: v1
+data:
+  AUTO_TAG: "true"
+  LOG_CLEANUP_MINUTES: "360"
+  PCAP_MONITOR_HOST: pcap-monitor
+  PCAP_PIPELINE_IGNORE_PREEXISTING: "false"
+  PCAP_PIPELINE_POLLING: "true"
+  PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
+  PCAP_PIPELINE_VERBOSITY: ""
+  ZIP_CLEANUP_MINUTES: "720"
+kind: ConfigMap
+metadata:
+  name: upload-common-env
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: var-local-catrust
+
+---
+apiVersion: v1
+data:
+  CAPA_MAX_REQUESTS: "4"
+  CLAMD_MAX_REQUESTS: "8"
+  EXTRACTED_FILE_CAPA_VERBOSE: "false"
+  EXTRACTED_FILE_ENABLE_CAPA: "{{ .Values.zeek_env.extracted_file_enable_capa }}"
+  EXTRACTED_FILE_ENABLE_CLAMAV: "{{ .Values.zeek_env.extracted_file_enable_clamav }}"
+  EXTRACTED_FILE_ENABLE_YARA: "{{ .Values.zeek_env.extracted_file_enable_yara }}"
+  EXTRACTED_FILE_HTTP_SERVER_ENABLE: "{{ .Values.zeek_env.extracted_file_http_server_enable }}"
+  EXTRACTED_FILE_HTTP_SERVER_ENCRYPT: "{{ .Values.zeek_env.extracted_file_http_server_encrypt }}"
+  EXTRACTED_FILE_IGNORE_EXISTING: "false"
+  EXTRACTED_FILE_MAX_BYTES: "134217728"
+  EXTRACTED_FILE_MIN_BYTES: "64"
+  EXTRACTED_FILE_PIPELINE_VERBOSITY: ""
+  EXTRACTED_FILE_PRESERVATION: {{ .Values.zeek_env.extracted_file_preservation }}
+  EXTRACTED_FILE_UPDATE_RULES: "false"
+  EXTRACTED_FILE_WATCHER_POLLING: "true"
+  EXTRACTED_FILE_WATCHER_POLLING_ASSUME_CLOSED_SEC: "10"
+  EXTRACTED_FILE_YARA_CUSTOM_ONLY: "false"
+  VTOT_REQUESTS_PER_MINUTE: "4"
+  YARA_MAX_REQUESTS: "8"
+  ZEEK_DISABLE_BEST_GUESS_ICS: ""
+  ZEEK_DISABLE_HASH_ALL_FILES: ""
+  ZEEK_DISABLE_ICS_ALL: ""
+  ZEEK_DISABLE_ICS_BACNET: ""
+  ZEEK_DISABLE_ICS_BSAP: ""
+  ZEEK_DISABLE_ICS_DNP3: ""
+  ZEEK_DISABLE_ICS_ENIP: ""
+  ZEEK_DISABLE_ICS_ETHERCAT: ""
+  ZEEK_DISABLE_ICS_GENISYS: ""
+  ZEEK_DISABLE_ICS_MODBUS: ""
+  ZEEK_DISABLE_ICS_OPCUA_BINARY: ""
+  ZEEK_DISABLE_ICS_PROFINET: ""
+  ZEEK_DISABLE_ICS_S7COMM: ""
+  ZEEK_DISABLE_ICS_SYNCHROPHASOR: ""
+  ZEEK_DISABLE_LOG_PASSWORDS: ""
+  ZEEK_DISABLE_SPICY_DHCP: "true"
+  ZEEK_DISABLE_SPICY_DNS: "true"
+  ZEEK_DISABLE_SPICY_HTTP: "true"
+  ZEEK_DISABLE_SPICY_IPSEC: ""
+  ZEEK_DISABLE_SPICY_LDAP: ""
+  ZEEK_DISABLE_SPICY_OPENVPN: ""
+  ZEEK_DISABLE_SPICY_STUN: ""
+  ZEEK_DISABLE_SPICY_TAILSCALE: ""
+  ZEEK_DISABLE_SPICY_TFTP: ""
+  ZEEK_DISABLE_SPICY_WIREGUARD: ""
+  ZEEK_DISABLE_SSL_VALIDATE_CERTS: ""
+  ZEEK_DISABLE_TRACK_ALL_ASSETS: ""
+  ZEEK_EXTRACTOR_MODE: {{ .Values.zeek_env.extract_mode }}
+  ZEEK_GENISYS_PORTS: ""
+  ZEEK_INTEL_FEED_SINCE: ""
+  ZEEK_INTEL_ITEM_EXPIRATION: -1min
+  ZEEK_INTEL_REFRESH_CRON_EXPRESSION: ""
+  ZEEK_SYNCHROPHASOR_DETAILED: ""
+  ZEEK_SYNCHROPHASOR_PORTS: ""
+kind: ConfigMap
+metadata:
+  name: zeek-env

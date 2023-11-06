@@ -1,0 +1,112 @@
+{{- if .Values.zeek_live.enabled }}
+---
+apiVersion: v1
+data:
+  EXTRACT_FILES_PATH: /zeek/extract_files
+  ZEEK_CRON: "true"
+  ZEEK_INTEL_PATH: /opt/zeek/share/zeek/site/intel
+  ZEEK_LIVE_CAPTURE: "true"
+  ZEEK_LOG_PATH: /zeek/live
+  ZEEK_PCAP_PROCESSOR: "false"
+kind: ConfigMap
+metadata:
+  name: zeek-live-env
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: zeek-live-deployment
+spec:
+  selector:
+    matchLabels:
+      name: zeek-live-deployment
+  template:
+    metadata:
+      labels:
+        name: zeek-live-deployment
+    spec:
+      hostNetwork: true
+      nodeSelector:
+{{ toYaml .Values.zeek_live.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml .Values.live_capture.tolerations | indent 6 }}
+      containers:
+      - name: zeek-live-container
+        image: "{{ .Values.image.repository }}/zeek:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          capabilities:
+            add:
+              - IPC_LOCK
+              - NET_ADMIN
+              - NET_RAW
+              - SYS_ADMIN
+              - SYS_RESOURCE
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: upload-common-env
+          - configMapRef:
+              name: zeek-env
+          - secretRef:
+              name: zeek-secret-env
+          - configMapRef:
+              name: zeek-live-env
+          - configMapRef:
+              name: pcap-capture-env
+        env:
+          - name: ZEEK_DISABLED
+            value: "false"
+          - name: PCAP_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: zeek-live-var-local-catrust-volume
+          - mountPath: "/zeek/extract_files"
+            name: zeek-live-zeek-volume
+            subPath: "extract_files"
+          - mountPath: "/zeek/upload"
+            name: zeek-live-zeek-volume
+            subPath: "upload"
+          - mountPath: "/zeek/live"
+            name: zeek-live-zeek-volume
+            subPath: "live"
+          - mountPath: "/opt/zeek/share/zeek/site/intel"
+            name: zeek-live-zeek-intel
+            subPath: "zeek/intel"
+      initContainers:
+      - name: zeek-live-dirinit-container
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        envFrom:
+          - configMapRef:
+              name: process-env
+        env:
+          - name: PUSER_MKDIR
+            value: "/data/config:zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload"
+        volumeMounts:
+          - name: zeek-live-zeek-intel
+            mountPath: "/data/config"
+          - name: zeek-live-zeek-volume
+            mountPath: "/data/zeek-logs"
+      volumes:
+        - name: zeek-live-var-local-catrust-volume
+          configMap:
+            name: var-local-catrust
+        - name: zeek-live-zeek-volume
+          persistentVolumeClaim:
+            claimName: zeek-claim
+        - name: zeek-live-zeek-intel
+          persistentVolumeClaim:
+            claimName: config-claim
+{{- end }}
