@@ -1,19 +1,21 @@
-Malcolm services can be accessed via the following URLs:
-------------------------------------------------------------------------------
-  - Arkime: https://10.254.2.179/
-  - OpenSearch Dashboards: https://10.254.2.179/dashboards/
-  - PCAP upload (web): https://10.254.2.179/upload/
-  - PCAP upload (sftp): sftp://username@10.254.2.179:8022/files/
-  - NetBox: https://10.254.2.179/netbox/
-  - Account management: https://10.254.2.179/auth/
-  - Documentation: https://10.254.2.179/readme/
+# Installation procedures
 
+1. `git clone <repo url>`
+2. `cd <project dir that contains chart foler>`
+3. `helm install malcolm chart/ -n malcolm`
+
+## Accessing services with istio service mesh
+
+1. Copy the EXERNAL-IP of the gateway using the `kubectl get svc -n istio-system` command.
+2. Grab the hostname under the HOSTS column using `kubectl get virtualservice -n malcolm`
+3. Update /etc/hosts file with `sudo vim /etc/hosts`(EX: append "10.1.25.70 malcolm.vp.bigbang.dev" )
 
 Malcolm services can be accessed via the following URLs:
-------------------------------------------------------------------------------
-  - Arkime: https://malcolmkubernetes.valkyrie.lan/
-  - OpenSearch Dashboards: https://malcolmkubernetes.valkyrie.lan/dashboards/
-  - PCAP upload (web): https://malcolmkubernetes.valkyrie.lan/upload/
-  - NetBox: https://malcolmkubernetes.valkyrie.lan/netbox/
-  - Account management: https://malcolmkubernetes.valkyrie.lan/auth/
-  - Documentation: https://malcolmkubernetes.valkyrie.lan/readme/
+-----------------------------------------------------------
+  - Arkime: https://yourhostname/
+  - OpenSearch Dashboards: https://yourhostname/dashboards/
+  - PCAP upload (web): https://yourhostname/upload/
+  - PCAP upload (sftp): sftp://username@yourhostname:8022/files/
+  - NetBox: https://yourhostname/netbox/
+  - Account management: https://yourhostname/auth/
+  - Documentation: https://yourhostname/readme/

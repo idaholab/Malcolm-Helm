@@ -1,5 +1,3 @@
-domain: vp.bigbang.dev
-
 image:
   repository: ghcr.io/idaholab/malcolm
   pullPolicy: Always
@@ -14,16 +12,27 @@ auth:
   htpass_cred: "ubuntu:$2y$05$OihKMwCAuOYj6vKGpemeVeHAoup60XOcVzFqKCQ.OHqKmRNZMp0Qy"
 
 opensearch:
-  enabled: true
+  enabled: false
   java_memory: -Xms16g -Xmx16g -Xss256k -XX
   url: http://opensearch:9200
   dashboards_url: http://dashboards:5601/dashboards
 
 external_elasticsearch:
-  enabled: false
+  enabled: true
   url: http://dataplane-ek-es-http.dataplane-ek.svc.cluster.local:9200
   username: "elastic"
-  password: "YELr5BgdvC1Vm5317r3th843"
+  password: ""
+  # Secret must be in following format if using elastic_secret_name:
+  # apiVersion: v1
+  #  data:
+  #    elastic: passwordbase64encoded
+  # kind: Secret
+  # type: Opaque
+  # metadata:
+  #   name: somename
+  #   namespace: somenamespace
+  elastic_secret_name: "dataplane-ek-es-elastic-user"
+  elastic_secret_namespace: "dataplane-ek"
   dashboards_url: "http://dataplane-ek-kb-http.dataplane-ek.svc.cluster.local:5601"
 
 logstash:
@@ -71,6 +80,7 @@ istio:
   # Additionally, it is recommended to turn off tls everywhere when this is set to true and let tls handle all things tls :).
   enabled: true
   gateway: istio-system/tenant
+  domain: vp.bigbang.dev
 
 # Suricata live is enabled by default and will listen pcap_iface
 # Defined under pcap_capture_env
@@ -104,7 +114,7 @@ zeek_env:
 
 
 pcap_live:
-  enabled: true  
+  enabled: false  
 
   # Pcap live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
