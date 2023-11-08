@@ -37,7 +37,12 @@ external_elasticsearch:
 
 logstash:
   java_memory: -Xms3g -Xmx3g -Xss1536k -XX
+  # Controls the number of logstash instances running for horizontally scaling purposes.
+  replicas: 2
+  #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
   workers: 6
+  batch_delay: 50
+  batch_size: 75
 
 netbox:
   enabled: true

@@ -8,8 +8,8 @@ data:
   LOGSTASH_SEVERITY_SCORING: "true"
   LS_JAVA_OPTS: -server {{ .Values.logstash.java_memory }}:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom
     -Dlog4j.formatMsgNoLookups=true
-  pipeline.batch.delay: "50"
-  pipeline.batch.size: "75"
+  pipeline.batch.delay: "{{ .Values.logstash.batch_delay }}"
+  pipeline.batch.size: "{{ .Values.logstash.batch_size }}"
   pipeline.workers: "{{ .Values.logstash.workers }}"
 kind: ConfigMap
 metadata:
@@ -46,7 +46,7 @@ spec:
   selector:
     matchLabels:
       name: logstash-deployment
-  replicas: 1
+  replicas: {{ .Values.logstash.replicas }}
   template:
     metadata:
       labels:
