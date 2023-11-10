@@ -1,0 +1,155 @@
+image:
+  repository: ghcr.io/idaholab/malcolm
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion found in Chart.yml.
+  tag: ""
+
+auth:
+  username: ubuntu
+  # Generated with the openssl passwd -1 <your password>
+  openssl_password: "$1$8UNOU5uL$2dWuIv98M6u3HcQWZKA/r1"
+  # Generated with  htpasswd -bnB <your username> <your password>
+  htpass_cred: "ubuntu:$2y$05$OihKMwCAuOYj6vKGpemeVeHAoup60XOcVzFqKCQ.OHqKmRNZMp0Qy"
+
+opensearch:
+  enabled: false
+  java_memory: -Xms16g -Xmx16g -Xss256k -XX
+  url: http://opensearch:9200
+  dashboards_url: http://dashboards:5601/dashboards
+
+external_elasticsearch:
+  enabled: true
+  url: http://dataplane-ek-es-http.dataplane-ek.svc.cluster.local:9200
+  username: "elastic"
+  password: ""
+  # Secret must be in following format if using elastic_secret_name:
+  # apiVersion: v1
+  #  data:
+  #    elastic: passwordbase64encoded
+  # kind: Secret
+  # type: Opaque
+  # metadata:
+  #   name: somename
+  #   namespace: somenamespace
+  elastic_secret_name: "dataplane-ek-es-elastic-user"
+  elastic_secret_namespace: "dataplane-ek"
+  dashboards_url: "http://dataplane-ek-kb-http.dataplane-ek.svc.cluster.local:5601"
+
+logstash:
+  java_memory: -Xms3g -Xmx3g -Xss1536k -XX
+  # Controls the number of logstash instances running for horizontally scaling purposes.
+  replicas: 2
+  #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
+  workers: 6
+  batch_delay: 50
+  batch_size: 75
+
+netbox:
+  enabled: true
+  # Set this this value to your reverse proxy url or leave it blank
+  csrf_trusted_origins: https://malcolm.vp.bigbang.dev
+
+storage:
+  # This helm chart requires a storage provisioner class it defaults to local-path provisioner
+  # If your kuberenetes cluster has a different storage provisioner please ensure you change this name.
+  # https://github.com/rancher/local-path-provisioner  
+  pcap_claim: 
+    size: 100Gi
+    className: local-path
+  zeek_claim: 
+    size: 50Gi
+    className: local-path
+  suricata_claim:
+    size: 50Gi
+    className: local-path
+  config_claim: 
+    size: 25Gi
+    className: local-path
+  runtime_logs_claim: 
+    size: 25Gi
+    className: local-path
+  opensearch_claim: 
+    size: 100Gi
+    className: local-path
+  opensearch_backup_claim: 
+    size: 100Gi
+    className: local-path
+
+ingress:
+  # Enable this if deploying in RKE2 environment with the default nginx ingress controller
+  # TODO this still needs to be tested with tls enabled with auto cert generation
+  enabled: false
+
+istio:
+  # Enable this if deploying in Kuberenetes environment leveraging istio service mesh
+  # Additionally, it is recommended to turn off tls everywhere when this is set to true and let tls handle all things tls :).
+  enabled: true
+  gateway: istio-system/tenant
+  domain: vp.bigbang.dev
+
+# Suricata live is enabled by default and will listen pcap_iface
+# Defined under pcap_capture_env
+# If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
+suricata_live:
+  enabled: true
+
+  # Suricata live is a Daemonset but it will only schedule on kubernetes nodes that has following label
+  nodeSelector:
+    cnaps.io/suricata-capture: "true"
+
+# Zeek live is enabled by default and will listen pcap_iface
+# Defined under pcap_capture_env
+# If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
+zeek_live:
+  enabled: true
+
+  # Zeek live is a Daemonset but it will only schedule on kubernetes nodes that has following label
+  nodeSelector:
+    cnaps.io/zeek-capture: "true"
+
+zeek_env:
+  #Set to none, all or interesting.
+  extract_mode: all
+  extracted_file_enable_capa: true
+  extracted_file_enable_clamav: true
+  extracted_file_enable_yara: true
+  extracted_file_http_server_enable: true
+  extracted_file_http_server_encrypt: true
+  extracted_file_preservation: quarantined
+
+
+pcap_live:
+  enabled: false  
+
+  # Pcap live is a Daemonset but it will only schedule on kubernetes nodes that has following label
+  nodeSelector:
+    cnaps.io/arkime-capture: "true"
+
+# Sets environment variables across multiple applications within Malcolm (IE: pcap capture, zeek and suricata)
+# pcap_iface can be comma separate values.
+pcap_capture_env:
+  pcap_iface: ens192
+  pcap_filter: ""
+  # NOTE Net Sniff and tcpdump cannot be both true. Only one or the other can be running at a time.
+  net_sniff: false
+  tcpdump: true
+
+
+# Shared settings across all live capture type things (IE: Zeek live, Suricata live, and Pcap capture)
+live_capture:
+  tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule
+  - key: "cnaps.io/node-taint"
+    operator: "Equal"
+    value: "noncore"
+    effect: "NoSchedule"
+
+# Sets GID and UID for each container
+process_env:
+  pgid: 1000
+  puid: 1000

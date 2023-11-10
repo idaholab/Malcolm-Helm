@@ -1,0 +1,75 @@
+{{- if .Values.pcap_live.enabled }}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: pcap-capture-deployment
+spec:
+  selector:
+    matchLabels:
+      name: pcap-capture-deployment
+  template:
+    metadata:
+      labels:
+        name: pcap-capture-deployment
+    spec:
+      # Required for coredns to work with hostnetwork set to true.
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      nodeSelector:
+{{ toYaml .Values.pcap_live.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml .Values.live_capture.tolerations | indent 6 }}
+      containers:
+      - name: pcap-capture-container
+        image: "{{ .Values.image.repository }}/pcap-capture:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          capabilities:
+            add:
+              - IPC_LOCK
+              - NET_ADMIN
+              - NET_RAW
+              - SYS_ADMIN
+              - SYS_RESOURCE
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: pcap-capture-env
+        env:
+          - name: PCAP_CAPTURE_DISABLED
+            value: "false"
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: capture-var-local-catrust-volume
+          - mountPath: "/pcap"
+            name: capture-pcap-volume
+            subPath: "upload"
+      initContainers:
+      - name: pcap-capture-dirinit-container
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        envFrom:
+          - configMapRef:
+              name: process-env
+        env:
+          - name: PUSER_MKDIR
+            value: "/data/pcap:processed,upload"
+        volumeMounts:
+          - name: capture-pcap-volume
+            mountPath: "/data/pcap"
+      volumes:
+        - name: capture-var-local-catrust-volume
+          configMap:
+            name: var-local-catrust
+        - name: capture-pcap-volume
+          persistentVolumeClaim:
+            claimName: pcap-claim
+{{- end }}

@@ -1,0 +1,98 @@
+{{- if .Values.netbox.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbox-postgres
+  
+spec:
+  ports:
+    - port: 5432
+      protocol: TCP
+      name: postgresql
+  selector:
+    name: netbox-postgres-deployment
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netbox-postgres-deployment
+  
+spec:
+  selector:
+    matchLabels:
+      name: netbox-postgres-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: netbox-postgres-deployment
+    spec:
+      containers:
+      - name: netbox-postgres-container
+        image: "{{ .Values.image.repository }}/postgresql:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        ports:
+          - name: postgresql
+            protocol: TCP
+            containerPort: 5432
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: netbox-common-env
+          - secretRef:
+              name: netbox-postgres-env
+        env:
+          - name: VIRTUAL_HOST
+            value: "netbox-postgres.malcolm.local"
+        livenessProbe:
+          exec:
+            command:
+             - sh
+             - "-c"
+             - |
+               /bin/bash <<'EOF'
+
+               [[ "$NETBOX_POSTGRES_DISABLED" == 'true' ]] || pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+
+               EOF
+          initialDelaySeconds: 90
+          periodSeconds: 60
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: netbox-postgres-var-local-catrust-volume
+          - mountPath: /var/lib/postgresql/data
+            name: netbox-postgres-volume
+            subPath: netbox/postgres
+      initContainers:
+      - name: netbox-postgres-dirinit-container
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        envFrom:
+          - configMapRef:
+              name: process-env
+        env:
+          - name: PUSER_MKDIR
+            value: "/data/config:netbox/postgres"
+        volumeMounts:
+          - name: netbox-postgres-volume
+            mountPath: "/data/config"
+      volumes:
+        - name: netbox-postgres-var-local-catrust-volume
+          configMap:
+            name: var-local-catrust
+        - name: netbox-postgres-volume
+          persistentVolumeClaim:
+            claimName: config-claim
+{{- end }}

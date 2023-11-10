@@ -1,0 +1,132 @@
+---
+apiVersion: v1
+data:
+  metadata: ""
+kind: Secret
+metadata:
+  name: htadmin-config  
+type: Opaque
+
+---
+apiVersion: v1
+data:
+  config.ini: |+
+    ; HTAdmin config file.
+
+    [application]
+    ; Change this to customize your title:
+    app_title = Malcolm User Management
+
+    ; htpasswd file
+    secure_path  = ./auth/htpasswd
+    ; metadata file
+    metadata_path  = ./config/metadata
+
+    ; administrator user/password (htpasswd -b -c -B ...)
+    admin_user = ubuntu
+
+    ; username field quality checks
+    ;
+    min_username_len = 4
+    max_username_len = 32
+
+    ; Password field quality checks
+    ;
+    min_password_len = 8
+    max_password_len = 128
+
+kind: ConfigMap
+metadata:
+  name: htadmin-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: htadmin
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      name: http
+  selector:
+    name: htadmin-deployment
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: htadmin-deployment
+  
+spec:
+  selector:
+    matchLabels:
+      name: htadmin-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: htadmin-deployment
+    spec:
+      containers:
+      - name: htadmin-container
+        image: "{{ .Values.image.repository }}/htadmin:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        ports:
+          - name: http
+            protocol: TCP
+            containerPort: 80
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: auth-common-env
+        env:        
+          - name: VIRTUAL_HOST
+            value: "htadmin.malcolm.local"
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: htadmin-var-local-catrust-volume
+          - mountPath: /var/www/htadmin/auth
+            name: htadmin-config-volume
+            subPath: "auth"
+          - mountPath: /var/www/htadmin/default/configmap
+            name: htadmin-config-default-volume
+          - mountPath: /var/www/htadmin/default/secretmap
+            name: htadmin-config-default-secret-volume
+          - mountPath: /var/www/htadmin/config
+            name: htadmin-config-volume
+            subPath: "htadmin"
+      initContainers:
+      - name: htadmin-dirinit-container
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        envFrom:
+          - configMapRef:
+              name: process-env
+        env:
+          - name: PUSER_MKDIR
+            value: "/data/config:auth,htadmin"
+        volumeMounts:
+          - name: htadmin-config-volume
+            mountPath: "/data/config"
+      volumes:
+        - name: htadmin-var-local-catrust-volume
+          configMap:
+            name: var-local-catrust
+        - name: htadmin-config-volume
+          persistentVolumeClaim:
+            claimName: config-claim
+        - name: htadmin-config-default-volume
+          configMap:
+            name: htadmin-config
+        - name: htadmin-config-default-secret-volume
+          secret:
+            secretName: htadmin-config
+        

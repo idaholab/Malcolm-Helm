@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+data:
+  DASHBOARDS_DARKMODE: "true"
+  ISM_SNAPSHOT_COMPRESSED: "false"
+  ISM_SNAPSHOT_REPO: logs
+  OPENSEARCH_INDEX_SIZE_PRUNE_LIMIT: 80%
+  OPENSEARCH_INDEX_SIZE_PRUNE_NAME_SORT: "false"
+kind: ConfigMap
+metadata:
+  name: dashboards-helper-env
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboards-helper
+spec:
+  ports:
+    - port: 28991
+      protocol: TCP
+      name: http
+  selector:
+    name: dashboards-helper-deployment
+
+---
+apiVersion: v1
+data:
+  DASHBOARDS_URL: "{{ include "malcolm.dashboardsurl" . }}"
+kind: ConfigMap
+metadata:  
+  name: dashboards-env
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboards-helper-deployment
+  
+spec:
+  selector:
+    matchLabels:
+      name: dashboards-helper-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: dashboards-helper-deployment
+    spec:
+      containers:
+      - name: dashboards-helper-container
+        image: "{{ .Values.image.repository }}/dashboards-helper:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        ports:
+          - name: http
+            protocol: TCP
+            containerPort: 28991
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: opensearch-env
+          - configMapRef:
+              name: dashboards-env
+          - configMapRef:
+              name: dashboards-helper-env
+        env:
+          - name: VIRTUAL_HOST
+            value: "dashboards-helper.malcolm.local"
+        livenessProbe:
+          exec:
+            command:
+            - supervisorctl
+            - status
+            - cron
+            - maps
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: dashboards-helper-var-local-catrust-volume
+          - mountPath: /var/local/curlrc/secretmap
+            name: dashboards-helper-opensearch-curlrc-secret-volume
+      volumes:
+        - name: dashboards-helper-var-local-catrust-volume
+          configMap:
+            name: var-local-catrust
+        - name: dashboards-helper-opensearch-curlrc-secret-volume
+          secret:
+            secretName: opensearch-curlrc

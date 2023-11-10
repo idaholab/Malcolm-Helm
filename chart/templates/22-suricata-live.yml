@@ -1,0 +1,94 @@
+{{- if .Values.suricata_live.enabled }}
+---
+apiVersion: v1
+data:
+  SURICATA_LIVE_CAPTURE: "true"
+  SURICATA_PCAP_PROCESSOR: "false"
+  SURICATA_RUNMODE: workers
+kind: ConfigMap
+metadata:
+  name: suricata-live-env
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: suricata-live-deployment
+spec:
+  selector:
+    matchLabels:
+      name: suricata-live-deployment
+  template:
+    metadata:
+      labels:
+        name: suricata-live-deployment
+    spec:
+      # Required for coredns to work with hostnetwork set to true.
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      nodeSelector:
+{{ toYaml .Values.suricata_live.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml .Values.live_capture.tolerations | indent 6 }}
+      containers:
+      - name: suricata-live-container
+        image: "{{ .Values.image.repository }}/suricata:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          capabilities:
+            add:
+              - IPC_LOCK
+              - NET_ADMIN
+              - NET_RAW
+              - SYS_ADMIN
+              - SYS_RESOURCE
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: upload-common-env
+          - configMapRef:
+              name: suricata-env
+          - configMapRef:
+              name: suricata-live-env
+          - configMapRef:
+              name: pcap-capture-env
+        env:
+          - name: SURICATA_DISABLED
+            value: "false"
+          - name: PCAP_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: suricata-live-var-local-catrust-volume
+          - mountPath: /var/log/suricata
+            name: suricata-live-suricata-logs-volume
+      initContainers:
+      - name: suricata-live-dirinit-container
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        envFrom:
+          - configMapRef:
+              name: process-env
+        env:
+          - name: PUSER_MKDIR
+            value: "/data/suricata-logs:live"
+        volumeMounts:
+          - name: suricata-live-suricata-logs-volume
+            mountPath: "/data/suricata-logs"
+      volumes:
+        - name: suricata-live-var-local-catrust-volume
+          configMap:
+            name: var-local-catrust
+        - name: suricata-live-suricata-logs-volume
+          persistentVolumeClaim:
+            claimName: suricata-claim
+{{- end }}
