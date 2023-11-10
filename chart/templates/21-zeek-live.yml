@@ -16,15 +16,15 @@ metadata:
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: zeek-live-deployment
+  name: zeek-live-daemonset
 spec:
   selector:
     matchLabels:
-      name: zeek-live-deployment
+      name: zeek-live-daemonset
   template:
     metadata:
       labels:
-        name: zeek-live-deployment
+        name: zeek-live-daemonset
     spec:
       # Required for coredns to work with hostnetwork set to true.
       dnsPolicy: ClusterFirstWithHostNet
@@ -110,5 +110,5 @@ spec:
             claimName: zeek-claim
         - name: zeek-live-zeek-intel
           persistentVolumeClaim:
-            claimName: config-claim
+            claimName: config-claim            
 {{- end }}

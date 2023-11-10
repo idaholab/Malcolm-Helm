@@ -13,15 +13,15 @@ metadata:
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: suricata-live-deployment
+  name: suricata-live-daemonset
 spec:
   selector:
     matchLabels:
-      name: suricata-live-deployment
+      name: suricata-live-daemonset
   template:
     metadata:
       labels:
-        name: suricata-live-deployment
+        name: suricata-live-daemonset
     spec:
       # Required for coredns to work with hostnetwork set to true.
       dnsPolicy: ClusterFirstWithHostNet

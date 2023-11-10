@@ -19,8 +19,7 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: suricata-offline-deployment
-  
+  name: suricata-offline-deployment  
 spec:
   selector:
     matchLabels:
