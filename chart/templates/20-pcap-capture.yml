@@ -13,6 +13,8 @@ spec:
       labels:
         name: pcap-capture-deployment
     spec:
+      # Required for coredns to work with hostnetwork set to true.
+      dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       nodeSelector:
 {{ toYaml .Values.pcap_live.nodeSelector | indent 8 }}

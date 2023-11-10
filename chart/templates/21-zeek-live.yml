@@ -26,6 +26,8 @@ spec:
       labels:
         name: zeek-live-deployment
     spec:
+      # Required for coredns to work with hostnetwork set to true.
+      dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       nodeSelector:
 {{ toYaml .Values.zeek_live.nodeSelector | indent 8 }}

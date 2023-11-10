@@ -22,7 +22,9 @@ spec:
     metadata:
       labels:
         name: suricata-live-deployment
-    spec:      
+    spec:
+      # Required for coredns to work with hostnetwork set to true.
+      dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       nodeSelector:
 {{ toYaml .Values.suricata_live.nodeSelector | indent 8 }}
