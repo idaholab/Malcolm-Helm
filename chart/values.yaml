@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/idaholab/malcolm
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion found in Chart.yml.
   tag: ""
 
@@ -12,13 +12,13 @@ auth:
   htpass_cred: "ubuntu:$2y$05$OihKMwCAuOYj6vKGpemeVeHAoup60XOcVzFqKCQ.OHqKmRNZMp0Qy"
 
 opensearch:
-  enabled: false
+  enabled: true
   java_memory: -Xms16g -Xmx16g -Xss256k -XX
   url: http://opensearch:9200
   dashboards_url: http://dashboards:5601/dashboards
 
 external_elasticsearch:
-  enabled: true
+  enabled: false
   url: http://dataplane-ek-es-http.dataplane-ek.svc.cluster.local:9200
   username: "elastic"
   password: ""
@@ -92,7 +92,7 @@ istio:
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
 suricata_live:
   enabled: true
-
+  suricata_log_path: /opt/suricata/logs
   # Suricata live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
     cnaps.io/suricata-capture: "true"
@@ -102,6 +102,7 @@ suricata_live:
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
 zeek_live:
   enabled: true
+  zeek_log_path: /opt/zeek/logs
 
   # Zeek live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
@@ -116,6 +117,8 @@ zeek_env:
   extracted_file_http_server_enable: true
   extracted_file_http_server_encrypt: true
   extracted_file_preservation: quarantined
+  extracted_file_max_bytes: "134217728"
+  extracted_file_min_bytes: "64"
 
 
 pcap_live:
@@ -133,6 +136,9 @@ pcap_capture_env:
   # NOTE Net Sniff and tcpdump cannot be both true. Only one or the other can be running at a time.
   net_sniff: false
   tcpdump: true
+  pcap_rotate_megabytes: 4096
+  pcap_rotate_minutes: 10
+  home_net: "[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12]"
 
 
 # Shared settings across all live capture type things (IE: Zeek live, Suricata live, and Pcap capture)
@@ -148,6 +154,28 @@ live_capture:
     operator: "Equal"
     value: "noncore"
     effect: "NoSchedule"
+
+# Filebeat capture
+filebeat:
+  filebeat_clean_inactive: 180m  
+  filebeat_close_inactive: 120s
+  filebeat_close_inactive_live: 90m
+  filebeat_ignore_older: 120m
+  filebeat_scan_frequency: 10s
+
+# Default affinity ensures that the filebeat Daemonset is applied with anything that also has suricata or zeek live capture running on it.
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: cnaps.io/suricata-capture
+          operator: In
+          values:
+          - "true"
+        - key: cnaps.io/zeek-capture
+          operator: In
+          values:
+          - "true"
 
 # Sets GID and UID for each container
 process_env:

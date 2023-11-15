@@ -104,7 +104,7 @@ spec:
             claimName: pcap-claim
         - name: suricata-offline-suricata-logs-volume
           persistentVolumeClaim:
-            claimName: suricata-claim
+            claimName: suricata-claim-offline
         - name: suricata-offline-custom-rules-volume
           configMap:
             name: suricata-rules

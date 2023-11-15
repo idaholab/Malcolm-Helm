@@ -89,6 +89,7 @@ spec:
           configMap:
             name: var-local-catrust
         - name: suricata-live-suricata-logs-volume
-          persistentVolumeClaim:
-            claimName: suricata-claim
+          hostPath:
+            path: "{{ .Values.suricata_live.suricata_log_path }}"
+            type: DirectoryOrCreate
 {{- end }}
