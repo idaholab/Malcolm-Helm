@@ -48,6 +48,7 @@ netbox:
   enabled: true
   # Set this this value to your reverse proxy url or leave it blank
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
+  netbox_default_site: Cyberville
 
 storage:
   # This helm chart requires a storage provisioner class it defaults to local-path provisioner
@@ -92,6 +93,7 @@ istio:
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
 suricata_live:
   enabled: true
+  af_packet_iface_threads: auto
   suricata_log_path: /opt/suricata/logs
   # Suricata live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
@@ -103,14 +105,32 @@ suricata_live:
 zeek_live:
   enabled: true
   zeek_log_path: /opt/zeek/logs
-
+  zeek_lb_procs: "1"
+  worker_lb_procs: "1"
+  zeek_lb_method: "custom"
+  zeek_af_packet_buffer_size: "67108864"
   # Zeek live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
     cnaps.io/zeek-capture: "true"
 
+# Only affects the zeek offline deployment
+zeek_offline:
+  # The number of Zeek processes for analyzing uploaded PCAP files allowed
+  #   to run concurrently
+  zeek_auto_analyze_pcap_threads: 1
+
+upload_common_env:
+  # The age (in minutes) at which already-processed log files containing network traffic metadata should
+  #   be pruned from the filesystem
+  log_cleanup_minutes: 360
+  # The age (in minutes) at which the compressed archives containing already-processed log files should
+  #   be pruned from the filesystem
+  zip_cleanup_minutes: 720
+
+# Affects all zeek deployment live and offline
 zeek_env:
   #Set to none, all or interesting.
-  extract_mode: all
+  extract_mode: interesting
   extracted_file_enable_capa: true
   extracted_file_enable_clamav: true
   extracted_file_enable_yara: true

@@ -5,6 +5,7 @@ data:
   SURICATA_LIVE_CAPTURE: "true"
   SURICATA_PCAP_PROCESSOR: "false"
   SURICATA_RUNMODE: workers
+  SURICATA_AF_PACKET_IFACE_THREADS: "{{ .Values.suricata_live.af_packet_iface_threads }}"
 kind: ConfigMap
 metadata:
   name: suricata-live-env

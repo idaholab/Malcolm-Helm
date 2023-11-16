@@ -2,7 +2,7 @@
 apiVersion: v1
 data:
   ZEEK_AUTO_ANALYZE_PCAP_FILES: "true"
-  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "1"
+  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .Values.zeek_offline.zeek_auto_analyze_pcap_threads }}"
   ZEEK_CRON: "false"
   ZEEK_PCAP_PROCESSOR: "true"
   ZEEK_ROTATED_PCAP: "true"

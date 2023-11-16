@@ -176,13 +176,13 @@ metadata:
 apiVersion: v1
 data:
   AUTO_TAG: "true"
-  LOG_CLEANUP_MINUTES: "360"
+  LOG_CLEANUP_MINUTES: "{{ .Values.upload_common_env.log_cleanup_minutes }}"
   PCAP_MONITOR_HOST: pcap-monitor
   PCAP_PIPELINE_IGNORE_PREEXISTING: "false"
   PCAP_PIPELINE_POLLING: "true"
   PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
   PCAP_PIPELINE_VERBOSITY: ""
-  ZIP_CLEANUP_MINUTES: "720"
+  ZIP_CLEANUP_MINUTES: "{{ .Values.upload_common_env.zip_cleanup_minutes }}"
 kind: ConfigMap
 metadata:
   name: upload-common-env
