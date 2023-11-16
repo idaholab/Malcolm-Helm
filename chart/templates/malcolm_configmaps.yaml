@@ -34,7 +34,7 @@ metadata:
 apiVersion: v1
 data:
   NETBOX_CRON: "{{ .Values.netbox.enabled }}"
-  NETBOX_DEFAULT_SITE: infrastructure
+  NETBOX_DEFAULT_SITE: "{{ .Values.netbox.netbox_default_site }}"
   NETBOX_DISABLED: "{{ not .Values.netbox.enabled }}"
   NETBOX_POSTGRES_DISABLED: "{{ not .Values.netbox.enabled }}"
   NETBOX_REDIS_DISABLED: "{{ not .Values.netbox.enabled }}"
