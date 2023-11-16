@@ -135,8 +135,8 @@ data:
   PCAP_FILTER: "{{ .Values.pcap_capture_env.pcap_filter }}"
   PCAP_IFACE: "{{ .Values.pcap_capture_env.pcap_iface }}"
   PCAP_IFACE_TWEAK: "false"
-  PCAP_ROTATE_MEGABYTES: "4096"
-  PCAP_ROTATE_MINUTES: "10"
+  PCAP_ROTATE_MEGABYTES: "{{ .Values.pcap_capture_env.pcap_rotate_megabytes }}"
+  PCAP_ROTATE_MINUTES: "{{ .Values.pcap_capture_env.pcap_rotate_minutes }}"
 kind: ConfigMap
 metadata:
   name: pcap-capture-env
@@ -167,6 +167,7 @@ data:
   SURICATA_UPDATE_DEBUG: "false"
   SURICATA_UPDATE_ETOPEN: "true"
   SURICATA_UPDATE_RULES: "false"
+  SURICATA_HOME_NET: "'{{ .Values.pcap_capture_env.home_net }}'"
 kind: ConfigMap
 metadata:
   name: suricata-env
@@ -204,8 +205,8 @@ data:
   EXTRACTED_FILE_HTTP_SERVER_ENABLE: "{{ .Values.zeek_env.extracted_file_http_server_enable }}"
   EXTRACTED_FILE_HTTP_SERVER_ENCRYPT: "{{ .Values.zeek_env.extracted_file_http_server_encrypt }}"
   EXTRACTED_FILE_IGNORE_EXISTING: "false"
-  EXTRACTED_FILE_MAX_BYTES: "134217728"
-  EXTRACTED_FILE_MIN_BYTES: "64"
+  EXTRACTED_FILE_MAX_BYTES: "{{ .Values.zeek_env.extracted_file_max_bytes }}"
+  EXTRACTED_FILE_MIN_BYTES: "{{ .Values.zeek_env.extracted_file_min_bytes }}"
   EXTRACTED_FILE_PIPELINE_VERBOSITY: ""
   EXTRACTED_FILE_PRESERVATION: {{ .Values.zeek_env.extracted_file_preservation }}
   EXTRACTED_FILE_UPDATE_RULES: "false"

@@ -1,44 +1,43 @@
-{{- with .Values.storage }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: pcap-claim
 spec:
-  storageClassName: {{ .pcap_claim.className }}
+  storageClassName: {{ .Values.storage.pcap_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .pcap_claim.size }}
+      storage: {{ .Values.storage.pcap_claim.size }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: zeek-claim
 spec:
-  storageClassName: {{ .zeek_claim.className }}
+  storageClassName: {{ .Values.storage.zeek_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .zeek_claim.size }}
+      storage: {{ .Values.storage.zeek_claim.size }}
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: suricata-claim
+  name: suricata-claim-offline
 spec:
-  storageClassName: {{ .suricata_claim.className }}
+  storageClassName: {{ .Values.storage.suricata_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .suricata_claim.size }}
+      storage: {{ .Values.storage.suricata_claim.size }}
 
 ---
 apiVersion: v1
@@ -46,13 +45,13 @@ kind: PersistentVolumeClaim
 metadata:
   name: config-claim
 spec:
-  storageClassName: {{ .config_claim.className }}
+  storageClassName: {{ .Values.storage.config_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .config_claim.size }}
+      storage: {{ .Values.storage.config_claim.size }}
 
 ---
 apiVersion: v1
@@ -60,27 +59,28 @@ kind: PersistentVolumeClaim
 metadata:
   name: runtime-logs-claim
 spec:
-  storageClassName: {{ .runtime_logs_claim.className }}
+  storageClassName: {{ .Values.storage.runtime_logs_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .runtime_logs_claim.size }}
+      storage: {{ .Values.storage.runtime_logs_claim.size }}
 
+{{- if .Values.opensearch.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: opensearch-claim
 spec:
-  storageClassName: {{ .opensearch_claim.className }}
+  storageClassName: {{ .Values.storage.opensearch_claim.className }}
   accessModes:
     - ReadWriteOnce
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .opensearch_claim.size }}
+      storage: {{ .Values.storage.opensearch_claim.size }}
 
 ---
 apiVersion: v1
@@ -88,11 +88,11 @@ kind: PersistentVolumeClaim
 metadata:
   name: opensearch-backup-claim
 spec:
-  storageClassName: {{ .opensearch_backup_claim.className }}
+  storageClassName: {{ .Values.storage.opensearch_backup_claim.className }}
   accessModes:
     - ReadWriteOnce
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .opensearch_backup_claim.size }}
+      storage: {{ .Values.storage.opensearch_backup_claim.size }}
 {{- end }}
