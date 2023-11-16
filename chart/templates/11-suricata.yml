@@ -8,7 +8,7 @@ metadata:
 apiVersion: v1
 data:
   SURICATA_AUTO_ANALYZE_PCAP_FILES: "true"
-  SURICATA_AUTO_ANALYZE_PCAP_THREADS: "1"
+  SURICATA_AUTO_ANALYZE_PCAP_THREADS: "{{ .Values.suricata_offline.suricata_auto_analyze_pcap_threads }}"
   SURICATA_PCAP_PROCESSOR: "true"
   SURICATA_ROTATED_PCAP: "true"
 kind: ConfigMap

@@ -99,6 +99,9 @@ suricata_live:
   nodeSelector:
     cnaps.io/suricata-capture: "true"
 
+suricata_offline:
+  suricata_auto_analyze_pcap_threads: "1"
+
 # Zeek live is enabled by default and will listen pcap_iface
 # Defined under pcap_capture_env
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
