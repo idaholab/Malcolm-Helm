@@ -19,7 +19,8 @@ opensearch:
 
 external_elasticsearch:
   enabled: false
-  url: http://dataplane-ek-es-http.dataplane-ek.svc.cluster.local:9200
+  # Supports https or http urls for elasticsearch
+  url: https://dataplane-ek-es-http.dataplane-ek.svc:9200
   username: "elastic"
   password: ""
   # Secret must be in following format if using elastic_secret_name:
@@ -33,12 +34,19 @@ external_elasticsearch:
   #   namespace: somenamespace
   elastic_secret_name: "dataplane-ek-es-elastic-user"
   elastic_secret_namespace: "dataplane-ek"
+
+  # Copy of the elastic certificate from elasticsearch namespace
+  elastic_cert_name: "dataplane-ek-es-http-certs-public"
+  elastic_cert_namespace: "dataplane-ek"
+
+  # Only supports http urls for Kibana.
   dashboards_url: "http://dataplane-ek-kb-http.dataplane-ek.svc.cluster.local:5601"
+  
 
 logstash:
   java_memory: -Xms3g -Xmx3g -Xss1536k -XX
   # Controls the number of logstash instances running for horizontally scaling purposes.
-  replicas: 2
+  replicas: 1
   #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
   workers: 6
   batch_delay: 50

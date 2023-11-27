@@ -37,6 +37,13 @@ config.json: |-
     "sharedFileSystemPath": "/opt/local-path-provisioner"
   }
 
+## External Elasticsearch notes
+
+Elasticsearch requires TLS termination in order for it to support Single Sign On (SSO) functionality.  The values file was updated to give 
+the user of this helm chart the ability to copy the certificate file from a different namespace into Malcolm namespace for usage.
+
+Furthermore, dashboards_url (IE kibana) is still expected to remain unencrypted when using Istio service mesh. 
+
 ## Installation procedures
 
 Check the chart/values.yaml file for all the features that can be enabled disabled and tweaked prior to running the below installation commands.

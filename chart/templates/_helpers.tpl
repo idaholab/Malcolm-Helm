@@ -117,9 +117,9 @@ Used for secret generation for the opensearch-curlrc Kubernetes secret
 {{- if .Values.external_elasticsearch.username }}
     {{- $elastic_password := include "malcolm.elasticsearchpassword" . -}}
     {{- if $elastic_password }}
-        {{- printf "--user %s:%s " .Values.external_elasticsearch.username $elastic_password | b64enc | quote }}
+        {{- printf "--user %s:%s \n--insecure " .Values.external_elasticsearch.username $elastic_password | b64enc | quote }}
     {{- else }}
-        {{- printf "--user %s " .Values.external_elasticsearch.username | b64enc | quote }}
+        {{- printf "--user %s \n--insecure " .Values.external_elasticsearch.username | b64enc | quote }}
     {{- end }}
 {{- else }}
     {{- printf "" }}
