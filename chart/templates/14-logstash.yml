@@ -6,11 +6,23 @@ data:
   LOGSTASH_OUI_LOOKUP: "true"
   LOGSTASH_REVERSE_DNS: "false"
   LOGSTASH_SEVERITY_SCORING: "true"
-  LS_JAVA_OPTS: -server {{ .Values.logstash.java_memory }}:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom
+  {{- if .Values.is_production }}
+    {{- with .Values.logstash.production }}
+  LS_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom
     -Dlog4j.formatMsgNoLookups=true
-  pipeline.batch.delay: "{{ .Values.logstash.batch_delay }}"
-  pipeline.batch.size: "{{ .Values.logstash.batch_size }}"
-  pipeline.workers: "{{ .Values.logstash.workers }}"
+  pipeline.batch.delay: "{{ .batch_delay }}"
+  pipeline.batch.size: "{{ .batch_size }}"
+  pipeline.workers: "{{ .workers }}"
+    {{- end }}
+  {{- else }}
+    {{- with .Values.logstash.development }}
+  LS_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom
+    -Dlog4j.formatMsgNoLookups=true
+  pipeline.batch.delay: "{{ .batch_delay }}"
+  pipeline.batch.size: "{{ .batch_size }}"
+  pipeline.workers: "{{ .workers }}"
+    {{- end }}
+  {{- end }}
 kind: ConfigMap
 metadata:
   name: logstash-env
@@ -46,7 +58,7 @@ spec:
   selector:
     matchLabels:
       name: logstash-deployment
-  replicas: {{ .Values.logstash.replicas }}
+  replicas: {{ include "malcolm.nodeCount" . }}
   template:
     metadata:
       labels:

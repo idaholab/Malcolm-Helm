@@ -109,6 +109,11 @@ spec:
           - name: arkime-runtime-logs-volume
             mountPath: /opt/arkime/logs
             subPath: "arkime"
+{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
+          - name: elastic-cert
+            mountPath: /usr/local/share/ca-certificates/elastic_ca.crt
+            subPath: elastic_ca.crt
+{{- end }}
       initContainers:
       - name: arkime-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -142,3 +147,8 @@ spec:
         - name: arkime-runtime-logs-volume
           persistentVolumeClaim:
             claimName: runtime-logs-claim
+{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
+        - name: elastic-cert
+          secret:
+            secretName: {{ .Values.external_elasticsearch.elastic_cert_name }}
+{{- end }}

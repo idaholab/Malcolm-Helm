@@ -117,9 +117,9 @@ Used for secret generation for the opensearch-curlrc Kubernetes secret
 {{- if .Values.external_elasticsearch.username }}
     {{- $elastic_password := include "malcolm.elasticsearchpassword" . -}}
     {{- if $elastic_password }}
-        {{- printf "--user %s:%s " .Values.external_elasticsearch.username $elastic_password | b64enc | quote }}
+        {{- printf "--user %s:%s \n--insecure " .Values.external_elasticsearch.username $elastic_password | b64enc | quote }}
     {{- else }}
-        {{- printf "--user %s " .Values.external_elasticsearch.username | b64enc | quote }}
+        {{- printf "--user %s \n--insecure " .Values.external_elasticsearch.username | b64enc | quote }}
     {{- end }}
 {{- else }}
     {{- printf "" }}
@@ -127,3 +127,16 @@ Used for secret generation for the opensearch-curlrc Kubernetes secret
 {{- end }}
 
 
+{{- define "malcolm.nodeCount" -}}
+{{- $labelKey := .Values.node_count_label.key | default "" }}
+{{- $labelValue := .Values.node_count_label.value | default "" }}
+{{- $nodeCount := 0 }}
+
+{{- range $index, $obj := (lookup "v1" "Node" "" "").items }}
+  {{- if index $obj.metadata.labels $labelKey | default "" | eq $labelValue }}
+    {{- $nodeCount = add $nodeCount 1 }}
+  {{- end }}
+{{- end }}
+
+{{- $nodeCount }}
+{{- end }}

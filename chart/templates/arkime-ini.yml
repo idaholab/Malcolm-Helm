@@ -28,6 +28,9 @@ data:
     # CHANGED this so TLS termination can happen at istio
     #certFile=/opt/arkime/etc/viewer.crt
     #keyFile=/opt/arkime/etc/viewer.key
+    {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
+    certFile=/usr/local/share/ca-certificates/elastic_ca.crt
+    {{- end }}
     geoLite2Country=/opt/arkime/etc/GeoLite2-Country.mmdb
     geoLite2ASN=/opt/arkime/etc/GeoLite2-ASN.mmdb
     rirFile=/opt/arkime/etc/ipv4-address-space.csv
