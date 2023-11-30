@@ -3,6 +3,13 @@
 # resources vs a production one.
 is_production: false
 
+# When scaling the _helpers.tpl function that is used for scaling out nodes will do a calculation based on this label
+# Basically it will count the total number of nodes that have this label
+# WARNING: If none of the nodes have this logstash replicas will get SET to 0
+node_count_label:
+  key: cnaps.io/node-type
+  value: Tier-1
+
 image:
   repository: ghcr.io/idaholab/malcolm
   pullPolicy: IfNotPresent

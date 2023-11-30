@@ -127,3 +127,16 @@ Used for secret generation for the opensearch-curlrc Kubernetes secret
 {{- end }}
 
 
+{{- define "malcolm.nodeCount" -}}
+{{- $labelKey := .Values.node_count_label.key | default "" }}
+{{- $labelValue := .Values.node_count_label.value | default "" }}
+{{- $nodeCount := 0 }}
+
+{{- range $index, $obj := (lookup "v1" "Node" "" "").items }}
+  {{- if index $obj.metadata.labels $labelKey | default "" | eq $labelValue }}
+    {{- $nodeCount = add $nodeCount 1 }}
+  {{- end }}
+{{- end }}
+
+{{- $nodeCount }}
+{{- end }}
