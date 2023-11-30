@@ -48,7 +48,11 @@ data:
   BASE_PATH: netbox
   CENSUS_REPORTING_ENABLED: "false"
   CORS_ORIGIN_ALLOW_ALL: "True"
+{{- if .Values.istio.enabled }}
+  CSRF_TRUSTED_ORIGINS: https://{{ .Values.istio.virtualservicename }}.{{ .Values.istio.domain }}
+{{- else }}
   CSRF_TRUSTED_ORIGINS: {{ .Values.netbox.csrf_trusted_origins | default "http://* https://*" | quote }}
+{{- end }}
   DB_HOST: netbox-postgres
   DB_NAME: netbox
   EMAIL_FROM: netbox@bar.com
@@ -107,8 +111,17 @@ apiVersion: v1
 data:
   MAX_LOCKED_MEMORY: unlimited
   OPENSEARCH_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.primary.curlrc
-  OPENSEARCH_JAVA_OPTS: -server {{ .Values.opensearch.java_memory }}:-HeapDumpOnOutOfMemoryError
+{{- if .Values.is_production }}
+  {{- with .Values.opensearch.production }}
+  OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError
     -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
+  {{- end }}
+{{- else }}
+  {{- with .Values.opensearch.development }}
+  OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError
+    -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
+  {{- end }}
+{{- end }}  
   OPENSEARCH_PRIMARY: "{{ include "malcolm.opensearchprimary" . }}"
   OPENSEARCH_SECONDARY: "false"
   OPENSEARCH_SECONDARY_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.secondary.curlrc

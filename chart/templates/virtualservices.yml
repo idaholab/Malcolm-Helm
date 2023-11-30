@@ -8,7 +8,7 @@ spec:
   gateways:
   - {{ .Values.istio.gateway }}
   hosts:
-  - malcolm.{{ .Values.istio.domain }}
+  - {{ .Values.istio.virtualservicename }}.{{ .Values.istio.domain }}
   http:
   - route:
     - destination:
