@@ -8,15 +8,14 @@ data:
 {{- if .Values.is_production }}
   {{- with .Values.suricata_live.production }}
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
-  SURICATA_AF_PACKET_RING_SIZE: {{ .af_packet_ring_size }}
+  SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_live.development }}
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
-  SURICATA_AF_PACKET_RING_SIZE: {{ .af_packet_ring_size }}
+  SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
   {{- end }}
 {{- end }}
-  
 kind: ConfigMap
 metadata:
   name: suricata-live-env

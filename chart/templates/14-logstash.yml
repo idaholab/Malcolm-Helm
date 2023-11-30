@@ -23,7 +23,6 @@ data:
   pipeline.workers: "{{ .workers }}"
     {{- end }}
   {{- end }}
-  
 kind: ConfigMap
 metadata:
   name: logstash-env

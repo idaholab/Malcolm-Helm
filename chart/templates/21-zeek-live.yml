@@ -8,10 +8,21 @@ data:
   ZEEK_LIVE_CAPTURE: "true"
   ZEEK_LOG_PATH: /zeek/live
   ZEEK_PCAP_PROCESSOR: "false"
-  ZEEK_LB_PROCS: "{{ .Values.zeek_live.zeek_lb_procs }}"
-  WORKER_LB_PROCS: "{{ .Values.zeek_live.worker_lb_procs }}"
-  ZEEK_LB_METHOD: "{{ .Values.zeek_live.zeek_lb_method }}"
-  ZEEK_AF_PACKET_BUFFER_SIZE: "{{ .Values.zeek_live.zeek_af_packet_buffer_size }}"
+  {{- if .Values.is_production }}
+    {{- with .Values.zeek_live.production }}
+  ZEEK_LB_PROCS: "{{ .zeek_lb_procs }}"
+  WORKER_LB_PROCS: "{{ .worker_lb_procs }}"
+  ZEEK_LB_METHOD: "{{ .zeek_lb_method }}"
+  ZEEK_AF_PACKET_BUFFER_SIZE: "{{ .zeek_af_packet_buffer_size }}"
+    {{- end }}
+  {{- else }}
+    {{- with .Values.zeek_live.development }}
+  ZEEK_LB_PROCS: "{{ .zeek_lb_procs }}"
+  WORKER_LB_PROCS: "{{ .worker_lb_procs }}"
+  ZEEK_LB_METHOD: "{{ .zeek_lb_method }}"
+  ZEEK_AF_PACKET_BUFFER_SIZE: "{{ .zeek_af_packet_buffer_size }}"
+    {{- end }}
+  {{- end }}
 kind: ConfigMap
 metadata:
   name: zeek-live-env
