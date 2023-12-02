@@ -52,8 +52,9 @@ spec:
       labels:
         name: filebeat-daemonset
     spec:
-      affinity:    
-{{ toYaml .Values.filebeat.nodeAffinity | indent 8 }}
+      affinity:
+        nodeAffinity:
+{{ toYaml .Values.filebeat.nodeAffinity | indent 10 }}
       tolerations:
 {{ toYaml .Values.live_capture.tolerations | indent 6 }}
       containers:
