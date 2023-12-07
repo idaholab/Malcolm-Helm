@@ -180,7 +180,7 @@ data:
   SURICATA_UPDATE_DEBUG: "false"
   SURICATA_UPDATE_ETOPEN: "true"
   SURICATA_UPDATE_RULES: "false"
-  SURICATA_HOME_NET: "'{{ .Values.pcap_capture_env.home_net }}'"
+  SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net }}]'"
 kind: ConfigMap
 metadata:
   name: suricata-env
@@ -262,6 +262,7 @@ data:
   ZEEK_INTEL_REFRESH_CRON_EXPRESSION: ""
   ZEEK_SYNCHROPHASOR_DETAILED: ""
   ZEEK_SYNCHROPHASOR_PORTS: ""
+  ZEEK_LOCAL_NETS: "{{ .Values.pcap_capture_env.home_net }}"
 kind: ConfigMap
 metadata:
   name: zeek-env

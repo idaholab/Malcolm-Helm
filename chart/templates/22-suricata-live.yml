@@ -9,11 +9,13 @@ data:
   {{- with .Values.suricata_live.production }}
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
   SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
+  SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_live.development }}
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
   SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
+  SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
   {{- end }}
 {{- end }}
 kind: ConfigMap

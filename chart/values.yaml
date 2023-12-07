@@ -129,15 +129,19 @@ suricata_live:
     cnaps.io/suricata-capture: "true"
 
   development:
-    af_packet_iface_threads: auto
+    af_packet_iface_threads: 2
     af_packet_ring_size: 2048
+    max_pending_packets: 1024
     # Used if is production is set to true
   production: 
     af_packet_iface_threads: 16
     # Default is calculated threads * max-pending-packets (Default of max-pending-packets is 1024)
     # This calculation was made with the assumtion that max-pending-packets is set to 1024
     af_packet_ring_size: 65536
+    max_pending_packets: 4096
 
+arkime_env:
+  free_space_g: "10%"
 
 suricata_offline:
   suricata_auto_analyze_pcap_threads: "1"
@@ -209,7 +213,7 @@ pcap_capture_env:
   tcpdump: true
   pcap_rotate_megabytes: 4096
   pcap_rotate_minutes: 10
-  home_net: "[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12]"
+  home_net: "192.168.0.0/16,10.0.0.0/8,172.16.0.0/12"
 
 
 # Shared settings across all live capture type things (IE: Zeek live, Suricata live, and Pcap capture)
