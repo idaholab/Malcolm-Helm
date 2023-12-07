@@ -14,7 +14,27 @@ image:
   repository: ghcr.io/idaholab/malcolm
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion found in Chart.yml.
-  tag: ""
+  # Should only need to override these if something is awry with version supplied in Chart.yaml file.
+  dirinit_tag: ""
+  dashboards_tag: ""
+  opensearch_tag: "23.10.0"
+  upload_tag: ""
+  pcap_monitor_tag: ""
+  arkime_tag: ""
+  api_tag: ""
+  zeek_tag: ""
+  suricata_tag: ""
+  dashboards_helper_tag: ""
+  file_monitor_tag: ""
+  filebeat_tag: ""
+  logstash_tag: ""
+  redis_tag: ""
+  postgresql_tag: ""
+  netbox_tag: ""
+  htadmin_tag: ""
+  pcap_capture_tag: ""
+  freq_tag: ""
+  nginx_tag: ""
 
 auth:
   username: vagrant

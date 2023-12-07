@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
       - name: dashboards-helper-container
-        image: "{{ .Values.image.repository }}/dashboards-helper:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dashboards-helper:{{ .Values.image.dashboards_helper_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

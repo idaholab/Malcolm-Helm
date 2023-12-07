@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: suricata-offline-container
-        image: "{{ .Values.image.repository }}/suricata:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/suricata:{{ .Values.image.suricata_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -82,7 +82,7 @@ spec:
             name: suricata-offline-custom-rules-volume
       initContainers:
       - name: suricata-offline-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
