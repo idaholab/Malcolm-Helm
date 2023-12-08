@@ -1,0 +1,34 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: test-gateway
+  namespace: istio-system
+spec:
+  # The selector matches the ingress gateway pod labels.
+  # If you installed Istio using Helm following the standard documentation, this would be "istio=ingress"
+  selector:
+    app: tenant-ingressgateway
+  servers:
+  - port:
+      number: 8080
+      name: http
+      protocol: HTTP
+    hosts:
+    - '*.test.dev'
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: test-virtualservice
+  namespace: malcolm
+spec:
+  hosts:
+  - "malcolm.test.dev"
+  gateways:
+  - istio-system/test-gateway  
+  http:
+  - route:
+    - destination:
+        host: nginx-proxy.malcolm.svc.cluster.local
+        port:
+          number: 443

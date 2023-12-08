@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: tenant
+  namespace: istio-system
+spec:
+  selector:
+    app: tenant-ingressgateway
+  servers:
+  - hosts:
+    - '*.vp.bigbang.dev'
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+    tls:
+      httpsRedirect: true
+  - hosts:
+    - '*.vp.bigbang.dev'
+    port:
+      name: https
+      number: 443
+      protocol: HTTPS
+    tls:
+      credentialName: tenant-cert
+      # minProtocolVersion: TLSV1_3
+      mode: SIMPLE
