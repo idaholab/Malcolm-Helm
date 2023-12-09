@@ -117,10 +117,8 @@ spec:
         volumeMounts:
           - name: zeek-live-intel-volume
             mountPath: "/data/config"
-          - name: zeek-live-logs-volume
-            mountPath: "/zeek-live-logs"
           - name: zeek-live-zeek-volume
-            mountPath: "/data/zeek-shared"
+            mountPath: "/data/zeek-logs"
       volumes:
         - name: zeek-live-var-local-catrust-volume
           configMap:
