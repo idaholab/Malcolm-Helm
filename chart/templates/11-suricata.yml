@@ -80,6 +80,8 @@ spec:
             name: suricata-offline-suricata-logs-volume
           - mountPath: "/opt/suricata/rules/configmap"
             name: suricata-offline-custom-rules-volume
+          # - mountPath: "/opt/suricata/include-configs/configmap"
+          #   name: suricata-offline-custom-configs-volume
       initContainers:
       - name: suricata-offline-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
@@ -108,3 +110,6 @@ spec:
         - name: suricata-offline-custom-rules-volume
           configMap:
             name: suricata-rules
+        # - name: suricata-offline-custom-configs-volume
+        #   configMap:
+        #     name: suricata-configs
