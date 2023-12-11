@@ -266,3 +266,26 @@ data:
 kind: ConfigMap
 metadata:
   name: zeek-env
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: suricata-rules
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: suricata-configs
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zeek-intel-preseed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zeek-custom
+data:
+  __load__.zeek: |
+    # This is a blank file

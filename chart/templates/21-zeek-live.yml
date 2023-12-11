@@ -6,7 +6,7 @@ data:
   ZEEK_CRON: "true"
   ZEEK_INTEL_PATH: /opt/zeek/share/zeek/site/intel
   ZEEK_LIVE_CAPTURE: "true"
-  ZEEK_LOG_PATH: /zeek/live
+  ZEEK_LOG_PATH: "/zeek-live-logs/live"
   ZEEK_PCAP_PROCESSOR: "false"
   {{- if .Values.is_production }}
     {{- with .Values.zeek_live.production }}
@@ -54,6 +54,17 @@ spec:
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
+        # command:
+        # - "/bin/bash"
+        # - "-c"
+        # - |
+        #   mkdir /logs && mkdir /spool && mkdir -p /opt/sensor/sensor_ctl/zeek/custom/
+        #   chown -R zeeker:zeeker /spool /logs /opt/sensor/
+        #   /usr/bin/tini -- /usr/local/bin/docker-uid-gid-setup.sh \
+        #   /usr/local/bin/docker_entrypoint.sh \
+        #   /usr/local/bin/service_check_passthrough.sh \
+        #   -s zeek 
+        #   /usr/bin/supervisord -c /etc/supervisord.conf -n
         securityContext:
           capabilities:
             add:
@@ -78,8 +89,6 @@ spec:
           - configMapRef:
               name: pcap-capture-env
         env:
-          - name: ZEEK_LOG_PATH
-            value: "/zeek-live-logs/live"
           - name: ZEEK_DISABLED
             value: "false"
           - name: PCAP_NODE_NAME
@@ -95,10 +104,12 @@ spec:
           - mountPath: "/zeek/upload"
             name: zeek-live-zeek-volume
             subPath: "upload"
-          # - mountPath: "/opt/zeek/share/zeek/site/custom"
-          #   name: zeek-live-custom-volume
-          # - mountPath: "/opt/zeek/share/zeek/site/intel-preseed"
-          #   name: zeek-live-intel-preseed-volume
+          - mountPath: "/zeek-live-logs/live"
+            name: zeek-live-logs-volume
+          - mountPath: "/opt/zeek/share/zeek/site/custom"
+            name: zeek-live-custom-volume
+          - mountPath: "/opt/zeek/share/zeek/site/intel-preseed"
+            name: zeek-live-intel-preseed-volume
           - mountPath: "/opt/zeek/share/zeek/site/intel"
             name: zeek-live-intel-volume
             subPath: "zeek/intel"
@@ -117,8 +128,8 @@ spec:
         volumeMounts:
           - name: zeek-live-intel-volume
             mountPath: "/data/config"
-          - name: zeek-live-zeek-volume
-            mountPath: "/data/zeek-logs"
+          # - name: zeek-live-zeek-volume
+          #   mountPath: "/data/zeek-logs"
       volumes:
         - name: zeek-live-var-local-catrust-volume
           configMap:
@@ -126,13 +137,17 @@ spec:
         - name: zeek-live-zeek-volume
           persistentVolumeClaim:
             claimName: zeek-claim
-        # - name: zeek-live-custom-volume
-        #   configMap:
-        #     name: zeek-custom
-        # - name: zeek-live-intel-preseed-volume
-        #   configMap:
-        #     name: zeek-intel-preseed
+        - name: zeek-live-custom-volume
+          configMap:
+            name: zeek-custom
+        - name: zeek-live-intel-preseed-volume
+          configMap:
+            name: zeek-intel-preseed
         - name: zeek-live-intel-volume
           persistentVolumeClaim:
             claimName: config-claim
+        - name: zeek-live-logs-volume
+          hostPath:
+            path: "{{ .Values.zeek_live.zeek_log_path }}"
+            type: DirectoryOrCreate
 {{- end }}
