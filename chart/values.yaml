@@ -98,6 +98,7 @@ netbox:
   # Set this this value to your reverse proxy url or leave it blank
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
   netbox_default_site: Cyberville
+  netbox_auto_populate: false
 
 storage:
   # This helm chart requires a storage provisioner class it defaults to local-path provisioner
@@ -212,9 +213,18 @@ zeek_env:
   extracted_file_http_server_enable: true
   extracted_file_http_server_encrypt: true
   extracted_file_preservation: quarantined
-  extracted_file_max_bytes: "134217728"
-  extracted_file_min_bytes: "64"
-
+  development:
+    capa_max_requests: 4
+    clamd_max_requests: 8
+    yara_max_requests: 8
+    extracted_file_max_bytes: "134217728"
+    extracted_file_min_bytes: "64"
+  production:
+    capa_max_requests: 8
+    clamd_max_requests: 16
+    yara_max_requests: 16
+    extracted_file_max_bytes: "134217728"
+    extracted_file_min_bytes: "64"
 
 pcap_live:
   enabled: false  
@@ -234,6 +244,7 @@ pcap_capture_env:
   pcap_rotate_megabytes: 4096
   pcap_rotate_minutes: 10
   home_net: "192.168.0.0/16,10.0.0.0/8,172.16.0.0/12"
+  pcap_iface_tweak: true
 
 
 # Shared settings across all live capture type things (IE: Zeek live, Suricata live, and Pcap capture)
