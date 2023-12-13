@@ -1,6 +1,7 @@
 ---
 apiVersion: v1
 data:
+  # TODO Make configureable
   LOGSTASH_NETBOX_AUTO_POPULATE: "false"
   LOGSTASH_NETBOX_ENRICHMENT: "{{ .Values.netbox.enabled }}"
   LOGSTASH_OUI_LOOKUP: "true"
