@@ -283,11 +283,13 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: suricata-rules
+{{- if not .Values.rule_mount_override.enabled }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: suricata-configs
+{{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap

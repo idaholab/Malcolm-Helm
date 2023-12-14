@@ -161,6 +161,10 @@ suricata_live:
     af_packet_ring_size: 65536
     max_pending_packets: 4096
 
+dashboards_helper_env:  
+  opensearch_index_size_prune_limit: 80%
+  opensearch_index_size_prune_name_sort: false
+
 arkime_env:
   free_space_g: "10%"
 
@@ -287,3 +291,7 @@ filebeat:
 process_env:
   pgid: 1000
   puid: 1000
+
+# Only set to true if you intend on mounting these specific folders yourself using a kustomize overlay.
+rule_mount_override:
+  enabled: false

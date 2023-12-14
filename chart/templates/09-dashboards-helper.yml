@@ -4,9 +4,8 @@ data:
   DASHBOARDS_DARKMODE: "true"
   ISM_SNAPSHOT_COMPRESSED: "false"
   ISM_SNAPSHOT_REPO: logs
-  # TODO make tuneable
-  OPENSEARCH_INDEX_SIZE_PRUNE_LIMIT: 80%
-  OPENSEARCH_INDEX_SIZE_PRUNE_NAME_SORT: "false"
+  OPENSEARCH_INDEX_SIZE_PRUNE_LIMIT: "{{ .Values.dashboards_helper_env.opensearch_index_size_prune_limit }}"
+  OPENSEARCH_INDEX_SIZE_PRUNE_NAME_SORT: "{{ .Values.dashboards_helper_env.opensearch_index_size_prune_name_sort }}"
 kind: ConfigMap
 metadata:
   name: dashboards-helper-env

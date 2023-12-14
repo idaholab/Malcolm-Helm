@@ -73,10 +73,12 @@ spec:
             name: suricata-offline-pcap-volume
           - mountPath: "/var/log/suricata"
             name: suricata-offline-suricata-logs-volume
-          # - mountPath: "/opt/suricata/rules/configmap"
-          #   name: suricata-offline-custom-rules-volume
+          {{- if not .Values.rule_mount_override.enabled }}
+          - mountPath: "/opt/suricata/rules/configmap"
+            name: suricata-offline-custom-rules-volume
           - mountPath: "/opt/suricata/include-configs/configmap"
             name: suricata-offline-custom-configs-volume
+          {{- end }}
       initContainers:
       - name: suricata-offline-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
@@ -102,9 +104,11 @@ spec:
         - name: suricata-offline-suricata-logs-volume
           persistentVolumeClaim:
             claimName: suricata-claim-offline
-        # - name: suricata-offline-custom-rules-volume
-        #   configMap:
-        #     name: suricata-rules
+        {{- if not .Values.rule_mount_override.enabled }}
+        - name: suricata-offline-custom-rules-volume
+          configMap:
+            name: suricata-rules
         - name: suricata-offline-custom-configs-volume
           configMap:
             name: suricata-configs
+        {{- end }}
