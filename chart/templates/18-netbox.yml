@@ -35,7 +35,7 @@ spec:
     spec:
       containers:
       - name: netbox-container
-        image: "{{ .Values.image.repository }}/netbox:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/netbox:{{ .Values.image.netbox_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -87,7 +87,7 @@ spec:
             subPath: netbox/media
       initContainers:
       - name: netbox-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

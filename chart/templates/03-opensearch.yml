@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
       - name: opensearch-container
-        image: "{{ .Values.image.repository }}/opensearch:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/opensearch:{{ .Values.image.opensearch_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -75,7 +75,7 @@ spec:
             subPath: "opensearch"
       initContainers:
       - name: opensearch-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

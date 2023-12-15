@@ -9,11 +9,13 @@ data:
   {{- with .Values.suricata_live.production }}
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
   SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
+  SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_live.development }}
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
   SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
+  SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
   {{- end }}
 {{- end }}
 kind: ConfigMap
@@ -43,7 +45,7 @@ spec:
 {{ toYaml .Values.live_capture.tolerations | indent 6 }}
       containers:
       - name: suricata-live-container
-        image: "{{ .Values.image.repository }}/suricata:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/suricata:{{ .Values.image.suricata_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -80,9 +82,15 @@ spec:
             name: suricata-live-var-local-catrust-volume
           - mountPath: /var/log/suricata
             name: suricata-live-suricata-logs-volume
+          {{- if not .Values.rule_mount_override.enabled }}
+          - mountPath: "/opt/suricata/rules/configmap"
+            name: suricata-live-custom-rules-volume
+          - mountPath: "/opt/suricata/include-configs/configmap"
+            name: suricata-live-custom-configs-volume
+          {{- end }}
       initContainers:
       - name: suricata-live-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -103,4 +111,12 @@ spec:
           hostPath:
             path: "{{ .Values.suricata_live.suricata_log_path }}"
             type: DirectoryOrCreate
+        {{- if not .Values.rule_mount_override.enabled }}
+        - name: suricata-live-custom-rules-volume
+          configMap:
+            name: suricata-rules
+        - name: suricata-live-custom-configs-volume
+          configMap:
+            name: suricata-configs
+        {{- end }}
 {{- end }}

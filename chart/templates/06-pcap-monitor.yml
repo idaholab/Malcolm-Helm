@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: pcap-monitor-container
-        image: "{{ .Values.image.repository }}/pcap-monitor:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/pcap-monitor:{{ .Values.image.pcap_monitor_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -75,7 +75,7 @@ spec:
             name: pcap-monitor-zeek-volume
       initContainers:
       - name: pcap-monitor-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

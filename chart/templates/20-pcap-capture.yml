@@ -22,7 +22,7 @@ spec:
 {{ toYaml .Values.live_capture.tolerations | indent 6 }}
       containers:
       - name: pcap-capture-container
-        image: "{{ .Values.image.repository }}/pcap-capture:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/pcap-capture:{{ .Values.image.pcap_capture_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -52,7 +52,7 @@ spec:
             subPath: "upload"
       initContainers:
       - name: pcap-capture-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

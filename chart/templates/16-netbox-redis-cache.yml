@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
       - name: netbox-redis-cache-container
-        image: "{{ .Values.image.repository }}/redis:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/redis:{{ .Values.image.redis_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

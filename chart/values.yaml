@@ -14,7 +14,27 @@ image:
   repository: ghcr.io/idaholab/malcolm
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion found in Chart.yml.
-  tag: ""
+  # Should only need to override these if something is awry with version supplied in Chart.yaml file.
+  dirinit_tag: ""
+  dashboards_tag: ""
+  opensearch_tag: ""
+  upload_tag: ""
+  pcap_monitor_tag: ""
+  arkime_tag: ""
+  api_tag: ""
+  zeek_tag: ""
+  suricata_tag: ""
+  dashboards_helper_tag: ""
+  file_monitor_tag: ""
+  filebeat_tag: ""
+  logstash_tag: ""
+  redis_tag: ""
+  postgresql_tag: ""
+  netbox_tag: ""
+  htadmin_tag: ""
+  pcap_capture_tag: ""
+  freq_tag: ""
+  nginx_tag: ""
 
 auth:
   username: vagrant
@@ -78,6 +98,7 @@ netbox:
   # Set this this value to your reverse proxy url or leave it blank
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
   netbox_default_site: Cyberville
+  netbox_auto_populate: false
 
 storage:
   # This helm chart requires a storage provisioner class it defaults to local-path provisioner
@@ -129,15 +150,23 @@ suricata_live:
     cnaps.io/suricata-capture: "true"
 
   development:
-    af_packet_iface_threads: auto
+    af_packet_iface_threads: 2
     af_packet_ring_size: 2048
+    max_pending_packets: 1024
     # Used if is production is set to true
   production: 
     af_packet_iface_threads: 16
     # Default is calculated threads * max-pending-packets (Default of max-pending-packets is 1024)
     # This calculation was made with the assumtion that max-pending-packets is set to 1024
     af_packet_ring_size: 65536
+    max_pending_packets: 4096
 
+dashboards_helper_env:  
+  opensearch_index_size_prune_limit: 80%
+  opensearch_index_size_prune_name_sort: false
+
+arkime_env:
+  free_space_g: "10%"
 
 suricata_offline:
   suricata_auto_analyze_pcap_threads: "1"
@@ -188,9 +217,18 @@ zeek_env:
   extracted_file_http_server_enable: true
   extracted_file_http_server_encrypt: true
   extracted_file_preservation: quarantined
-  extracted_file_max_bytes: "134217728"
-  extracted_file_min_bytes: "64"
-
+  development:
+    capa_max_requests: 4
+    clamd_max_requests: 8
+    yara_max_requests: 8
+    extracted_file_max_bytes: "134217728"
+    extracted_file_min_bytes: "64"
+  production:
+    capa_max_requests: 8
+    clamd_max_requests: 16
+    yara_max_requests: 16
+    extracted_file_max_bytes: "134217728"
+    extracted_file_min_bytes: "64"
 
 pcap_live:
   enabled: false  
@@ -209,7 +247,8 @@ pcap_capture_env:
   tcpdump: true
   pcap_rotate_megabytes: 4096
   pcap_rotate_minutes: 10
-  home_net: "[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12]"
+  home_net: "192.168.0.0/16,10.0.0.0/8,172.16.0.0/12"
+  pcap_iface_tweak: true
 
 
 # Shared settings across all live capture type things (IE: Zeek live, Suricata live, and Pcap capture)
@@ -252,3 +291,7 @@ filebeat:
 process_env:
   pgid: 1000
   puid: 1000
+
+# Only set to true if you intend on mounting these specific folders yourself using a kustomize overlay.
+rule_mount_override:
+  enabled: false

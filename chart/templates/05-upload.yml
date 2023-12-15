@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
       - name: upload-container
-        image: "{{ .Values.image.repository }}/file-upload:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/file-upload:{{ .Values.image.upload_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -73,7 +73,7 @@ spec:
             subPath: "upload"
       initContainers:
       - name: upload-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

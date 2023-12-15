@@ -35,6 +35,7 @@ apiVersion: v1
 data:
   NETBOX_CRON: "{{ .Values.netbox.enabled }}"
   NETBOX_DEFAULT_SITE: "{{ .Values.netbox.netbox_default_site }}"
+  NETBOX_PRELOAD_PREFIXES: "{{ .Values.netbox.netbox_auto_populate }}"
   NETBOX_DISABLED: "{{ not .Values.netbox.enabled }}"
   NETBOX_POSTGRES_DISABLED: "{{ not .Values.netbox.enabled }}"
   NETBOX_REDIS_DISABLED: "{{ not .Values.netbox.enabled }}"
@@ -147,7 +148,7 @@ data:
   PCAP_ENABLE_TCPDUMP: "{{ .Values.pcap_capture_env.tcpdump }}"
   PCAP_FILTER: "{{ .Values.pcap_capture_env.pcap_filter }}"
   PCAP_IFACE: "{{ .Values.pcap_capture_env.pcap_iface }}"
-  PCAP_IFACE_TWEAK: "false"
+  PCAP_IFACE_TWEAK: "{{ .Values.pcap_capture_env.pcap_iface_tweak }}"
   PCAP_ROTATE_MEGABYTES: "{{ .Values.pcap_capture_env.pcap_rotate_megabytes }}"
   PCAP_ROTATE_MINUTES: "{{ .Values.pcap_capture_env.pcap_rotate_minutes }}"
 kind: ConfigMap
@@ -180,7 +181,7 @@ data:
   SURICATA_UPDATE_DEBUG: "false"
   SURICATA_UPDATE_ETOPEN: "true"
   SURICATA_UPDATE_RULES: "false"
-  SURICATA_HOME_NET: "'{{ .Values.pcap_capture_env.home_net }}'"
+  SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net }}]'"
 kind: ConfigMap
 metadata:
   name: suricata-env
@@ -209,8 +210,23 @@ metadata:
 ---
 apiVersion: v1
 data:
-  CAPA_MAX_REQUESTS: "4"
-  CLAMD_MAX_REQUESTS: "8"
+  {{- if .Values.zeek_env }}
+    {{- with .Values.zeek_env.production }}
+  CAPA_MAX_REQUESTS: "{{ .capa_max_requests }}"
+  CLAMD_MAX_REQUESTS: "{{ .clamd_max_requests }}"
+  YARA_MAX_REQUESTS: "{{ .yara_max_requests }}"
+  EXTRACTED_FILE_MAX_BYTES: "{{ .extracted_file_max_bytes }}"
+  EXTRACTED_FILE_MIN_BYTES: "{{ .extracted_file_min_bytes }}"
+    {{- end }}
+  {{- else }}
+    {{- with .Values.zeek_env.development }}
+  CAPA_MAX_REQUESTS: "{{ .capa_max_requests }}"
+  CLAMD_MAX_REQUESTS: "{{ .clamd_max_requests }}"
+  YARA_MAX_REQUESTS: "{{ .yara_max_requests }}"
+  EXTRACTED_FILE_MAX_BYTES: "{{ .extracted_file_max_bytes }}"
+  EXTRACTED_FILE_MIN_BYTES: "{{ .extracted_file_min_bytes }}"
+    {{- end }}
+  {{- end }}
   EXTRACTED_FILE_CAPA_VERBOSE: "false"
   EXTRACTED_FILE_ENABLE_CAPA: "{{ .Values.zeek_env.extracted_file_enable_capa }}"
   EXTRACTED_FILE_ENABLE_CLAMAV: "{{ .Values.zeek_env.extracted_file_enable_clamav }}"
@@ -218,8 +234,6 @@ data:
   EXTRACTED_FILE_HTTP_SERVER_ENABLE: "{{ .Values.zeek_env.extracted_file_http_server_enable }}"
   EXTRACTED_FILE_HTTP_SERVER_ENCRYPT: "{{ .Values.zeek_env.extracted_file_http_server_encrypt }}"
   EXTRACTED_FILE_IGNORE_EXISTING: "false"
-  EXTRACTED_FILE_MAX_BYTES: "{{ .Values.zeek_env.extracted_file_max_bytes }}"
-  EXTRACTED_FILE_MIN_BYTES: "{{ .Values.zeek_env.extracted_file_min_bytes }}"
   EXTRACTED_FILE_PIPELINE_VERBOSITY: ""
   EXTRACTED_FILE_PRESERVATION: {{ .Values.zeek_env.extracted_file_preservation }}
   EXTRACTED_FILE_UPDATE_RULES: "false"
@@ -227,7 +241,6 @@ data:
   EXTRACTED_FILE_WATCHER_POLLING_ASSUME_CLOSED_SEC: "10"
   EXTRACTED_FILE_YARA_CUSTOM_ONLY: "false"
   VTOT_REQUESTS_PER_MINUTE: "4"
-  YARA_MAX_REQUESTS: "8"
   ZEEK_DISABLE_BEST_GUESS_ICS: ""
   ZEEK_DISABLE_HASH_ALL_FILES: ""
   ZEEK_DISABLE_ICS_ALL: ""
@@ -262,6 +275,32 @@ data:
   ZEEK_INTEL_REFRESH_CRON_EXPRESSION: ""
   ZEEK_SYNCHROPHASOR_DETAILED: ""
   ZEEK_SYNCHROPHASOR_PORTS: ""
+  ZEEK_LOCAL_NETS: "{{ .Values.pcap_capture_env.home_net }}"
 kind: ConfigMap
 metadata:
   name: zeek-env
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: suricata-rules
+{{- if not .Values.rule_mount_override.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: suricata-configs
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zeek-intel-preseed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zeek-custom
+data:
+  __load__.zeek: |
+    # This is a blank file
