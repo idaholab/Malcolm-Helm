@@ -70,7 +70,7 @@ spec:
     spec:
       containers:
       - name: htadmin-container
-        image: "{{ .Values.image.repository }}/htadmin:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/htadmin:{{ .Values.image.htadmin_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -103,7 +103,7 @@ spec:
             subPath: "htadmin"
       initContainers:
       - name: htadmin-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

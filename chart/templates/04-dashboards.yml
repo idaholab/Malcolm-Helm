@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: dashboards-container
-        image: "{{ .Values.image.repository }}/dashboards:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dashboards:{{ .Values.image.dashboards_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

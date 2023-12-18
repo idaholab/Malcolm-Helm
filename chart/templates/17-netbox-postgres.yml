@@ -18,7 +18,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: netbox-postgres-deployment
-  
 spec:
   selector:
     matchLabels:
@@ -31,7 +30,7 @@ spec:
     spec:
       containers:
       - name: netbox-postgres-container
-        image: "{{ .Values.image.repository }}/postgresql:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/postgresql:{{ .Values.image.postgresql_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -75,7 +74,7 @@ spec:
             subPath: netbox/postgres
       initContainers:
       - name: netbox-postgres-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

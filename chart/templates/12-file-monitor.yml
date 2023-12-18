@@ -39,7 +39,7 @@ spec:
     spec:
       containers:
       - name: file-monitor-container
-        image: "{{ .Values.image.repository }}/file-monitor:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/file-monitor:{{ .Values.image.file_monitor_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -87,7 +87,7 @@ spec:
             name: file-monitor-yara-rules-custom-volume
       initContainers:
       - name: file-monitor-live-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
       - name: arkime-container
-        image: "{{ .Values.image.repository }}/arkime:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/arkime:{{ .Values.image.arkime_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -116,7 +116,7 @@ spec:
 {{- end }}
       initContainers:
       - name: arkime-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
