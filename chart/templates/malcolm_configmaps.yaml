@@ -17,7 +17,7 @@ data:
 kind: ConfigMap
 metadata:
   name: beats-common-env
-  
+
 ---
 apiVersion: v1
 data:
@@ -122,7 +122,7 @@ data:
   OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError
     -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
   {{- end }}
-{{- end }}  
+{{- end }}
   OPENSEARCH_PRIMARY: "{{ include "malcolm.opensearchprimary" . }}"
   OPENSEARCH_SECONDARY: "false"
   OPENSEARCH_SECONDARY_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.secondary.curlrc
@@ -137,6 +137,7 @@ data:
   indices.query.bool.max_clause_count: "4096"
   logger.level: WARN
   path.repo: /opt/opensearch/backup
+  node.max_local_storage_nodes: "{{ .Values.opensearch.database_nodes }}"
 kind: ConfigMap
 metadata:
   name: opensearch-env

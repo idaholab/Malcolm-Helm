@@ -22,7 +22,7 @@ type: Opaque
 apiVersion: v1
 kind: Service
 metadata:
-  name: arkime  
+  name: arkime
 spec:
   ports:
     - port: 8005
@@ -81,7 +81,7 @@ spec:
               name: arkime-secret-env
         env:
           - name: VIRTUAL_HOST
-            value: "arkime.malcolm.local"                
+            value: "arkime.malcolm.local"
           - name: PCAP_NODE_NAME
             valueFrom:
               fieldRef:
@@ -99,7 +99,7 @@ spec:
         volumeMounts:
           - mountPath: /opt/arkime/etc/config.orig.ini
             name: arkime-config-default
-            subPath: config.ini        
+            subPath: config.ini
           - mountPath: /var/local/ca-trust/configmap
             name: arkime-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap

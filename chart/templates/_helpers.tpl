@@ -1,5 +1,5 @@
 {{/*
-Gets elasticsearch password either from a defined secret or grabs the one specified 
+Gets elasticsearch password either from a defined secret or grabs the one specified
 in values.yaml file directly.
 */}}
 {{- define "malcolm.elasticsearchpassword" -}}
@@ -55,7 +55,7 @@ Get Opensearch or Elasticsearch url.
 
 
 {{/*
-Get Opensearch or Elasticsearch dashboards url. TODO figure out a way to refactor this so 
+Get Opensearch or Elasticsearch dashboards url. TODO figure out a way to refactor this so
 I am not duplicating this template code.
 */}}
 {{- define "malcolm.dashboardsurl" -}}
@@ -82,13 +82,13 @@ I am not duplicating this template code.
 
 
 {{/*
-Get Opensearch or Elasticsearch url short version (IE: opensearch:9200). 
+Get Opensearch or Elasticsearch url short version (IE: opensearch:9200).
 */}}
 {{- define "malcolm.primaryurlshort" -}}
-{{- if .Values.external_elasticsearch.enabled }}    
+{{- if .Values.external_elasticsearch.enabled }}
     {{- $parts := split "://" .Values.external_elasticsearch.url }}
     {{- printf "%s" $parts._1 }}
-{{- else }}    
+{{- else }}
     {{- $parts := split "://" .Values.opensearch.url }}
     {{- printf "%s" $parts._1 }}
 {{- end }}
@@ -96,13 +96,13 @@ Get Opensearch or Elasticsearch url short version (IE: opensearch:9200).
 
 
 {{/*
-Get Opensearch or Elasticsearch dashboards url short version (IE: dashboards:5601). 
+Get Opensearch or Elasticsearch dashboards url short version (IE: dashboards:5601).
 */}}
 {{- define "malcolm.dashboardsurlshort" -}}
-{{- if .Values.external_elasticsearch.enabled }}    
+{{- if .Values.external_elasticsearch.enabled }}
     {{- $parts := split "://" .Values.external_elasticsearch.dashboards_url }}
     {{- printf "%s" $parts._1 }}
-{{- else }}    
+{{- else }}
     {{- $parts := split "://" .Values.opensearch.dashboards_url }}
     {{- $parts2 := split "/" $parts._1 }}
     {{- printf "%s" $parts2._0 }}

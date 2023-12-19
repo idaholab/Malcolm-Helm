@@ -5,7 +5,6 @@ configmap_names=$(kubectl get configmaps -n "$namespace" -o jsonpath='{.items[*]
 
 IFS=" " read -ra names <<< "$configmap_names"
 
-
 rm -f $config_map_file_name
 for name in "${names[@]}"; do
   echo "ConfigMap Name: $name"

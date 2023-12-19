@@ -4,29 +4,44 @@ apiVersion: v1
 kind: Service
 metadata:
   name: netbox-postgres
-  
 spec:
   ports:
     - port: 5432
       protocol: TCP
       name: postgresql
   selector:
-    name: netbox-postgres-deployment
+    name: netbox-postgres-statefulset
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbox-postgres-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 5432
+      protocol: TCP
+      name: postgresql
+  selector:
+    name: netbox-postgres-statefulset
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: netbox-postgres-deployment
+  name: netbox-postgres-statefulset
 spec:
   selector:
     matchLabels:
-      name: netbox-postgres-deployment
-  replicas: 1
+      name: netbox-postgres-statefulset
+  serviceName: netbox-postgres-headless
+  replicas: {{ .Values.netbox.database_nodes }}
   template:
     metadata:
       labels:
-        name: netbox-postgres-deployment
+        name: netbox-postgres-statefulset
     spec:
       containers:
       - name: netbox-postgres-container

@@ -25,7 +25,7 @@ spec:
   hosts:
   - "malcolm.test.dev"
   gateways:
-  - istio-system/test-gateway  
+  - istio-system/test-gateway
   http:
   - route:
     - destination:

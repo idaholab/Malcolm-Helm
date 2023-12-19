@@ -5,7 +5,6 @@ secret_names=$(kubectl get secret -n "$namespace" -o jsonpath='{.items[*].metada
 
 IFS=" " read -ra names <<< "$secret_names"
 
-
 rm -f $secret_file_name
 for name in "${names[@]}"; do
   echo "ConfigMap Name: $name"

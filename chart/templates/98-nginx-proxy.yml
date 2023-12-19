@@ -11,7 +11,7 @@ data:
     Vyoi3N+QwxlHRX9nGWlEVefrGVEN7WKBLwIBAg==
     -----END DH PARAMETERS-----
 kind: ConfigMap
-metadata:  
+metadata:
   name: etc-nginx-certs-pem
 
 ---
@@ -19,10 +19,9 @@ apiVersion: v1
 data:
   htpasswd: {{ .Values.auth.htpass_cred | b64enc }}
 kind: Secret
-metadata:  
+metadata:
   name: etc-nginx-auth
 type: Opaque
-
 
 ---
 apiVersion: v1
@@ -50,7 +49,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-proxy-deployment  
+  name: nginx-proxy-deployment
 spec:
   selector:
     matchLabels:

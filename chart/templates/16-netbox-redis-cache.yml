@@ -4,30 +4,44 @@ apiVersion: v1
 kind: Service
 metadata:
   name: netbox-redis-cache
-  
 spec:
   ports:
     - port: 6379
       protocol: TCP
       name: redis
   selector:
-    name: netbox-redis-cache-deployment
+    name: netbox-redis-cache-statefulset
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbox-redis-cache-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 6379
+      protocol: TCP
+      name: redis
+  selector:
+    name: netbox-redis-cache-statefulset
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: netbox-redis-cache-deployment
-  
+  name: netbox-redis-cache-statefulset
 spec:
   selector:
     matchLabels:
-      name: netbox-redis-cache-deployment
-  replicas: 1
+      name: netbox-redis-cache-statefulset
+  serviceName: netbox-redis-cache-headless
+  replicas: {{ .Values.netbox.redis_nodes }}
   template:
     metadata:
       labels:
-        name: netbox-redis-cache-deployment
+        name: netbox-redis-cache-statefulset
     spec:
       containers:
       - name: netbox-redis-cache-container

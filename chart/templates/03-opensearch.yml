@@ -10,7 +10,22 @@ spec:
       protocol: TCP
       name: opensearch
   selector:
-    name: opensearch-deployment
+    name: opensearch-statefulset
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 9200
+      protocol: TCP
+      name: opensearch
+  selector:
+    name: opensearch-statefulset
 
 ---
 apiVersion: v1
@@ -21,18 +36,19 @@ type: Opaque
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: opensearch-deployment
+  name: opensearch-statefulset
 spec:
   selector:
     matchLabels:
-      name: opensearch-deployment
-  replicas: 1
+      name: opensearch-statefulset
+  serviceName: opensearch-headless
+  replicas: {{ .Values.opensearch.database_nodes }}
   template:
     metadata:
       labels:
-        name: opensearch-deployment
+        name: opensearch-statefulset
     spec:
       containers:
       - name: opensearch-container
