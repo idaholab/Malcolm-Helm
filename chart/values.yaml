@@ -99,7 +99,6 @@ netbox:
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
   netbox_default_site: Cyberville
   netbox_auto_populate: false
-  replicas: 3
 
 storage:
   # This helm chart requires a storage provisioner class it defaults to local-path provisioner
@@ -165,7 +164,7 @@ suricata_live:
     af_packet_ring_size: 65536
     max_pending_packets: 4096
 
-dashboards_helper_env:  
+dashboards_helper_env:
   opensearch_index_size_prune_limit: 80%
   opensearch_index_size_prune_name_sort: false
 
