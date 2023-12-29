@@ -1,4 +1,4 @@
-{{- if .Values.netbox.enabled }}
+{{- if and .Values.netbox.enabled (not .Values.netbox.database.is_custom) }}
 ---
 apiVersion: v1
 kind: Service

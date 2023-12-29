@@ -161,3 +161,27 @@ Used to generate manager nodes for opensearch
 opensearch-{{ $index }},
 {{- end -}}
 {{- end }}
+
+{{/*
+Generate extra secrets for database
+*/}}
+{{- define "netbox.databaseExtravars" }}
+{{- range $index, $value := .netbox.database.extra_secrets }}
+apiVersion: v1
+kind: Secret
+type: Opaque
+  {{- range $key, $value1 := $value }}
+metadata:
+  name: {{ $key }}
+data:
+    {{- range $key1, $value2 := $value1 }}
+        {{- if $value2 }}
+  {{ $key1 }}: {{ $value2 | b64enc }}
+        {{- else }}
+  {{ $key1 }}: {{ $.postgresPassword | b64enc }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}

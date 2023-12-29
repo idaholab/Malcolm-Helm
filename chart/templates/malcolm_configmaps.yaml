@@ -54,8 +54,8 @@ data:
 {{- else }}
   CSRF_TRUSTED_ORIGINS: {{ .Values.netbox.csrf_trusted_origins | default "http://* https://*" | quote }}
 {{- end }}
-  DB_HOST: netbox-postgres
-  DB_NAME: netbox
+  DB_HOST: {{ .Values.netbox.database.host }}
+  DB_NAME: {{ .Values.netbox.database.name }}
   EMAIL_FROM: netbox@bar.com
   EMAIL_PORT: "25"
   EMAIL_SERVER: localhost

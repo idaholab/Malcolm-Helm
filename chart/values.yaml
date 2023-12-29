@@ -99,6 +99,21 @@ netbox:
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
   netbox_default_site: Cyberville
   netbox_auto_populate: false
+  database:
+   host: netbox-postgres
+   name: netbox
+   # Set true if using custom database for netbox
+   is_custom: false
+   # Create extra secrets for database, empty attributes will be set to randomly general postgres password.
+   # The password will be same for all empty attributes.
+   extra_secrets: [{}]
+    # Example
+    # - postgresql-secret:
+    #     username: netbox
+    #     password: ""
+    # - pgpool-secret:
+    #     adminUsername: netbox-pgpool
+    #     adminPassword: ""
 
 storage:
   # This helm chart requires a storage provisioner class it defaults to local-path provisioner
