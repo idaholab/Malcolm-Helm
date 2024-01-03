@@ -1,32 +1,59 @@
-{{- if .Values.netbox.enabled }}
+{{- if and .Values.netbox.enabled (not .Values.netbox.database.is_custom) }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: netbox-postgres
-  
 spec:
   ports:
     - port: 5432
       protocol: TCP
       name: postgresql
   selector:
-    name: netbox-postgres-deployment
+    name: netbox-postgres
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbox-postgres-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - port: 5432
+      protocol: TCP
+      name: postgresql
+  selector:
+    name: netbox-postgres
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: netbox-postgres-deployment
+  name: netbox-postgres
 spec:
   selector:
     matchLabels:
-      name: netbox-postgres-deployment
+      name: netbox-postgres
+  serviceName: netbox-postgres-headless
+  volumeClaimTemplates:
+    - metadata:
+        name: netbox-postgres-claim
+      spec:
+        storageClassName: {{ .Values.storage.netbox_postgres_claim.className }}
+        accessModes:
+          - ReadWriteOnce
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: {{ .Values.storage.netbox_postgres_claim.size }}
   replicas: 1
   template:
     metadata:
       labels:
-        name: netbox-postgres-deployment
+        name: netbox-postgres
     spec:
       containers:
       - name: netbox-postgres-container
@@ -70,7 +97,7 @@ spec:
           - mountPath: /var/local/ca-trust/configmap
             name: netbox-postgres-var-local-catrust-volume
           - mountPath: /var/lib/postgresql/data
-            name: netbox-postgres-volume
+            name: netbox-postgres-claim
             subPath: netbox/postgres
       initContainers:
       - name: netbox-postgres-dirinit-container
@@ -85,13 +112,10 @@ spec:
           - name: PUSER_MKDIR
             value: "/data/config:netbox/postgres"
         volumeMounts:
-          - name: netbox-postgres-volume
+          - name: netbox-postgres-claim
             mountPath: "/data/config"
       volumes:
         - name: netbox-postgres-var-local-catrust-volume
           configMap:
             name: var-local-catrust
-        - name: netbox-postgres-volume
-          persistentVolumeClaim:
-            claimName: config-claim
 {{- end }}

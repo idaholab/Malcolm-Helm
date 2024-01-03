@@ -66,33 +66,3 @@ spec:
   resources:
     requests:
       storage: {{ .Values.storage.runtime_logs_claim.size }}
-
-{{- if .Values.opensearch.enabled }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: opensearch-claim
-spec:
-  storageClassName: {{ .Values.storage.opensearch_claim.className }}
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: {{ .Values.storage.opensearch_claim.size }}
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: opensearch-backup-claim
-spec:
-  storageClassName: {{ .Values.storage.opensearch_backup_claim.className }}
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: {{ .Values.storage.opensearch_backup_claim.size }}
-{{- end }}

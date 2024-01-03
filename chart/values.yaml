@@ -1,5 +1,5 @@
 # When set to true the chart will use values defined with production: sections over development: sections
-# It was created for swapping between running the chart on a development kubernetes cluster with minimal 
+# It was created for swapping between running the chart on a development kubernetes cluster with minimal
 # resources vs a production one.
 is_production: false
 
@@ -45,14 +45,14 @@ auth:
 
 opensearch:
   enabled: true
+  singleNode: true
+  replicas: 3
   url: http://opensearch:9200
   dashboards_url: http://dashboards:5601/dashboards
   development:
     java_memory: -Xms4g -Xmx4g -Xss256k -XX
   production:
     java_memory: -Xms32g -Xmx32g -Xss256k -XX
-  
-  
 external_elasticsearch:
   enabled: false
   # Supports https or http urls for elasticsearch
@@ -77,17 +77,17 @@ external_elasticsearch:
 
   # Only supports http urls for Kibana.
   dashboards_url: "http://dataplane-ek-kb-http.dataplane-ek.svc.cluster.local:5601"
-  
+
 logstash:
   # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
   development:
-    java_memory: -Xms1g -Xmx1g -Xss1536k -XX  
+    java_memory: -Xms1g -Xmx1g -Xss1536k -XX
     replicas: 1
     #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
     workers: 6
     batch_delay: 50
     batch_size: 75
-  production:    
+  production:
     java_memory: -Xms16g -Xmx16g -Xss1536k -XX
     workers: 18
     batch_delay: 50
@@ -99,31 +99,49 @@ netbox:
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
   netbox_default_site: Cyberville
   netbox_auto_populate: false
+  database:
+   host: netbox-postgres
+   name: netbox
+   # Set true if using custom database for netbox
+   is_custom: false
+   # Create extra secrets for database, empty attributes will be set to randomly general postgres password.
+   # The password will be same for all empty attributes.
+   extra_secrets: [{}]
+    # Example
+    # - postgresql-secret:
+    #     username: netbox
+    #     password: ""
+    # - pgpool-secret:
+    #     adminUsername: netbox-pgpool
+    #     adminPassword: ""
 
 storage:
   # This helm chart requires a storage provisioner class it defaults to local-path provisioner
   # If your kuberenetes cluster has a different storage provisioner please ensure you change this name.
-  # https://github.com/rancher/local-path-provisioner  
-  pcap_claim: 
+  # https://github.com/rancher/local-path-provisioner
+  pcap_claim:
     size: 100Gi
     className: local-path
-  zeek_claim: 
+  zeek_claim:
     size: 50Gi
     className: local-path
   suricata_claim:
     size: 50Gi
     className: local-path
-  config_claim: 
+  config_claim:
     size: 25Gi
     className: local-path
-  runtime_logs_claim: 
+  runtime_logs_claim:
     size: 25Gi
     className: local-path
-  opensearch_claim: 
-    size: 100Gi
+  opensearch_claim:
+    size: 25Gi
     className: local-path
-  opensearch_backup_claim: 
-    size: 100Gi
+  opensearch_backup_claim:
+    size: 25Gi
+    className: local-path
+  netbox_postgres_claim:
+    size: 15Gi
     className: local-path
 
 ingress:
@@ -154,14 +172,14 @@ suricata_live:
     af_packet_ring_size: 2048
     max_pending_packets: 1024
     # Used if is production is set to true
-  production: 
+  production:
     af_packet_iface_threads: 16
     # Default is calculated threads * max-pending-packets (Default of max-pending-packets is 1024)
     # This calculation was made with the assumtion that max-pending-packets is set to 1024
     af_packet_ring_size: 65536
     max_pending_packets: 4096
 
-dashboards_helper_env:  
+dashboards_helper_env:
   opensearch_index_size_prune_limit: 80%
   opensearch_index_size_prune_name_sort: false
 
@@ -176,7 +194,7 @@ suricata_offline:
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
 zeek_live:
   enabled: true
-  zeek_log_path: /opt/zeek/logs  
+  zeek_log_path: /opt/zeek/logs
   # Zeek live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
     cnaps.io/zeek-capture: "true"
@@ -191,7 +209,7 @@ zeek_live:
     worker_lb_procs: "12"
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "134217728"
-    
+
 
 # Only affects the zeek offline deployment
 zeek_offline:
@@ -231,7 +249,7 @@ zeek_env:
     extracted_file_min_bytes: "64"
 
 pcap_live:
-  enabled: false  
+  enabled: false
 
   # Pcap live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
@@ -267,7 +285,7 @@ live_capture:
 
 # Filebeat capture
 filebeat:
-  filebeat_clean_inactive: 180m  
+  filebeat_clean_inactive: 180m
   filebeat_close_inactive: 120s
   filebeat_close_inactive_live: 90m
   filebeat_ignore_older: 120m
