@@ -82,9 +82,6 @@ spec:
         - name: arkime-live-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
-        - name: arkime-live-rules-volume
-          configMap:
-            name: arkime-rules
         - name: arkime-live-pcap-volume
           persistentVolumeClaim:
             claimName: pcap-claim
