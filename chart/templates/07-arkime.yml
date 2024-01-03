@@ -1,9 +1,21 @@
 ---
 apiVersion: v1
 data:
+  # The number of Arkime processes for analyzing uploaded PCAP files allowed
+  #   to run concurrently  
   ARKIME_ANALYZE_PCAP_THREADS: "1"
   MANAGE_PCAP_FILES: "false"
   OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
+  # Whether or not Arkime should analyze uploaded PCAP files
+  ARKIME_AUTO_ANALYZE_PCAP_FILES: "true"
+  # Whether or not Arkime should analyze captured PCAP files captured
+  #   by netsniff-ng/tcpdump (see PCAP_ENABLE_NETSNIFF and PCAP_ENABLE_TCPDUMP
+  #   below). If ARKIME_LIVE_CAPTURE is true, this should be false: otherwise
+  #   Arkime will see duplicate traffic.
+  ARKIME_ROTATED_PCAP: "false"
+  ARKIME_PCAP_PROCESSOR: "true"
+  VIEWER: "on"
+  WISE: "on"
 kind: ConfigMap
 metadata:
   name: arkime-env

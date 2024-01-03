@@ -1,4 +1,33 @@
 ---
+apiVersion: v1
+data:
+  # Whether or Arkime should monitor live traffic on a local
+  #   interface (PCAP_IFACE in pcap-capture.env specifies interface)
+  ARKIME_LIVE_CAPTURE: "false"
+  # Live capture tuning parameters
+  ARKIME_COMPRESSION_TYPE: none
+  ARKIME_COMPRESSION_LEVEL: "0"
+  ARKIME_DB_BULK_SIZE: "4000000"
+  ARKIME_MAGIC_MODE: basic
+  ARKIME_MAX_PACKETS_IN_QUEUE: "300000"
+  ARKIME_PACKET_THREADS: "2"
+  ARKIME_PCAP_WRITE_METHOD: "simple"
+  ARKIME_PCAP_WRITE_SIZE: "2560000"
+  ARKIME_PCAP_READ_METHOD: tpacketv3
+  ARKIME_TPACKETV3_NUM_THREADS: "2"
+  ARKIME_TPACKETV3_BLOCK_SIZE: "8388608"
+  # The node host (e.g., the IP address of the machine running Malcolm) to associate with
+  #   network traffic metadata when ARKIME_LIVE_CAPTURE is true
+  #   (optional, defaults to PCAP_NODE_NAME if unspecified)
+  ARKIME_LIVE_NODE_HOST: ""
+  ARKIME_PCAP_PROCESSOR: "false"
+  VIEWER: "on"
+  WISE: "off"
+kind: ConfigMap
+metadata:
+  name: arkime-live-env
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -56,8 +85,6 @@ spec:
             name: arkime-live-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: arkime-live-opensearch-curlrc-secret-volume
-          - mountPath: "/opt/arkime/rules/configmap"
-            name: arkime-live-rules-volume
           - mountPath: "/data/pcap"
             name: arkime-live-pcap-volume
       initContainers:
