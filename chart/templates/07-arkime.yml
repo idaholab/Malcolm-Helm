@@ -77,6 +77,8 @@ spec:
               name: upload-common-env
           - configMapRef:
               name: arkime-env
+          # TODO - configMapRef:
+          #     name: arkime-offline-env
           - secretRef:
               name: arkime-secret-env
         env:
@@ -104,11 +106,10 @@ spec:
             name: arkime-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: arkime-opensearch-curlrc-secret-volume
+          - mountPath: "/opt/arkime/rules/configmap"
+            name: arkime-rules-volume
           - mountPath: "/data/pcap"
             name: arkime-pcap-volume
-          - name: arkime-runtime-logs-volume
-            mountPath: /opt/arkime/logs
-            subPath: "arkime"
 {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
           - name: elastic-cert
             mountPath: /usr/local/share/ca-certificates/elastic_ca.crt
@@ -125,16 +126,17 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/data/pcap:processed;/data/runtime-logs:arkime"
+            value: "/data/pcap:processed"
         volumeMounts:
           - name: arkime-pcap-volume
             mountPath: "/data/pcap"
-          - name: arkime-runtime-logs-volume
-            mountPath: "/data/runtime-logs"
       volumes:
         - name: arkime-config-default
           configMap:
             name: arkime-config
+        - name: arkime-rules-volume
+          configMap:
+            name: arkime-rules
         - name: arkime-var-local-catrust-volume
           configMap:
             name: var-local-catrust
@@ -144,9 +146,6 @@ spec:
         - name: arkime-pcap-volume
           persistentVolumeClaim:
             claimName: pcap-claim
-        - name: arkime-runtime-logs-volume
-          persistentVolumeClaim:
-            claimName: runtime-logs-claim
 {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
         - name: elastic-cert
           secret:

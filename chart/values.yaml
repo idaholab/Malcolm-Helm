@@ -185,6 +185,7 @@ dashboards_helper_env:
 
 arkime_env:
   free_space_g: "10%"
+  rotate_index: hourly6
 
 suricata_offline:
   suricata_auto_analyze_pcap_threads: "1"
