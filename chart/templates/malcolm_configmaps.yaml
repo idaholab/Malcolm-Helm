@@ -17,7 +17,7 @@ data:
 kind: ConfigMap
 metadata:
   name: beats-common-env
-  
+
 ---
 apiVersion: v1
 data:
@@ -54,8 +54,8 @@ data:
 {{- else }}
   CSRF_TRUSTED_ORIGINS: {{ .Values.netbox.csrf_trusted_origins | default "http://* https://*" | quote }}
 {{- end }}
-  DB_HOST: netbox-postgres
-  DB_NAME: netbox
+  DB_HOST: {{ .Values.netbox.database.host }}
+  DB_NAME: {{ .Values.netbox.database.name }}
   EMAIL_FROM: netbox@bar.com
   EMAIL_PORT: "25"
   EMAIL_SERVER: localhost
@@ -122,7 +122,7 @@ data:
   OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError
     -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
   {{- end }}
-{{- end }}  
+{{- end }}
   OPENSEARCH_PRIMARY: "{{ include "malcolm.opensearchprimary" . }}"
   OPENSEARCH_SECONDARY: "false"
   OPENSEARCH_SECONDARY_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.secondary.curlrc
@@ -133,10 +133,19 @@ data:
   bootstrap.memory_lock: "true"
   cluster.routing.allocation.disk.threshold_enabled: "false"
   cluster.routing.allocation.node_initial_primaries_recoveries: "8"
+{{- if .Values.opensearch.singleNode }}
   discovery.type: single-node
+{{- else }}
+  cluster.initial_cluster_manager_nodes: {{ template "malcolm.managerNodes" . }}
+  discovery.type: ""
+{{- end }}
+  cluster.name: opensearch-cluster
+  network.host: 0.0.0.0
   indices.query.bool.max_clause_count: "4096"
-  logger.level: WARN
+  logger.level: INFO
   path.repo: /opt/opensearch/backup
+  node.roles: ingest,data,remote_cluster_client,cluster_manager
+  discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
 kind: ConfigMap
 metadata:
   name: opensearch-env

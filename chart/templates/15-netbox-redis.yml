@@ -10,22 +10,21 @@ spec:
       protocol: TCP
       name: redis
   selector:
-    name: netbox-redis-deployment
+    name: netbox-redis
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: netbox-redis-deployment
+  name: netbox-redis
 spec:
   selector:
     matchLabels:
-      name: netbox-redis-deployment
-  replicas: 1
+      name: netbox-redis
   template:
     metadata:
       labels:
-        name: netbox-redis-deployment
+        name: netbox-redis
     spec:
       containers:
       - name: netbox-redis-container
