@@ -1,0 +1,122 @@
+---
+apiVersion: v1
+data:
+  .gitignore: |+
+    *
+    !.gitignore
+
+  single_session_no_spi.yml: |
+    ---
+    version: 1
+    rules:
+      - name: "Dont save SPI sessions with only 1 source packet"
+        when: "beforeFinalSave"
+        fields:
+          packets.src: 1
+          packets.dst: 0
+          tcpflags.syn: 1
+        ops:
+          _dontSaveSPI: 1
+  ssh_trunate.yml: |
+    ---
+    version: 1
+    rules:
+      - name: "Only save first n packets of SSH"
+        when: "fieldSet"
+        fields:
+          protocols:
+          - ssh
+        ops:
+          _maxPacketsToSave: 20
+  tls_trunate.yml: |
+    ---
+    version: 1
+    rules:
+      - name: "Only save first n packets of TLS"
+        when: "fieldSet"
+        fields:
+          protocols:
+          - tls
+        ops:
+          _maxPacketsToSave: 15
+kind: ConfigMap
+metadata:
+  name: arkime-rules
+  namespace: malcolm
+
+---
+apiVersion: v1
+data:
+  # Whether or not Arkime should analyze uploaded PCAP files
+  ARKIME_AUTO_ANALYZE_PCAP_FILES: "true"
+  # Whether or not Arkime should analyze captured PCAP files captured
+  #   by netsniff-ng/tcpdump (see PCAP_ENABLE_NETSNIFF and PCAP_ENABLE_TCPDUMP
+  #   below). If ARKIME_LIVE_CAPTURE is true, this should be false: otherwise
+  #   Arkime will see duplicate traffic.
+  ARKIME_ROTATED_PCAP: "true"
+  ARKIME_PCAP_PROCESSOR: "true"
+  ARKIME_AUTO_ANALYZE_PCAP_THREADS: "1"
+  VIEWER: "on"
+  WISE: "on"
+kind: ConfigMap
+metadata:
+  name: arkime-offline-env
+
+---
+apiVersion: v1
+data:
+  ARKIME_VIEWER_PORT: "8005"
+  MANAGE_PCAP_FILES: "true"
+  OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
+  ARKIME_FREESPACEG: "{{ .Values.arkime_env.free_space_g }}"
+kind: ConfigMap
+metadata:
+  name: arkime-env
+
+---
+apiVersion: v1
+data:
+  MAXMIND_GEOIP_DB_LICENSE_KEY: MA==
+  ARKIME_PASSWORD_SECRET: "{{ .Values.auth.arkime_password | b64enc }}"
+kind: Secret
+metadata:
+  name: arkime-secret-env
+type: Opaque
+{{- if .Values.arkime_live.enabled }}
+---
+apiVersion: v1
+data:
+  # Whether or Arkime should monitor live traffic on a local
+  #   interface (PCAP_IFACE in pcap-capture.env specifies interface)
+  ARKIME_LIVE_CAPTURE: "true"
+  # Live capture tuning parameters
+  ARKIME_COMPRESSION_TYPE: none
+  ARKIME_COMPRESSION_LEVEL: "0"
+  ARKIME_DB_BULK_SIZE: "4000000"
+  ARKIME_MAGIC_MODE: basic
+  ARKIME_MAX_PACKETS_IN_QUEUE: "300000"
+  ARKIME_PACKET_THREADS: "2"
+  ARKIME_PCAP_WRITE_METHOD: "simple"
+  ARKIME_PCAP_WRITE_SIZE: "2560000"
+  ARKIME_PCAP_READ_METHOD: tpacketv3
+  ARKIME_TPACKETV3_NUM_THREADS: "2"
+  ARKIME_TPACKETV3_BLOCK_SIZE: "8388608"
+  ARKIME_PCAP_PROCESSOR: "false"
+  VIEWER: "on"
+  WISE: "off"
+kind: ConfigMap
+metadata:
+  name: arkime-live-env
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arkime-live-shell-override
+data:
+  command_override.sh: |
+    #!/bin/bash
+    sed -i 's/NODE_NAME=${PCAP_NODE_NAME:-"malcolm"}-live/NODE_NAME=${PCAP_NODE_NAME}/' /opt/live_capture.sh
+    sed -i 's/NODE_HOST=${ARKIME_LIVE_NODE_HOST:-""}/NODE_HOST=${NODE_NAME}/' /opt/live_capture.sh
+    /usr/bin/tini -- /usr/local/bin/docker-uid-gid-setup.sh /usr/local/bin/service_check_passthrough.sh -s arkime /opt/docker_entrypoint.sh
+    /usr/bin/supervisord -c /etc/supervisord.conf -n
