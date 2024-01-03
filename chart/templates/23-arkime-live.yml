@@ -3,7 +3,7 @@ apiVersion: v1
 data:
   # Whether or Arkime should monitor live traffic on a local
   #   interface (PCAP_IFACE in pcap-capture.env specifies interface)
-  ARKIME_LIVE_CAPTURE: "false"
+  ARKIME_LIVE_CAPTURE: "true"
   # Live capture tuning parameters
   ARKIME_COMPRESSION_TYPE: none
   ARKIME_COMPRESSION_LEVEL: "0"
@@ -80,6 +80,13 @@ spec:
               name: arkime-live-env
           - secretRef:
               name: arkime-secret-env
+        env:
+          - name: VIRTUAL_HOST
+            value: "arkime.malcolm.local"
+          - name: PCAP_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: arkime-live-var-local-catrust-volume
