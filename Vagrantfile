@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
 
   # NIC 2: Promiscuous mode
   config.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
-  
+
   config.vm.provider "virtualbox" do |vb|
     vb.gui = true
     # Customize the amount of memory on the VM:
@@ -41,12 +41,12 @@ Vagrant.configure("2") do |config|
     curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.26.6+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
-    
+
     systemctl start rke2-server.service
     systemctl enable rke2-server.service
 
     mkdir /root/.kube
-    mkdir /home/vagrant/.kube    
+    mkdir /home/vagrant/.kube
 
     cp /etc/rancher/rke2/rke2.yaml /home/vagrant/.kube/config
     cp /etc/rancher/rke2/rke2.yaml /root/.kube/config
@@ -60,6 +60,7 @@ Vagrant.configure("2") do |config|
     kubectl label nodes $node_name cnaps.io/node-type=Tier-1
     kubectl label nodes $node_name cnaps.io/suricata-capture=true
     kubectl label nodes $node_name cnaps.io/zeek-capture=true
+    kubectl label nodes $node_name cnaps.io/arkime-capture=true
 
     kubectl apply -f /vagrant/vagrant_dependencies/sc.yaml
 
@@ -104,7 +105,7 @@ Vagrant.configure("2") do |config|
       helm install istio istio/base --version 1.18.2 -n istio-system --create-namespace
       helm install istiod istio/istiod --version 1.18.2 -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version 1.18.2 -n istio-system
-      kubectl apply -f /vagrant/vagrant_dependencies/tenant-gateway.yaml      
+      kubectl apply -f /vagrant/vagrant_dependencies/tenant-gateway.yaml
 
       # Create the certs
       mkdir certs
@@ -117,9 +118,9 @@ Vagrant.configure("2") do |config|
       cat certs/ca.crt >> certs/chain.crt
 
       # openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout certs/istio.key -out certs/istio.crt -config /vagrant/vagrant_dependencies/req.conf -extensions 'v3_req'
-      # Setup istio gateway with certs      
+      # Setup istio gateway with certs
       # kubectl create -n istio-system secret tls tenant-cert --key=certs/istio.key --cert=certs/istio.crt
-      kubectl create -n istio-system secret tls tenant-cert --key=certs/bigbang.vp.dev.key --cert=certs/chain.crt      
+      kubectl create -n istio-system secret tls tenant-cert --key=certs/bigbang.vp.dev.key --cert=certs/chain.crt
 
       # Install Malcolm enabling istio
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=enp0s8
@@ -128,7 +129,7 @@ Vagrant.configure("2") do |config|
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost"
       hostname -I
     SHELL
-  else        
+  else
     config.vm.provision "shell", inline: <<-SHELL
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=enp0s8
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost"

@@ -3,6 +3,8 @@ apiVersion: v1
 data:
   LOGSTASH_NETBOX_AUTO_POPULATE: "{{ .Values.netbox.netbox_auto_populate }}"
   LOGSTASH_NETBOX_ENRICHMENT: "{{ .Values.netbox.enabled }}"
+  LOGSTASH_NETBOX_CACHE_SIZE: "1000"
+  LOGSTASH_NETBOX_CACHE_TTL: "30"
   LOGSTASH_OUI_LOOKUP: "true"
   LOGSTASH_REVERSE_DNS: "false"
   LOGSTASH_SEVERITY_SCORING: "true"
@@ -160,7 +162,7 @@ spec:
             secretName: opensearch-curlrc
         - name: logstash-certs-secret-volume
           secret:
-            secretName: logstash-certs        
+            secretName: logstash-certs
         - name: logstash-keystore-default-secret-volume
           secret:
             secretName: logstash-keystore

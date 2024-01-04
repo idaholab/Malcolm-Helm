@@ -1,48 +1,26 @@
----
-apiVersion: v1
-data:
-  # Whether or Arkime should monitor live traffic on a local
-  #   interface (PCAP_IFACE in pcap-capture.env specifies interface)
-  ARKIME_LIVE_CAPTURE: "true"
-  # Live capture tuning parameters
-  ARKIME_COMPRESSION_TYPE: none
-  ARKIME_COMPRESSION_LEVEL: "0"
-  ARKIME_DB_BULK_SIZE: "4000000"
-  ARKIME_MAGIC_MODE: basic
-  ARKIME_MAX_PACKETS_IN_QUEUE: "300000"
-  ARKIME_PACKET_THREADS: "2"
-  ARKIME_PCAP_WRITE_METHOD: "simple"
-  ARKIME_PCAP_WRITE_SIZE: "2560000"
-  ARKIME_PCAP_READ_METHOD: tpacketv3
-  ARKIME_TPACKETV3_NUM_THREADS: "2"
-  ARKIME_TPACKETV3_BLOCK_SIZE: "8388608"
-  # The node host (e.g., the IP address of the machine running Malcolm) to associate with
-  #   network traffic metadata when ARKIME_LIVE_CAPTURE is true
-  #   (optional, defaults to PCAP_NODE_NAME if unspecified)
-  ARKIME_LIVE_NODE_HOST: ""
-  ARKIME_PCAP_PROCESSOR: "false"
-  VIEWER: "on"
-  WISE: "off"
-kind: ConfigMap
-metadata:
-  name: arkime-live-env
-
+{{- if .Values.arkime_live.enabled }}
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: arkime-live-deployment
+  name: arkime-live-daemonset
   namespace: malcolm
 spec:
   selector:
     matchLabels:
-      name: arkime-live-deployment
-  replicas: 1
+      name: arkime-live-daemonset
   template:
     metadata:
       labels:
-        name: arkime-live-deployment
+        name: arkime-live-daemonset
     spec:
+      # Required for coredns to work with hostnetwork set to true.
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      nodeSelector:
+{{ toYaml .Values.arkime_live.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml .Values.live_capture.tolerations | indent 6 }}
       containers:
       - name: arkime-live-container
         image: "{{ .Values.image.repository }}/arkime:{{ .Values.image.freq_tag | default .Chart.AppVersion }}"
@@ -88,16 +66,26 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
         volumeMounts:
+          - mountPath: /opt/arkime/etc/config.orig.ini
+            name: arkime-config-default
+            subPath: config.ini
           - mountPath: /var/local/ca-trust/configmap
             name: arkime-live-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: arkime-live-opensearch-curlrc-secret-volume
+          - mountPath: /opt/arkime/rules/configmap
+            name: arkime-live-rules-volume
           - mountPath: "/data/pcap"
             name: arkime-live-pcap-volume
+{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
+          - name: elastic-cert
+            mountPath: /usr/local/share/ca-certificates/elastic_ca.crt
+            subPath: elastic_ca.crt
+{{- end }}
       initContainers:
       - name: arkime-live-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
-        imagePullPolicy: Always
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
         envFrom:
@@ -110,12 +98,29 @@ spec:
           - name: arkime-live-pcap-volume
             mountPath: "/data/pcap"
       volumes:
+        - name: arkime-config-default
+          configMap:
+            name: arkime-config
         - name: arkime-live-var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: arkime-live-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
+        - name: arkime-live-rules-volume
+          configMap:
+            name: arkime-rules
+        # TODO This should be using a hostPath I think ....
+        # - name: arkime-live-pcap-volume
+        #   persistentVolumeClaim:
+        #     claimName: pcap-claim
         - name: arkime-live-pcap-volume
-          persistentVolumeClaim:
-            claimName: pcap-claim
+          hostPath:
+            path: "{{ .Values.arkime_live.pcap_hostpath }}"
+            type: DirectoryOrCreate
+{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
+        - name: elastic-cert
+          secret:
+            secretName: {{ .Values.external_elasticsearch.elastic_cert_name }}
+{{- end }}
+{{- end }}
