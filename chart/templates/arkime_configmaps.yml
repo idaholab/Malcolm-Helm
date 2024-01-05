@@ -68,6 +68,7 @@ data:
   ARKIME_VIEWER_PORT: "8005"
   MANAGE_PCAP_FILES: "true"
   OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
+  ARKIME_FREESPACEG: "{{ .Values.arkime_env.free_space_g }}"
 kind: ConfigMap
 metadata:
   name: arkime-env
@@ -103,7 +104,7 @@ data:
   # The node host (e.g., the IP address of the machine running Malcolm) to associate with
   #   network traffic metadata when ARKIME_LIVE_CAPTURE is true
   #   (optional, defaults to PCAP_NODE_NAME if unspecified)
-  ARKIME_LIVE_NODE_HOST: ""
+  ARKIME_LIVE_NODE_HOST: "arkime"
   ARKIME_PCAP_PROCESSOR: "false"
   VIEWER: "on"
   WISE: "off"

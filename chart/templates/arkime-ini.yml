@@ -56,6 +56,7 @@ data:
     uploadCommand=
     userAuthIps=::,0.0.0.0/0
     viewerPlugins=wise.js
+    viewHost=0.0.0.0
     viewPort=8005
     wiseHost=127.0.0.1
     wisePort=8081

@@ -65,6 +65,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          # - name: ARKIME_LIVE_NODE_HOST
+          #   valueFrom:
+          #     fieldRef:
+          #       fieldPath: spec.nodeName
         volumeMounts:
           - mountPath: /opt/arkime/etc/config.orig.ini
             name: arkime-config-default

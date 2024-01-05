@@ -68,6 +68,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          # - name: ARKIME_LIVE_NODE_HOST
+          #   valueFrom:
+          #     fieldRef:
+          #       fieldPath: spec.nodeName
         livenessProbe:
           httpGet:
             path: /_ns_/nstest.html
@@ -106,7 +110,7 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/data/pcap:processed"
+            value: "/data/pcap:processed,arkime-live"
         volumeMounts:
           - name: arkime-pcap-volume
             mountPath: "/data/pcap"

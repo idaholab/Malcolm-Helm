@@ -3,6 +3,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: yara-rules
+data:
+  .gitignore: |+
+    *
+    !.gitignore
 
 ---
 apiVersion: v1
