@@ -101,10 +101,6 @@ data:
   ARKIME_PCAP_READ_METHOD: tpacketv3
   ARKIME_TPACKETV3_NUM_THREADS: "2"
   ARKIME_TPACKETV3_BLOCK_SIZE: "8388608"
-  # The node host (e.g., the IP address of the machine running Malcolm) to associate with
-  #   network traffic metadata when ARKIME_LIVE_CAPTURE is true
-  #   (optional, defaults to PCAP_NODE_NAME if unspecified)
-  ARKIME_LIVE_NODE_HOST: "arkime"
   ARKIME_PCAP_PROCESSOR: "false"
   VIEWER: "on"
   WISE: "off"
@@ -112,3 +108,15 @@ kind: ConfigMap
 metadata:
   name: arkime-live-env
 {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arkime-live-shell-override
+data:
+  command_override.sh: |
+    #!/bin/bash
+    sed -i 's/NODE_NAME=${PCAP_NODE_NAME:-"malcolm"}-live/NODE_NAME=${PCAP_NODE_NAME}/' /opt/live_capture.sh
+    sed -i 's/NODE_HOST=${ARKIME_LIVE_NODE_HOST:-""}/NODE_HOST=${NODE_NAME}/' /opt/live_capture.sh
+    /usr/bin/tini -- /usr/local/bin/docker-uid-gid-setup.sh /usr/local/bin/service_check_passthrough.sh -s arkime /opt/docker_entrypoint.sh
+    /usr/bin/supervisord -c /etc/supervisord.conf -n

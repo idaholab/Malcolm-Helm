@@ -68,10 +68,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          # - name: ARKIME_LIVE_NODE_HOST
-          #   valueFrom:
-          #     fieldRef:
-          #       fieldPath: spec.nodeName
         livenessProbe:
           httpGet:
             path: /_ns_/nstest.html
@@ -127,9 +123,13 @@ spec:
         - name: arkime-rules-volume
           configMap:
             name: arkime-rules
+        # - name: arkime-pcap-volume
+        #   persistentVolumeClaim:
+        #     claimName: pcap-claim
         - name: arkime-pcap-volume
-          persistentVolumeClaim:
-            claimName: pcap-claim
+          hostPath:
+            path: "{{ .Values.arkime_live.pcap_hostpath }}"
+            type: DirectoryOrCreate
 {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
         - name: elastic-cert
           secret:

@@ -27,6 +27,9 @@ spec:
         imagePullPolicy: Always
         stdin: false
         tty: true
+        command:
+        - "/bin/bash"
+        - "/opt/command_override.sh"
         securityContext:
           capabilities:
             add:
@@ -65,14 +68,13 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          # - name: ARKIME_LIVE_NODE_HOST
-          #   valueFrom:
-          #     fieldRef:
-          #       fieldPath: spec.nodeName
         volumeMounts:
           - mountPath: /opt/arkime/etc/config.orig.ini
             name: arkime-config-default
             subPath: config.ini
+          - name: arkime-live-shell-override-volume
+            mountPath: /opt/command_override.sh
+            subPath: command_override.sh
           - mountPath: /var/local/ca-trust/configmap
             name: arkime-live-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
@@ -114,10 +116,9 @@ spec:
         - name: arkime-live-rules-volume
           configMap:
             name: arkime-rules
-        # TODO This should be using a hostPath I think ....
-        # - name: arkime-live-pcap-volume
-        #   persistentVolumeClaim:
-        #     claimName: pcap-claim
+        - name: arkime-live-shell-override-volume
+          configMap:
+            name: arkime-live-shell-override
         - name: arkime-live-pcap-volume
           hostPath:
             path: "{{ .Values.arkime_live.pcap_hostpath }}"
