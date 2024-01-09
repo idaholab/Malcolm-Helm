@@ -153,14 +153,6 @@ data:
           client_max_body_size 50G;
         }
 
-        # Logstash statistics
-        location ~* ^/logstash\b(.*) {
-          include /etc/nginx/nginx_auth_rt.conf;
-          proxy_pass http://logstash-stats/_node/stats$1;
-          proxy_redirect off;
-          proxy_set_header Host arkime.malcolm.local;
-        }
-
         # Arkime -> Dashboards shortcut
         location ~* ^/idark2dash(.*) {
           include /etc/nginx/nginx_auth_rt.conf;

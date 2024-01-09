@@ -42,6 +42,7 @@ auth:
   openssl_password: "$1$9akV05vU$JHFoK3C2dDquTFAMoz14x/"
   # Generated with  htpasswd -bnB <your username> <your password>
   htpass_cred: "vagrant:$2y$05$kaHZ2j2VDDQCBf9bEk1gMuJAPRs4q4rolPRbq3zXUb7j2JyGuc50a"
+  arkime_password: vagrant
 
 opensearch:
   enabled: true
@@ -185,6 +186,7 @@ dashboards_helper_env:
 
 arkime_env:
   free_space_g: "10%"
+  rotate_index: hourly6
 
 suricata_offline:
   suricata_auto_analyze_pcap_threads: "1"
@@ -248,12 +250,20 @@ zeek_env:
     extracted_file_max_bytes: "134217728"
     extracted_file_min_bytes: "64"
 
+arkime_live:
+  enabled: true
+  pcap_hostpath: "/zpool/nta-pcap"
+
+  # Arkime live is a Daemonset but it will only schedule on kubernetes nodes that has following label
+  nodeSelector:
+    cnaps.io/arkime-capture: "true"
+
 pcap_live:
   enabled: false
 
   # Pcap live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
-    cnaps.io/arkime-capture: "true"
+    cnaps.io/pcap-capture: "true"
 
 # Sets environment variables across multiple applications within Malcolm (IE: pcap capture, zeek and suricata)
 # pcap_iface can be comma separate values.

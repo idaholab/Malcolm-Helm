@@ -1,49 +1,47 @@
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: arkime
-spec:
-  ports:
-    - port: 8005
-      protocol: TCP
-      name: http
-    - port: 8081
-      protocol: TCP
-      name: wise
-  selector:
-    name: arkime-deployment
-
+{{- if .Values.arkime_live.enabled }}
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: arkime-deployment
+  name: arkime-live-daemonset
+  namespace: malcolm
 spec:
   selector:
     matchLabels:
-      name: arkime-deployment
-  replicas: 1
+      name: arkime-live-daemonset
   template:
     metadata:
       labels:
-        name: arkime-deployment
+        name: arkime-live-daemonset
     spec:
+      # Required for coredns to work with hostnetwork set to true.
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      nodeSelector:
+{{ toYaml .Values.arkime_live.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml .Values.live_capture.tolerations | indent 6 }}
       containers:
-      - name: arkime-container
-        image: "{{ .Values.image.repository }}/arkime:{{ .Values.image.arkime_tag | default .Chart.AppVersion }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+      - name: arkime-live-container
+        image: "{{ .Values.image.repository }}/arkime:{{ .Values.image.freq_tag | default .Chart.AppVersion }}"
+        imagePullPolicy: Always
         stdin: false
         tty: true
+        command:
+        - "/bin/bash"
+        - "/opt/command_override.sh"
         securityContext:
           capabilities:
             add:
+              # IPC_LOCK - to lock memory, preventing swapping
               - IPC_LOCK
+              # SYS_RESOURCE - for increasing memlock limits
               - SYS_RESOURCE
-        ports:
-          - name: http
-            protocol: TCP
-            containerPort: 8005
+              # NET_ADMIN and NET_RAW - to turn on promiscuous mode and capture raw packets
+              - NET_ADMIN
+              - NET_RAW
+              # SYS_NICE - to set process nice values, real-time scheduling policies, I/O scheduling
+              - SYS_NICE
         envFrom:
           - configMapRef:
               name: process-env
@@ -56,9 +54,11 @@ spec:
           - configMapRef:
               name: upload-common-env
           - configMapRef:
+              name: pcap-capture-env
+          - configMapRef:
               name: arkime-env
           - configMapRef:
-              name: arkime-offline-env
+              name: arkime-live-env
           - secretRef:
               name: arkime-secret-env
         env:
@@ -68,35 +68,28 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-        livenessProbe:
-          httpGet:
-            path: /_ns_/nstest.html
-            port: 8005
-            scheme: HTTP
-          initialDelaySeconds: 210
-          periodSeconds: 90
-          timeoutSeconds: 30
-          successThreshold: 1
-          failureThreshold: 10
         volumeMounts:
           - mountPath: /opt/arkime/etc/config.orig.ini
             name: arkime-config-default
             subPath: config.ini
+          - name: arkime-live-shell-override-volume
+            mountPath: /opt/command_override.sh
+            subPath: command_override.sh
           - mountPath: /var/local/ca-trust/configmap
-            name: arkime-var-local-catrust-volume
+            name: arkime-live-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
-            name: arkime-opensearch-curlrc-secret-volume
+            name: arkime-live-opensearch-curlrc-secret-volume
           - mountPath: /opt/arkime/rules/configmap
-            name: arkime-rules-volume
+            name: arkime-live-rules-volume
           - mountPath: "/data/pcap"
-            name: arkime-pcap-volume
+            name: arkime-live-pcap-volume
 {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
           - name: elastic-cert
             mountPath: /usr/local/share/ca-certificates/elastic_ca.crt
             subPath: elastic_ca.crt
 {{- end }}
       initContainers:
-      - name: arkime-dirinit-container
+      - name: arkime-live-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -106,24 +99,27 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/data/pcap:processed,arkime-live"
+            value: "/data/pcap:arkime-live"
         volumeMounts:
-          - name: arkime-pcap-volume
+          - name: arkime-live-pcap-volume
             mountPath: "/data/pcap"
       volumes:
         - name: arkime-config-default
           configMap:
             name: arkime-config
-        - name: arkime-var-local-catrust-volume
+        - name: arkime-live-var-local-catrust-volume
           configMap:
             name: var-local-catrust
-        - name: arkime-opensearch-curlrc-secret-volume
+        - name: arkime-live-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
-        - name: arkime-rules-volume
+        - name: arkime-live-rules-volume
           configMap:
             name: arkime-rules
-        - name: arkime-pcap-volume
+        - name: arkime-live-shell-override-volume
+          configMap:
+            name: arkime-live-shell-override
+        - name: arkime-live-pcap-volume
           hostPath:
             path: "{{ .Values.arkime_live.pcap_hostpath }}"
             type: DirectoryOrCreate
@@ -131,4 +127,5 @@ spec:
         - name: elastic-cert
           secret:
             secretName: {{ .Values.external_elasticsearch.elastic_cert_name }}
+{{- end }}
 {{- end }}
