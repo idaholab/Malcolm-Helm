@@ -235,7 +235,7 @@ zeek_env:
   extracted_file_enable_clamav: true
   extracted_file_enable_yara: true
   extracted_file_http_server_enable: true
-  extracted_file_http_server_encrypt: true
+  extracted_file_http_server_recursive: true
   extracted_file_preservation: quarantined
   development:
     capa_max_requests: 4

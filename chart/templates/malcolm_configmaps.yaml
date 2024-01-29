@@ -147,6 +147,23 @@ data:
   path.repo: /opt/opensearch/backup
   node.roles: ingest,data,remote_cluster_client,cluster_manager
   discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
+  # OpenSearch index patterns and timestamp fields
+  # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
+  MALCOLM_NETWORK_INDEX_PATTERN: "arkime_sessions3-*"
+  # Default time field to use for network traffic logs in Logstash and Dashboards
+  MALCOLM_NETWORK_INDEX_TIME_FIELD: "firstPacket"
+  # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
+  MALCOLM_NETWORK_INDEX_SUFFIX: "%{%y%m%d}"
+  # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
+  MALCOLM_OTHER_INDEX_PATTERN: "malcolm_beats_*"
+  # Default time field to use for other logs in Logstash and Dashboards
+  MALCOLM_OTHER_INDEX_TIME_FIELD: "@timestamp"
+  # Suffix used to create index to which other logs are written (supports Ruby strftime strings in %{})
+  MALCOLM_OTHER_INDEX_SUFFIX: "%{%y%m%d}"
+  # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
+  ARKIME_NETWORK_INDEX_PATTERN: "arkime_sessions3-*"
+  # Default time field used by for sessions in Arkime viewer
+  ARKIME_NETWORK_INDEX_TIME_FIELD: "firstPacket"
 kind: ConfigMap
 metadata:
   name: opensearch-env
@@ -248,7 +265,8 @@ data:
   EXTRACTED_FILE_ENABLE_CLAMAV: "{{ .Values.zeek_env.extracted_file_enable_clamav }}"
   EXTRACTED_FILE_ENABLE_YARA: "{{ .Values.zeek_env.extracted_file_enable_yara }}"
   EXTRACTED_FILE_HTTP_SERVER_ENABLE: "{{ .Values.zeek_env.extracted_file_http_server_enable }}"
-  EXTRACTED_FILE_HTTP_SERVER_ENCRYPT: "{{ .Values.zeek_env.extracted_file_http_server_encrypt }}"
+  EXTRACTED_FILE_HTTP_SERVER_ZIP: "false"
+  EXTRACTED_FILE_HTTP_SERVER_RECURSIVE: "{{ .Values.zeek_env.extracted_file_http_server_encrypt }}"
   EXTRACTED_FILE_IGNORE_EXISTING: "false"
   EXTRACTED_FILE_PIPELINE_VERBOSITY: ""
   EXTRACTED_FILE_PRESERVATION: {{ .Values.zeek_env.extracted_file_preservation }}
