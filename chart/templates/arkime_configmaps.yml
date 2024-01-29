@@ -69,7 +69,7 @@ data:
   MANAGE_PCAP_FILES: "true"
   OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
   ARKIME_FREESPACEG: "{{ .Values.arkime_env.free_space_g }}"
-  ARKIME_ROTATE_INDEX: daily
+  ARKIME_ROTATE_INDEX: "{{ .Values.arkime_env.rotate_index }}"
 kind: ConfigMap
 metadata:
   name: arkime-env
