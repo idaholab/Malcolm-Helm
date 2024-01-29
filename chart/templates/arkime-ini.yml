@@ -4,6 +4,9 @@ metadata:
   name: arkime-config
 data:
   config.ini: |
+    [MALCOLM_PCAP_NODE_NAME]
+    webBasePath=/arkime/
+    
     [default]
     antiSynDrop=false
     #certFile=/opt/arkime/etc/viewer.crt
