@@ -3,7 +3,15 @@
 apiVersion: v1
 data:
   SURICATA_AUTO_ANALYZE_PCAP_FILES: "true"
-  SURICATA_AUTO_ANALYZE_PCAP_THREADS: "{{ .Values.suricata_offline.suricata_auto_analyze_pcap_threads }}"
+{{- if .Values.is_production }}
+  {{- with .Values.suricata_offline.production }}
+  SURICATA_AUTO_ANALYZE_PCAP_THREADS: "{{ .suricata_auto_analyze_pcap_threads }}"
+  {{- end }}
+{{- else }}
+  {{- with .Values.suricata_offline.development }}
+  SURICATA_AUTO_ANALYZE_PCAP_THREADS: "{{ .suricata_auto_analyze_pcap_threads }}"
+  {{- end }}
+{{- end }}
   SURICATA_PCAP_PROCESSOR: "true"
   SURICATA_ROTATED_PCAP: "false"
 kind: ConfigMap

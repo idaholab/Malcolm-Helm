@@ -82,9 +82,18 @@ spec:
           - configMapRef:
               name: ssl-env
           - configMapRef:
+              name: opensearch-env
+          # - configMapRef:
+          #     name: dashboards-env
+          - configMapRef:
               name: auth-common-env
           - configMapRef:
               name: nginx-env
+        env:
+        {{- if .Values.external_elasticsearch.enabled }}
+          - name: DASHBOARDS_URL
+            value: "{{ .Values.external_elasticsearch.external_dashboards_url }}"
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /

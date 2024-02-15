@@ -36,6 +36,9 @@ apiVersion: v1
 data:
   NETBOX_CRON: "{{ .Values.netbox.enabled }}"
   NETBOX_DEFAULT_SITE: "{{ .Values.netbox.netbox_default_site }}"
+  # Customize manufacturer matching/creation with LOGSTASH_NETBOX_AUTO_POPULATE (see logstash.env)
+  NETBOX_DEFAULT_AUTOCREATE_MANUFACTURER: "true"
+  NETBOX_DEFAULT_FUZZY_THRESHOLD: "0.95"
   NETBOX_PRELOAD_PREFIXES: "{{ .Values.netbox.netbox_auto_populate }}"
   NETBOX_DISABLED: "{{ not .Values.netbox.enabled }}"
   NETBOX_POSTGRES_DISABLED: "{{ not .Values.netbox.enabled }}"
@@ -149,21 +152,21 @@ data:
   discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
   # OpenSearch index patterns and timestamp fields
   # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
-  MALCOLM_NETWORK_INDEX_PATTERN: "arkime_sessions3-*"
+  MALCOLM_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_network_index_pattern }}"
   # Default time field to use for network traffic logs in Logstash and Dashboards
-  MALCOLM_NETWORK_INDEX_TIME_FIELD: "firstPacket"
+  MALCOLM_NETWORK_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_network_index_time_field }}"
   # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
-  MALCOLM_NETWORK_INDEX_SUFFIX: "%{%y%m%d}"
+  MALCOLM_NETWORK_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_network_index_suffix }}"
   # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
-  MALCOLM_OTHER_INDEX_PATTERN: "malcolm_beats_*"
+  MALCOLM_OTHER_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_other_index_pattern }}"
   # Default time field to use for other logs in Logstash and Dashboards
-  MALCOLM_OTHER_INDEX_TIME_FIELD: "@timestamp"
+  MALCOLM_OTHER_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_other_index_time_field }}"
   # Suffix used to create index to which other logs are written (supports Ruby strftime strings in %{})
-  MALCOLM_OTHER_INDEX_SUFFIX: "%{%y%m%d}"
+  MALCOLM_OTHER_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_other_index_suffix }}"
   # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
-  ARKIME_NETWORK_INDEX_PATTERN: "arkime_sessions3-*"
+  ARKIME_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.arkime_network_index_pattern }}"
   # Default time field used by for sessions in Arkime viewer
-  ARKIME_NETWORK_INDEX_TIME_FIELD: "firstPacket"
+  ARKIME_NETWORK_INDEX_TIME_FIELD: "{{ .Values.siem_env.arkime_network_index_time_field }}"
 kind: ConfigMap
 metadata:
   name: opensearch-env
@@ -243,7 +246,7 @@ metadata:
 ---
 apiVersion: v1
 data:
-  {{- if .Values.zeek_env }}
+  {{- if .Values.is_production }}
     {{- with .Values.zeek_env.production }}
   CAPA_MAX_REQUESTS: "{{ .capa_max_requests }}"
   CLAMD_MAX_REQUESTS: "{{ .clamd_max_requests }}"
@@ -266,6 +269,8 @@ data:
   EXTRACTED_FILE_ENABLE_YARA: "{{ .Values.zeek_env.extracted_file_enable_yara }}"
   EXTRACTED_FILE_HTTP_SERVER_ENABLE: "{{ .Values.zeek_env.extracted_file_http_server_enable }}"
   EXTRACTED_FILE_HTTP_SERVER_ZIP: "false"
+  # Whether or not to use libmagic to show MIME types for Zeek-extracted files served
+  EXTRACTED_FILE_HTTP_SERVER_MAGIC: "false"
   EXTRACTED_FILE_HTTP_SERVER_RECURSIVE: "{{ .Values.zeek_env.extracted_file_http_server_encrypt }}"
   EXTRACTED_FILE_IGNORE_EXISTING: "false"
   EXTRACTED_FILE_PIPELINE_VERBOSITY: ""
@@ -283,7 +288,7 @@ data:
   ZEEK_DISABLE_ICS_DNP3: ""
   ZEEK_DISABLE_ICS_ENIP: ""
   ZEEK_DISABLE_ICS_ETHERCAT: ""
-  ZEEK_DISABLE_ICS_GENISYS: ""
+  ZEEK_DISABLE_ICS_GENISYS: "true"
   ZEEK_DISABLE_ICS_MODBUS: ""
   ZEEK_DISABLE_ICS_OPCUA_BINARY: ""
   ZEEK_DISABLE_ICS_PROFINET: ""

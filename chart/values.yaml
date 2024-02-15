@@ -54,9 +54,10 @@ opensearch:
     java_memory: -Xms4g -Xmx4g -Xss256k -XX
   production:
     java_memory: -Xms32g -Xmx32g -Xss256k -XX
+
 external_elasticsearch:
   enabled: false
-  # Supports https or http urls for elasticsearch
+  # Internal url or clusterIP service and supports https or http urls for elasticsearch
   url: https://dataplane-ek-es-http.dataplane-ek.svc:9200
   username: "elastic"
   password: ""
@@ -78,12 +79,33 @@ external_elasticsearch:
 
   # Only supports http urls for Kibana.
   dashboards_url: "http://dataplane-ek-kb-http.dataplane-ek.svc.cluster.local:5601"
+  # Used for the Malcolm landing page and is only used if using a external_elasticsearch
+  external_dashboards_url: https://dataplane-kibana.vp.bigbang.dev
+
+# Shared environment varibles for both Elasticsearch and Opensearch
+siem_env:
+  # OpenSearch index patterns and timestamp fields
+  # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
+  malcolm_network_index_pattern: "arkime_sessions3-*"
+  # Default time field to use for network traffic logs in Logstash and Dashboards
+  malcolm_network_index_time_field: "firstPacket"
+  # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
+  malcolm_network_index_suffix: "%{%y%m%d}"
+  # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
+  malcolm_other_index_pattern: "malcolm_beats_*"
+  # Default time field to use for other logs in Logstash and Dashboards
+  malcolm_other_index_time_field: "@timestamp"
+  # Suffix used to create index to which other logs are written (supports Ruby strftime strings in %{})
+  malcolm_other_index_suffix: "%{%y%m%d}"
+  # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
+  arkime_network_index_pattern: "arkime_sessions3-*"
+  # Default time field used by for sessions in Arkime viewer
+  arkime_network_index_time_field: "firstPacket"
 
 logstash:
   # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
   development:
     java_memory: -Xms1g -Xmx1g -Xss1536k -XX
-    replicas: 1
     #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
     workers: 6
     batch_delay: 50
@@ -120,39 +142,67 @@ storage:
   # This helm chart requires a storage provisioner class it defaults to local-path provisioner
   # If your kuberenetes cluster has a different storage provisioner please ensure you change this name.
   # https://github.com/rancher/local-path-provisioner
-  pcap_claim:
-    size: 100Gi
-    className: local-path
-  zeek_claim:
-    size: 50Gi
-    className: local-path
-  suricata_claim:
-    size: 50Gi
-    className: local-path
-  config_claim:
-    size: 25Gi
-    className: local-path
-  runtime_logs_claim:
-    size: 25Gi
-    className: local-path
-  opensearch_claim:
-    size: 25Gi
-    className: local-path
-  opensearch_backup_claim:
-    size: 25Gi
-    className: local-path
-  netbox_postgres_claim:
-    size: 15Gi
-    className: local-path
+  development:
+    pcap_claim:
+      # The size of the claim
+      size: 25Gi
+      # The kubernetes storage class name
+      className: local-path
+    zeek_claim:
+      size: 25Gi
+      className: local-path
+    suricata_claim:
+      size: 25Gi
+      className: local-path
+    config_claim:
+      size: 25Gi
+      className: local-path
+    runtime_logs_claim:
+      size: 25Gi
+      className: local-path
+    opensearch_claim:
+      size: 25Gi
+      className: local-path
+    opensearch_backup_claim:
+      size: 25Gi
+      className: local-path
+    netbox_postgres_claim:
+      size: 15Gi
+      className: local-path
+  production:
+    pcap_claim:
+      size: 100Gi
+      className: local-path
+    zeek_claim:
+      size: 50Gi
+      className: local-path
+    suricata_claim:
+      size: 50Gi
+      className: local-path
+    config_claim:
+      size: 25Gi
+      className: local-path
+    runtime_logs_claim:
+      size: 25Gi
+      className: local-path
+    opensearch_claim:
+      size: 25Gi
+      className: local-path
+    opensearch_backup_claim:
+      size: 25Gi
+      className: local-path
+    netbox_postgres_claim:
+      size: 15Gi
+      className: local-path
 
 ingress:
   # Enable this if deploying in RKE2 environment with the default nginx ingress controller
-  enabled: false
+  enabled: true
 
 istio:
   # Enable this if deploying in Kuberenetes environment leveraging istio service mesh
   # Additionally, it is recommended to turn off tls everywhere when this is set to true and let tls handle all things tls :).
-  enabled: true
+  enabled: false
   gateway: istio-system/tenant
   virtualservicename: malcolm
   domain: vp.bigbang.dev
@@ -163,6 +213,7 @@ istio:
 #https://docs.suricata.io/en/suricata-6.0.0/performance/tuning-considerations.html#af-packet AF_PACKET_RING_SIZE
 suricata_live:
   enabled: true
+  suricata_stats_enabled: true
   suricata_log_path: /opt/suricata/logs
   # Suricata live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
@@ -184,18 +235,18 @@ dashboards_helper_env:
   opensearch_index_size_prune_limit: 80%
   opensearch_index_size_prune_name_sort: false
 
-arkime_env:
-  free_space_g: "10%"
-  rotate_index: hourly6
-
 suricata_offline:
-  suricata_auto_analyze_pcap_threads: "1"
+  development:
+    suricata_auto_analyze_pcap_threads: 1
+  production:
+    suricata_auto_analyze_pcap_threads: 3
 
 # Zeek live is enabled by default and will listen pcap_iface
 # Defined under pcap_capture_env
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
 zeek_live:
   enabled: true
+  zeek_disable_stats: ""
   zeek_log_path: /opt/zeek/logs
   # Zeek live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
@@ -217,7 +268,10 @@ zeek_live:
 zeek_offline:
   # The number of Zeek processes for analyzing uploaded PCAP files allowed
   #   to run concurrently
-  zeek_auto_analyze_pcap_threads: 1
+  development:
+    zeek_auto_analyze_pcap_threads: 1
+  production:
+    zeek_auto_analyze_pcap_threads: 3
 
 upload_common_env:
   # The age (in minutes) at which already-processed log files containing network traffic metadata should
@@ -230,7 +284,13 @@ upload_common_env:
 # Affects all zeek deployment live and offline
 zeek_env:
   #Set to none, all or interesting.
-  extract_mode: all
+  # `none`: no file extraction
+  # `interesting`: extraction of files with mime types of common attack vectors
+  # `notcommtxt`: extraction of all files except common plain text files
+  # `mapped`: extraction of files with recognized mime types
+  # `known`: extraction of files for which any mime type can be determined
+  # `all`: extract all files
+  extract_mode: notcommtxt
   extracted_file_enable_capa: true
   extracted_file_enable_clamav: true
   extracted_file_enable_yara: true
@@ -250,9 +310,47 @@ zeek_env:
     extracted_file_max_bytes: "134217728"
     extracted_file_min_bytes: "64"
 
+# Variables apply to both offline and live version of arkime
+arkime_env:
+  free_space_g: "10%"
+  rotate_index: hourly6
+  # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
+  # Whether or not Arkime should perform index management
+  index_management_enabled: "false"
+  # Time in hours/days before moving to warm and force merge (number followed by h or d)
+  index_management_optimization_period: "30d"
+  # Time in hours/days before deleting index (number followed by h or d)
+  index_management_retention_time: "90d"
+  # Number of replicas for older sessions indices
+  index_management_older_session_replicas: "0"
+  # Number of weeks of history to retain
+  index_management_history_retention_weeks: "13"
+  # Number of segments to optimize sessions for
+  index_management_segments: "1"
+  # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
+  index_management_hot_warm_enabled: "false"
+
 arkime_live:
   enabled: true
   pcap_hostpath: "/zpool/nta-pcap"
+  development:
+    arkime_compression_type: none
+    arkime_compression_level: "0"
+    arkime_db_bulk_size: "4000000"
+    arkime_max_packets_in_queue: "300000"
+    arkime_packet_threads: "2"
+    arkime_pcap_write_size: "2560000"
+    arkime_tpacketv3_num_threads: "2"
+    arkime_tpacketv3_block_size: "8388608"
+  production:
+    arkime_compression_type: zstd
+    arkime_compression_level: "3"
+    arkime_db_bulk_size: "4000000"
+    arkime_max_packets_in_queue: "300000"
+    arkime_packet_threads: "8"
+    arkime_pcap_write_size: "2560000"
+    arkime_tpacketv3_num_threads: "8"
+    arkime_tpacketv3_block_size: "8388608"
 
   # Arkime live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:

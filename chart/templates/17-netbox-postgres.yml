@@ -39,16 +39,33 @@ spec:
       name: netbox-postgres
   serviceName: netbox-postgres-headless
   volumeClaimTemplates:
+{{- if .Values.is_production }}
+  {{- with .Values.storage.production }}
     - metadata:
         name: netbox-postgres-claim
       spec:
-        storageClassName: {{ .Values.storage.netbox_postgres_claim.className }}
+        storageClassName: {{ .netbox_postgres_claim.className }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
         resources:
           requests:
-            storage: {{ .Values.storage.netbox_postgres_claim.size }}
+            storage: {{ .netbox_postgres_claim.size }}
+  {{- end }}
+{{- else }}
+  {{- with .Values.storage.development }}
+    - metadata:
+        name: netbox-postgres-claim
+      spec:
+        storageClassName: {{ .netbox_postgres_claim.className }}
+        accessModes:
+          - ReadWriteOnce
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: {{ .netbox_postgres_claim.size }}
+  {{- end }}
+{{- end }}
   replicas: 1
   template:
     metadata:

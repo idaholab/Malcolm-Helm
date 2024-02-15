@@ -66,10 +66,29 @@ metadata:
 apiVersion: v1
 data:
   ARKIME_VIEWER_PORT: "8005"
+  # Whether or not Arkime is allowed to delete uploaded/captured PCAP
+  #   https://arkime.com/faq#pcap-deletion
   MANAGE_PCAP_FILES: "true"
   OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
   ARKIME_FREESPACEG: "{{ .Values.arkime_env.free_space_g }}"
+  # How often to create a new index in OpenSearch/Elasticsearch
+  #   https://arkime.com/settings#rotateIndex
   ARKIME_ROTATE_INDEX: "{{ .Values.arkime_env.rotate_index }}"
+  # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
+  # Whether or not Arkime should perform index management
+  INDEX_MANAGEMENT_ENABLED: "{{ .Values.arkime_env.index_management_enabled }}"
+  # Time in hours/days before moving to warm and force merge (number followed by h or d)
+  INDEX_MANAGEMENT_OPTIMIZATION_PERIOD: "{{ .Values.arkime_env.index_management_optimization_period }}"
+  # Time in hours/days before deleting index (number followed by h or d)
+  INDEX_MANAGEMENT_RETENTION_TIME: "{{ .Values.arkime_env.index_management_retention_time }}"
+  # Number of replicas for older sessions indices
+  INDEX_MANAGEMENT_OLDER_SESSION_REPLICAS: "{{ .Values.arkime_env.index_management_older_session_replicas }}"
+  # Number of weeks of history to retain
+  INDEX_MANAGEMENT_HISTORY_RETENTION_WEEKS: "{{ .Values.arkime_env.index_management_history_retention_weeks }}"
+  # Number of segments to optimize sessions for
+  INDEX_MANAGEMENT_SEGMENTS: "{{ .Values.arkime_env.index_management_segments }}"
+  # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
+  INDEX_MANAGEMENT_HOT_WARM_ENABLED: "{{ .Values.arkime_env.index_management_hot_warm_enabled }}"
 kind: ConfigMap
 metadata:
   name: arkime-env
@@ -90,19 +109,43 @@ data:
   # Whether or Arkime should monitor live traffic on a local
   #   interface (PCAP_IFACE in pcap-capture.env specifies interface)
   ARKIME_LIVE_CAPTURE: "true"
-  # Live capture tuning parameters
-  ARKIME_COMPRESSION_TYPE: none
-  ARKIME_COMPRESSION_LEVEL: "0"
-  ARKIME_DB_BULK_SIZE: "4000000"
   ARKIME_MAGIC_MODE: basic
-  ARKIME_MAX_PACKETS_IN_QUEUE: "300000"
-  ARKIME_PACKET_THREADS: "2"
+  #How many packets per packet thread that can be waiting to be processed. Arkime will start dropping packets if the queue fills up.
   ARKIME_PCAP_WRITE_METHOD: "simple"
-  ARKIME_PCAP_WRITE_SIZE: "2560000"
   ARKIME_PCAP_READ_METHOD: tpacketv3
-  ARKIME_TPACKETV3_NUM_THREADS: "2"
-  ARKIME_TPACKETV3_BLOCK_SIZE: "8388608"
   ARKIME_PCAP_PROCESSOR: "false"
+  {{- if .Values.is_production }}
+    {{- with .Values.arkime_live.production }}
+  # Live capture tuning parameters
+  #(since 4.0.0) The type of seekable compression to use on pcap files. Zstd (don't use before 4.5.1) will has better compression for less cpu than glib. Valid values are: none, gzip, zstd (>= 4.5.1)
+  ARKIME_COMPRESSION_TYPE: "{{ .arkime_compression_type }}"
+  ARKIME_COMPRESSION_LEVEL: "{{ .arkime_compression_level }}"
+  #Size of indexing request to send to OpenSearch/Elasticsearch. Increase if monitoring a high bandwidth network.
+  ARKIME_DB_BULK_SIZE: "{{ .arkime_db_bulk_size }}"
+  #How many packets per packet thread that can be waiting to be processed. Arkime will start dropping packets if the queue fills up.
+  ARKIME_MAX_PACKETS_IN_QUEUE: "{{ .arkime_max_packets_in_queue }}"
+  #Number of threads to use to process packets AFTER the reader has received the packets. This also controls how many packet queues there are, since each thread has its own queue. Basically how much CPU to dedicate to parsing the packets. Increase this if you get errors about dropping packets or the packetQ is over flowing. If using the simple writer, this also controls how many pcap files are open for writing. We recommend about 2 x Gbps. Making this value too large may cause issues with Arkime.
+  ARKIME_PACKET_THREADS: "{{ .arkime_packet_threads }}"
+  #Buffer size when writing pcap files. Should be a multiple of the raid 5/xfs stripe size and multiple of 4096 if using direct/thread-direct pcapWriteMethod
+  ARKIME_PCAP_WRITE_SIZE: "{{ .arkime_pcap_write_size }}"
+  #The number of threads used to read packets from each interface. These threads take the packets from the AF packet interface and place them into the packet queues.
+  ARKIME_TPACKETV3_NUM_THREADS: "{{ .arkime_tpacketv3_num_threads }}"
+  #The block size in bytes used for reads from each interface. There are 120 blocks per interface.
+  ARKIME_TPACKETV3_BLOCK_SIZE: "{{ .arkime_tpacketv3_block_size }}"
+    {{- end }}
+  {{- else }}
+    {{- with .Values.arkime_live.development }}
+  ARKIME_COMPRESSION_TYPE: "{{ .arkime_compression_type }}"
+  ARKIME_COMPRESSION_LEVEL: "{{ .arkime_compression_level }}"
+  ARKIME_DB_BULK_SIZE: "{{ .arkime_db_bulk_size }}"
+  ARKIME_MAX_PACKETS_IN_QUEUE: "{{ .arkime_max_packets_in_queue }}"
+  ARKIME_PACKET_THREADS: "{{ .arkime_packet_threads }}"
+  ARKIME_PCAP_WRITE_SIZE: "{{ .arkime_pcap_write_size }}"
+  ARKIME_TPACKETV3_NUM_THREADS: "{{ .arkime_tpacketv3_num_threads }}"
+  ARKIME_TPACKETV3_BLOCK_SIZE: "{{ .arkime_tpacketv3_block_size }}"
+    {{- end }}
+  {{- end }}
+
   VIEWER: "on"
   WISE: "off"
 kind: ConfigMap

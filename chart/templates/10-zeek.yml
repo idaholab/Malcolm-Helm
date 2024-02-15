@@ -2,10 +2,20 @@
 apiVersion: v1
 data:
   ZEEK_AUTO_ANALYZE_PCAP_FILES: "true"
-  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .Values.zeek_offline.zeek_auto_analyze_pcap_threads }}"
+{{- if .Values.is_production }}
+  {{- with .Values.zeek_offline.production }}
+  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
+  {{- end }}
+{{- else }}
+  {{- with .Values.zeek_offline.development }}
+  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
+  {{- end }}
+{{- end }}
   ZEEK_CRON: "false"
   ZEEK_PCAP_PROCESSOR: "true"
   ZEEK_ROTATED_PCAP: "false"
+  # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
+  ZEEK_DISABLE_STATS: "true"
 kind: ConfigMap
 metadata:
   name: zeek-offline-env

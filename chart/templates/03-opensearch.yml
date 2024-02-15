@@ -54,26 +54,53 @@ spec:
   replicas: {{ .Values.opensearch.replicas }}
 {{- end }}
   volumeClaimTemplates:
+{{- if .Values.is_production }}
+  {{- with .Values.storage.production }}
     - metadata:
         name: opensearch-claim
       spec:
-        storageClassName: {{ .Values.storage.opensearch_claim.className }}
+        storageClassName: {{ .opensearch_claim.className }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
         resources:
           requests:
-            storage: {{ .Values.storage.opensearch_claim.size }}
+            storage: {{ .opensearch_claim.size }}
     - metadata:
         name: opensearch-backup-claim
       spec:
-        storageClassName: {{ .Values.storage.opensearch_backup_claim.className }}
+        storageClassName: {{ .opensearch_backup_claim.className }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
         resources:
           requests:
-            storage: {{ .Values.storage.opensearch_backup_claim.size }}
+            storage: {{ .opensearch_backup_claim.size }}
+  {{- end }}
+{{- else }}
+  {{- with .Values.storage.development }}
+    - metadata:
+        name: opensearch-claim
+      spec:
+        storageClassName: {{ .opensearch_claim.className }}
+        accessModes:
+          - ReadWriteOnce
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: {{ .opensearch_claim.size }}
+    - metadata:
+        name: opensearch-backup-claim
+      spec:
+        storageClassName: {{ .opensearch_backup_claim.className }}
+        accessModes:
+          - ReadWriteOnce
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: {{ .opensearch_backup_claim.size }}
+  {{- end }}
+{{- end }}
   template:
     metadata:
       labels:

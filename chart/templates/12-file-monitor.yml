@@ -54,6 +54,8 @@ spec:
             containerPort: 8440
         envFrom:
           - configMapRef:
+              name: dashboards-env
+          - configMapRef:
               name: process-env
           - configMapRef:
               name: ssl-env
