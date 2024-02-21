@@ -6,7 +6,7 @@ data:
   config.ini: |
     [MALCOLM_PCAP_NODE_NAME]
     webBasePath=/arkime/
-    
+
     [default]
     antiSynDrop=false
     #certFile=/opt/arkime/etc/viewer.crt
@@ -15,6 +15,7 @@ data:
     dropGroup=arkime
     dropUser=arkime
     elasticsearch={{ include "malcolm.opensearchprimaryurl" . }}
+    footerTemplate=_version_ | <a href="https://arkime.com">arkime.com 🦉</a> | <a href="/">Malc⦿lm 📄</a> | <a href="/dashboards/">Dashboards 📊</a> | <a href="/netbox/">NetBox 💻 | _responseTime_ms ⏱️</a>
     freeSpaceG={{ .Values.arkime_env.free_space_g }}
     geoLite2ASN=/opt/arkime/etc/GeoLite2-ASN.mmdb
     geoLite2Country=/opt/arkime/etc/GeoLite2-Country.mmdb
@@ -52,6 +53,7 @@ data:
     rulesFiles=
     smtpIpHeaders=X-Originating-IP:;X-Barracuda-Apparent-Source-IP:
     spiDataMaxIndices=7
+    spiViewCategoryOrder=malcolm
     supportSha256=false
     tcpSaveTimeout=720
     tcpTimeout=600
@@ -70,21 +72,36 @@ data:
     userAutoCreateTmpl={"userId": "${this.http_auth_http_user}", "userName": "${this.http_auth_http_user}", "enabled": true, "createEnabled": false, "webEnabled": true, "headerAuthEnabled": true, "emailSearch": true, "removeEnabled": false, "packetSearch": true, "hideStats": false, "hideFiles": false, "hidePcap": false, "disablePcapDownload": false, "settings": { "timezone": "local", "detailFormat": "last", "showTimestamps": "last", "sortColumn": "firstPacket", "sortDirection": "desc", "spiGraph": "protocol", "connSrcField": "source.ip", "connDstField": "destination.ip", "numPackets": "last", "theme" : "custom1: #222222,#E2E2E2,#FFFFFF,#00789E,#004A79,#017D73,#092B40,#42b7c5,#2A7580,#ecb30a,#333333,#89ADCC,#6D6D6D,#FFE7E7,#ECFEFF", "manualQuery": false }, "tableStates": { "sessionsNew": { "order": [ [ "firstPacket", "desc" ] ], "visibleHeaders": [ "protocol", "event.provider", "event.dataset", "firstPacket", "lastPacket", "src", "source.port", "dst", "destination.port", "network.packets", "dbby", "tags", "info" ] } } }
     # temporarily disabling viewer autocomplete to see if it helps slugishness
     valueAutoComplete=false
-
     ### High Performance settings
     # https://github.com/arkime/arkime/wiki/Settings#High_Performance_Settings
     magicMode=basic
     pcapReadMethod=tpacketv3
-    tpacketv3NumThreads=2
-    tpacketv3BlockSize=8388608
+{{- if .Values.is_production }}
+  {{- with .Values.arkime_live.production }}
+    simpleCompression={{ .arkime_compression_type }}
+    simpleZstdLevel={{ .arkime_compression_level }}
+    simpleGzipLevel={{ .arkime_compression_level }}
+    packetThreads={{ .arkime_packet_threads }}
+    tpacketv3NumThreads={{ .arkime_tpacketv3_num_threads }}
+    tpacketv3BlockSize={{ .arkime_tpacketv3_block_size }}
+    pcapWriteSize={{ .arkime_pcap_write_size }}
+    maxPacketsInQueue={{ .arkime_max_packets_in_queue }}
+    dbBulkSize={{ .arkime_db_bulk_size }}
+  {{- end }}
+{{- else }}
+  {{- with .Values.arkime_live.development }}
+    simpleCompression={{ .arkime_compression_type }}
+    simpleZstdLevel={{ .arkime_compression_level }}
+    simpleGzipLevel={{ .arkime_compression_level }}
+    packetThreads={{ .arkime_packet_threads }}
+    tpacketv3NumThreads={{ .arkime_tpacketv3_num_threads }}
+    tpacketv3BlockSize={{ .arkime_tpacketv3_block_size }}
+    pcapWriteSize={{ .arkime_pcap_write_size }}
+    maxPacketsInQueue={{ .arkime_max_packets_in_queue }}
+    dbBulkSize={{ .arkime_db_bulk_size }}
+  {{- end }}
+{{- end }}
     pcapWriteMethod=simple
-    pcapWriteSize=2560000
-    simpleCompression=none
-    simpleZstdLevel=3
-    simpleGzipLevel=3
-    packetThreads=2
-    maxPacketsInQueue=300000
-    dbBulkSize=4000000
     {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
     certFile=/usr/local/share/ca-certificates/elastic_ca.crt
     {{- end }}
@@ -138,6 +155,7 @@ data:
     network.protocol_version=db:network.protocol_version;group:malcolm;kind:termfield;viewerOnly:true;friendly:Service Version;help:Service Version
     network.transport=db:network.transport;group:malcolm;kind:lotermfield;viewerOnly:true;friendly:Protocol;help:Protocol
     network.vlan.id=db:network.vlan.id;group:malcolm;kind:integer;viewerOnly:false;friendly:VLAN ID;help:VLAN ID
+    related.device_id=db:related.device_id;group:malcolm;kind:integer;viewerOnly:true;friendly:Related Device ID;help:Related Device ID
     related.device_name=db:related.device_name;group:malcolm;kind:termfield;viewerOnly:true;friendly:Related Device Name;help:Related Device Name
     related.device_type=db:related.device_type;group:malcolm;kind:termfield;viewerOnly:true;friendly:Related Device Type;help:Related Device Type
     related.hash=db:related.hash;group:malcolm;kind:termfield;viewerOnly:true;friendly:Related Hash;help:Related Hash
@@ -2586,7 +2604,7 @@ data:
     n_netbox_device_responder=require:destination.device.id;title:NetBox Device (Responder);fields:destination.device.cluster,destination.device.device_type,destination.device.id,destination.device.manufacturer,destination.device.name,destination.device.role,destination.device.service,destination.device.site,destination.device.url
     n_netbox_segment_originator=require:source.segment.id;title:NetBox Segment (Originator);fields:source.segment.id,source.segment.name,source.segment.site,source.segment.tenant,source.segment.url
     n_netbox_segment_responder=require:destination.segment.id;title:NetBox Segment (Responder);fields:destination.segment.id,destination.segment.name,destination.segment.site,destination.segment.tenant,destination.segment.url
-    n_netbox_z_related=require:related.site;title:NetBox Related;fields:related.site,network.name,related.manufacturer,related.device_type,related.role,related.device_name,related.service
+    n_netbox_z_related=require:related.site;title:NetBox Related;fields:related.site,network.name,related.manufacturer,related.device_type,related.role,related.device_id,related.device_name,related.service
     o_zeek_bacnet=require:zeek.bacnet;title:Zeek bacnet.log;fields:zeek.bacnet.bvlc_function,zeek.bacnet.pdu_type,zeek.bacnet.pdu_service,zeek.bacnet.invoke_id,zeek.bacnet.instance_number,zeek.bacnet.result_code
     o_zeek_bacnet_discovery=require:zeek.bacnet_discovery;title:Zeek bacnet_discovery.log;fields:zeek.bacnet.pdu_service,zeek.bacnet_discovery.object_type,zeek.bacnet_discovery.vendor,zeek.bacnet_discovery.range,zeek.bacnet_discovery.range_low,zeek.bacnet_discovery.range_high,zeek.bacnet_discovery.object_name
     o_zeek_bacnet_device_control=require:zeek.bacnet_device_control;title:Zeek bacnet_device_control.log;fields:zeek.bacnet.pdu_service,zeek.bacnet_device_control.time_duration,zeek.bacnet_device_control.device_state,zeek.bacnet_device_control.result,zeek.bacnet_device_control.result_code

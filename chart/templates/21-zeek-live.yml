@@ -8,6 +8,8 @@ data:
   ZEEK_LIVE_CAPTURE: "true"
   ZEEK_LOG_PATH: "/zeek-live-logs/live"
   ZEEK_PCAP_PROCESSOR: "false"
+  # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
+  ZEEK_DISABLE_STATS: "{{ .Values.zeek_live.zeek_disable_stats }}"
   {{- if .Values.is_production }}
     {{- with .Values.zeek_live.production }}
   ZEEK_LB_PROCS: "{{ .zeek_lb_procs }}"

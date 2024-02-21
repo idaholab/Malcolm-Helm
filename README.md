@@ -33,14 +33,7 @@ It is required that your host machine has 500GB of free space, 16 GB of free RAM
 6. Run `vagrant up`
 7. Wait until everything installs at the end of the install you should see the ssh command echo out.
 8. run `ssh -p 2222 vagrant@localhost` and login using vagrant as the password.
-9. Open chrome and navigate to http://localhost:8080/readme (NOTE: If they dont come up make sure the pods are running and give it at least 5 minutes before trying to hit all the services. ) or any of the following URLs: 
-
-- http://localhost:8080/dashboards/
-- http://localhost:8080/upload/
-- http://localhost:8080/netbox/
-- http://localhost:8080/dl-extracted-files/
-- http://localhost:8080/auth/
-
+9. Open chrome and navigate to http://localhost:8080 which will display the landing page with links to all of Malcolms services. (NOTE: If they dont come up make sure the pods are running and give it at least 5 minutes before trying to hit all the services. )
 10. If prompted for credentials username is always vagrant and password is always vagrant.
 
 ### Vagrant Quickstart with istio

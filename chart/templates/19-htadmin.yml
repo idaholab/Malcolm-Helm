@@ -23,7 +23,7 @@ data:
     metadata_path  = ./config/metadata
 
     ; administrator user/password (htpasswd -b -c -B ...)
-    admin_user = ubuntu
+    admin_user = {{ .Values.auth.username }}
 
     ; username field quality checks
     ;

@@ -38,7 +38,7 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.26.6+rke2r1 sh -
+    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.28.2+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
 
@@ -72,12 +72,21 @@ Vagrant.configure("2") do |config|
     grep -qxF 'vm.max_map_count=1524288' /etc/sysctl.conf || echo 'vm.max_map_count=1524288' >> /etc/sysctl.conf
     sysctl -p
 
-    # Add kernel modules needed for istio 
+    # Add kernel modules needed for istio
     grep -qxF 'xt_REDIRECT' /etc/modules || echo 'xt_REDIRECT' >> /etc/modules
     grep -qxF 'xt_connmark' /etc/modules || echo 'xt_connmark' >> /etc/modules
     grep -qxF 'xt_mark' /etc/modules || echo 'xt_mark' >> /etc/modules
     grep -qxF 'xt_owner' /etc/modules || echo 'xt_owner' >> /etc/modules
     grep -qxF 'iptable_mangle' /etc/modules || echo 'iptable_mangle' >> /etc/modules
+
+    # Update coredns so that hostname will resolve to their perspective IPs by enabling the host plugin
+    myip_string=$(hostname -I)
+    read -ra my_hostips <<< $myip_string
+    cp /vagrant/vagrant_dependencies/Corefile.yaml /tmp/Corefile.yaml
+    sed -i "s/###NODE_IP_ADDRESS###/${my_hostips[0]}/g" /tmp/Corefile.yaml
+    kubectl apply -f /tmp/Corefile.yaml
+    sleep 5
+    echo "Rebooting the VM"
 
   SHELL
 
@@ -110,6 +119,7 @@ Vagrant.configure("2") do |config|
       # Create the certs
       mkdir certs
 
+      # TODO this is not the right way to generate the certs I need to go back and fix this later.
       openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=bigbang Inc./CN=bigbang.vp.dev' -keyout certs/ca.key -out certs/ca.crt
       openssl req -out certs/bigbang.vp.dev.csr -newkey rsa:2048 -nodes -keyout certs/bigbang.vp.dev.key -config /vagrant/vagrant_dependencies/req.conf -extensions 'v3_req'
       openssl x509 -req -sha256 -days 365 -CA certs/ca.crt -CAkey certs/ca.key -set_serial 0 -in certs/bigbang.vp.dev.csr -out certs/bigbang.vp.dev.crt
@@ -131,6 +141,8 @@ Vagrant.configure("2") do |config|
     SHELL
   else
     config.vm.provision "shell", inline: <<-SHELL
+      echo "Sleep for two minutes for cluster to come back up"
+      sleep 120
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=enp0s8
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost"
       hostname -I

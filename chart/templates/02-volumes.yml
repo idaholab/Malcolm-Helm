@@ -1,29 +1,31 @@
+{{- if .Values.is_production }}
+  {{- with .Values.storage.production }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: pcap-claim
 spec:
-  storageClassName: {{ .Values.storage.pcap_claim.className }}
+  storageClassName: {{ .pcap_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.storage.pcap_claim.size }}
+      storage: {{ .pcap_claim.size }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: zeek-claim
 spec:
-  storageClassName: {{ .Values.storage.zeek_claim.className }}
+  storageClassName: {{ .zeek_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.storage.zeek_claim.size }}
+      storage: {{ .zeek_claim.size }}
 
 ---
 apiVersion: v1
@@ -31,13 +33,13 @@ kind: PersistentVolumeClaim
 metadata:
   name: suricata-claim-offline
 spec:
-  storageClassName: {{ .Values.storage.suricata_claim.className }}
+  storageClassName: {{ .suricata_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.storage.suricata_claim.size }}
+      storage: {{ .suricata_claim.size }}
 
 ---
 apiVersion: v1
@@ -45,13 +47,13 @@ kind: PersistentVolumeClaim
 metadata:
   name: config-claim
 spec:
-  storageClassName: {{ .Values.storage.config_claim.className }}
+  storageClassName: {{ .config_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.storage.config_claim.size }}
+      storage: {{ .config_claim.size }}
 
 ---
 apiVersion: v1
@@ -59,10 +61,85 @@ kind: PersistentVolumeClaim
 metadata:
   name: runtime-logs-claim
 spec:
-  storageClassName: {{ .Values.storage.runtime_logs_claim.className }}
+  storageClassName: {{ .runtime_logs_claim.className }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.storage.runtime_logs_claim.size }}
+      storage: {{ .runtime_logs_claim.size }}
+
+  {{- end }}
+{{- else }}
+  {{- with .Values.storage.development }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pcap-claim
+spec:
+  storageClassName: {{ .pcap_claim.className }}
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ .pcap_claim.size }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zeek-claim
+spec:
+  storageClassName: {{ .zeek_claim.className }}
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ .zeek_claim.size }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: suricata-claim-offline
+spec:
+  storageClassName: {{ .suricata_claim.className }}
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ .suricata_claim.size }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: config-claim
+spec:
+  storageClassName: {{ .config_claim.className }}
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ .config_claim.size }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: runtime-logs-claim
+spec:
+  storageClassName: {{ .runtime_logs_claim.className }}
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ .runtime_logs_claim.size }}
+
+  {{- end }}
+{{- end }}
