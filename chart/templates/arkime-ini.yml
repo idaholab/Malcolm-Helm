@@ -15,6 +15,7 @@ data:
     dropGroup=arkime
     dropUser=arkime
     elasticsearch={{ include "malcolm.opensearchprimaryurl" . }}
+    footerTemplate=_version_ | <a href="https://arkime.com">arkime.com 🦉</a> | <a href="/">Malc⦿lm 📄</a> | <a href="/dashboards/">Dashboards 📊</a> | <a href="/netbox/">NetBox 💻 | _responseTime_ms ⏱️</a>
     freeSpaceG={{ .Values.arkime_env.free_space_g }}
     geoLite2ASN=/opt/arkime/etc/GeoLite2-ASN.mmdb
     geoLite2Country=/opt/arkime/etc/GeoLite2-Country.mmdb

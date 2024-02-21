@@ -107,6 +107,11 @@ apiVersion: v1
 data:
   NGINX_LOG_ACCESS_AND_ERRORS: "false"
   NGINX_SSL: "false"
+  # These values are used to handle the Arkime value actions to pivot from Arkime
+  #   to Dashboards. The nginx-proxy container's entrypoint will try to formulate
+  #   them automatically, but they may be specified explicitly here.
+  NGINX_DASHBOARDS_PREFIX: ""
+  NGINX_DASHBOARDS_PROXY_PASS: ""
 kind: ConfigMap
 metadata:
   name: nginx-env
