@@ -1,3 +1,5 @@
+{{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
+
 {{- if .Values.zeek_live.enabled }}
 ---
 apiVersion: v1
@@ -52,7 +54,7 @@ spec:
 {{ toYaml .Values.live_capture.tolerations | indent 6 }}
       containers:
       - name: zeek-live-container
-        image: "{{ .Values.image.repository }}/zeek:{{ .Values.image.zeek_tag | default .Chart.AppVersion }}"
+        image: "{{ $image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
