@@ -5,7 +5,7 @@ metadata:
   namespace: kube-system
   annotations:
     meta.helm.sh/release-name: "rke2-coredns"
-    meta.helm.sh/release-namespace: default
+    meta.helm.sh/release-namespace: kube-system
   labels:
     app.kubernetes.io/instance: rke2-coredns
     app.kubernetes.io/managed-by: Helm
