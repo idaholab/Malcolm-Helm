@@ -22,7 +22,7 @@ image:
   pcap_monitor_tag: ""
   arkime_tag: ""
   api_tag: ""
-  zeek_container_override: "ghcr.io/mmguero-dev/malcolm/zeek:development@sha256:37cbe76d42a3dc27cb0d201114d573fb1310b9157af2c89438cd502ad2b220d9"
+  zeek_container_override: "ghcr.io/naps-dev/containers/zeek:malcolm-dev-24.03.0"
   suricata_tag: ""
   dashboards_helper_tag: ""
   file_monitor_tag: ""
