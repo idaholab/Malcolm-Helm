@@ -86,21 +86,33 @@ external_elasticsearch:
 siem_env:
   # OpenSearch index patterns and timestamp fields
   # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
-  malcolm_network_index_pattern: "arkime_sessions3-*"
-  # Default time field to use for network traffic logs in Logstash and Dashboards
-  malcolm_network_index_time_field: "firstPacket"
-  # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
-  malcolm_network_index_suffix: "%{%y%m%d}"
-  # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
-  malcolm_other_index_pattern: "malcolm_beats_*"
-  # Default time field to use for other logs in Logstash and Dashboards
-  malcolm_other_index_time_field: "@timestamp"
-  # Suffix used to create index to which other logs are written (supports Ruby strftime strings in %{})
-  malcolm_other_index_suffix: "%{%y%m%d}"
-  # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
-  arkime_network_index_pattern: "arkime_sessions3-*"
-  # Default time field used by for sessions in Arkime viewer
-  arkime_network_index_time_field: "firstPacket"
+  development:
+    malcolm_network_index_pattern: "arkime_sessions3-*"
+    # Default time field to use for network traffic logs in Logstash and Dashboards
+    malcolm_network_index_time_field: "firstPacket"
+    # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
+    # e.g., hourly: %{%y%m%dh%H}, daily: %{%y%m%d}, weekly: %{%yw%U}, monthly: %{%ym%m}
+    malcolm_network_index_suffix: "%{%y%m%d}"
+    # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
+    malcolm_other_index_pattern: "malcolm_beats_*"
+    # Default time field to use for other logs in Logstash and Dashboards
+    malcolm_other_index_time_field: "@timestamp"
+    # Suffix used to create index to which other logs are written (supports Ruby strftime strings in %{})
+    malcolm_other_index_suffix: "%{%y%m%d}"
+    # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
+    arkime_network_index_pattern: "arkime_sessions3-*"
+    # Default time field used by for sessions in Arkime viewer
+    arkime_network_index_time_field: "firstPacket"
+  production:
+    malcolm_network_index_pattern: "arkime_sessions3-*"
+    malcolm_network_index_time_field: "firstPacket"
+    malcolm_network_index_suffix: "%{%y%m%dh%H}"
+    malcolm_other_index_pattern: "malcolm_beats_*"
+    malcolm_other_index_time_field: "@timestamp"
+    malcolm_other_index_suffix: "%{%y%m%d}"
+    arkime_network_index_pattern: "arkime_sessions3-*"
+    arkime_network_index_time_field: "firstPacket"
+
 
 logstash:
   # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
@@ -290,7 +302,7 @@ zeek_env:
   # `mapped`: extraction of files with recognized mime types
   # `known`: extraction of files for which any mime type can be determined
   # `all`: extract all files
-  extract_mode: notcommtxt
+  extract_mode: interesting
   extracted_file_enable_capa: true
   extracted_file_enable_clamav: true
   extracted_file_enable_yara: true
@@ -312,23 +324,34 @@ zeek_env:
 
 # Variables apply to both offline and live version of arkime
 arkime_env:
-  free_space_g: "10%"
-  rotate_index: hourly6
-  # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
-  # Whether or not Arkime should perform index management
-  index_management_enabled: "false"
-  # Time in hours/days before moving to warm and force merge (number followed by h or d)
-  index_management_optimization_period: "30d"
-  # Time in hours/days before deleting index (number followed by h or d)
-  index_management_retention_time: "90d"
-  # Number of replicas for older sessions indices
-  index_management_older_session_replicas: "0"
-  # Number of weeks of history to retain
-  index_management_history_retention_weeks: "13"
-  # Number of segments to optimize sessions for
-  index_management_segments: "1"
-  # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
-  index_management_hot_warm_enabled: "false"
+  development:
+    free_space_g: "10%"
+    rotate_index: daily
+    # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
+    # Whether or not Arkime should perform index management
+    index_management_enabled: "false"
+    # Time in hours/days before moving to warm and force merge (number followed by h or d)
+    index_management_optimization_period: "30d"
+    # Time in hours/days before deleting index (number followed by h or d)
+    index_management_retention_time: "90d"
+    # Number of replicas for older sessions indices
+    index_management_older_session_replicas: "0"
+    # Number of weeks of history to retain
+    index_management_history_retention_weeks: "13"
+    # Number of segments to optimize sessions for
+    index_management_segments: "1"
+    # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
+    index_management_hot_warm_enabled: "false"
+  production:
+    free_space_g: "10%"
+    rotate_index: hourly
+    index_management_enabled: "true"
+    index_management_optimization_period: "3h"
+    index_management_retention_time: "4h"
+    index_management_older_session_replicas: "0"
+    index_management_history_retention_weeks: "1"
+    index_management_segments: "1"
+    index_management_hot_warm_enabled: "true"
 
 arkime_live:
   enabled: true

@@ -155,23 +155,29 @@ data:
   path.repo: /opt/opensearch/backup
   node.roles: ingest,data,remote_cluster_client,cluster_manager
   discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
-  # OpenSearch index patterns and timestamp fields
-  # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
-  MALCOLM_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_network_index_pattern }}"
-  # Default time field to use for network traffic logs in Logstash and Dashboards
-  MALCOLM_NETWORK_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_network_index_time_field }}"
-  # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
-  MALCOLM_NETWORK_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_network_index_suffix }}"
-  # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
-  MALCOLM_OTHER_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_other_index_pattern }}"
-  # Default time field to use for other logs in Logstash and Dashboards
-  MALCOLM_OTHER_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_other_index_time_field }}"
-  # Suffix used to create index to which other logs are written (supports Ruby strftime strings in %{})
-  MALCOLM_OTHER_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_other_index_suffix }}"
-  # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
-  ARKIME_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.arkime_network_index_pattern }}"
-  # Default time field used by for sessions in Arkime viewer
-  ARKIME_NETWORK_INDEX_TIME_FIELD: "{{ .Values.siem_env.arkime_network_index_time_field }}"
+{{- if .Values.is_production }}
+  {{- with .Values.siem_env.production }}
+  MALCOLM_NETWORK_INDEX_PATTERN: "{{ .malcolm_network_index_pattern }}"
+  MALCOLM_NETWORK_INDEX_TIME_FIELD: "{{ .malcolm_network_index_time_field }}"
+  MALCOLM_NETWORK_INDEX_SUFFIX: "{{ .malcolm_network_index_suffix }}"
+  MALCOLM_OTHER_INDEX_PATTERN: "{{ .malcolm_other_index_pattern }}"
+  MALCOLM_OTHER_INDEX_TIME_FIELD: "{{ .malcolm_other_index_time_field }}"
+  MALCOLM_OTHER_INDEX_SUFFIX: "{{ .malcolm_other_index_suffix }}"
+  ARKIME_NETWORK_INDEX_PATTERN: "{{ .arkime_network_index_pattern }}"
+  ARKIME_NETWORK_INDEX_TIME_FIELD: "{{ .arkime_network_index_time_field }}"
+  {{- end }}
+{{- else }}
+  {{- with .Values.siem_env.development }}
+  MALCOLM_NETWORK_INDEX_PATTERN: "{{ .malcolm_network_index_pattern }}"
+  MALCOLM_NETWORK_INDEX_TIME_FIELD: "{{ .malcolm_network_index_time_field }}"
+  MALCOLM_NETWORK_INDEX_SUFFIX: "{{ .malcolm_network_index_suffix }}"
+  MALCOLM_OTHER_INDEX_PATTERN: "{{ .malcolm_other_index_pattern }}"
+  MALCOLM_OTHER_INDEX_TIME_FIELD: "{{ .malcolm_other_index_time_field }}"
+  MALCOLM_OTHER_INDEX_SUFFIX: "{{ .malcolm_other_index_suffix }}"
+  ARKIME_NETWORK_INDEX_PATTERN: "{{ .arkime_network_index_pattern }}"
+  ARKIME_NETWORK_INDEX_TIME_FIELD: "{{ .arkime_network_index_time_field }}"
+  {{- end }}
+{{- end }}
 kind: ConfigMap
 metadata:
   name: opensearch-env
