@@ -193,14 +193,6 @@ data:
           proxy_set_header Authorization "";
         }
 
-        # Dashboards/Arkime -> extracted file download
-        location ~* /dl-extracted-files/(.*) {
-          rewrite ^.*/dl-extracted-files/(.*) /extracted-files/$1 redirect;
-          proxy_pass http://extracted-file-http-server;
-          proxy_redirect off;
-          proxy_set_header Host file-monitor.malcolm.local;
-        }
-
         # OpenSearch dashboards (or Kibana)
         location /dashboards {
           include /etc/nginx/nginx_dashboards_rewrite_rt.conf;

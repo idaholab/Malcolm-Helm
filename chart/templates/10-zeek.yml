@@ -1,3 +1,4 @@
+{{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 data:
@@ -37,7 +38,7 @@ spec:
     spec:
       containers:
       - name: zeek-offline-container
-        image: "{{ .Values.image.repository }}/zeek:{{ .Values.image.zeek_tag | default .Chart.AppVersion }}"
+        image: "{{ $image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

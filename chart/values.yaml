@@ -22,7 +22,7 @@ image:
   pcap_monitor_tag: ""
   arkime_tag: ""
   api_tag: ""
-  zeek_tag: ""
+  zeek_container_override: "ghcr.io/naps-dev/containers/zeek:malcolm-dev-24.03.0"
   suricata_tag: ""
   dashboards_helper_tag: ""
   file_monitor_tag: ""
@@ -51,9 +51,9 @@ opensearch:
   url: http://opensearch:9200
   dashboards_url: http://dashboards:5601/dashboards
   development:
-    java_memory: -Xms4g -Xmx4g -Xss256k -XX
+    java_memory: -Xmx4g -Xms4g -Xss256k -XX
   production:
-    java_memory: -Xms32g -Xmx32g -Xss256k -XX
+    java_memory: -Xmx32g -Xms32g -Xss256k -XX
 
 external_elasticsearch:
   enabled: false
@@ -105,13 +105,13 @@ siem_env:
 logstash:
   # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
   development:
-    java_memory: -Xms1g -Xmx1g -Xss1536k -XX
+    java_memory: -Xmx1g -Xms1g -Xss1536k -XX
     #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
     workers: 6
     batch_delay: 50
     batch_size: 75
   production:
-    java_memory: -Xms16g -Xmx16g -Xss1536k -XX
+    java_memory: -Xmx16g -Xms16g -Xss1536k -XX
     workers: 18
     batch_delay: 50
     batch_size: 75
