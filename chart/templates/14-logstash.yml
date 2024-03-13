@@ -71,7 +71,15 @@ spec:
   selector:
     matchLabels:
       name: logstash-deployment
-  replicas: {{ include "malcolm.nodeCount" . }}
+  {{- if .Values.is_production }}
+    {{- with .Values.logstash.production }}
+  replicas: {{ .replicas }}
+    {{- end }}
+  {{- else }}
+    {{- with .Values.logstash.development }}
+  replicas: {{ .replicas }}
+    {{- end }}
+  {{- end }}
   template:
     metadata:
       labels:
