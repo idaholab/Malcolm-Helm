@@ -106,7 +106,7 @@ siem_env:
   production:
     malcolm_network_index_pattern: "malcolm_suricata_zeek-*"
     malcolm_network_index_time_field: "firstPacket"
-    malcolm_network_index_suffix: "%{%y%m%dh%H}"
+    malcolm_network_index_suffix: "%{%y%m%d}"
     malcolm_other_index_pattern: "malcolm_beats_*"
     malcolm_other_index_time_field: "@timestamp"
     malcolm_other_index_suffix: "%{%y%m%d}"
@@ -344,7 +344,7 @@ arkime_env:
     index_management_hot_warm_enabled: "false"
   production:
     free_space_g: "10%"
-    rotate_index: hourly
+    rotate_index: daily
     index_management_enabled: "false"
     index_management_optimization_period: "30d"
     index_management_retention_time: "90d"
