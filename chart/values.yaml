@@ -104,8 +104,7 @@ siem_env:
     # Default time field used by for sessions in Arkime viewer
     arkime_network_index_time_field: "firstPacket"
   production:
-    # malcolm_network_index_pattern: "malcolm_suricata_zeek-*"
-    malcolm_network_index_pattern: "arkime_sessions3-*"
+    malcolm_network_index_pattern: "malcolm_suricata_zeek-*"
     malcolm_network_index_time_field: "firstPacket"
     malcolm_network_index_suffix: "%{%y%m%dh%H}"
     malcolm_other_index_pattern: "malcolm_beats_*"
@@ -245,7 +244,7 @@ suricata_live:
     max_pending_packets: 8192
 
 dashboards_helper_env:
-  opensearch_index_size_prune_limit: 80%
+  opensearch_index_size_prune_limit: 0
   opensearch_index_size_prune_name_sort: false
 
 suricata_offline:
@@ -346,11 +345,11 @@ arkime_env:
   production:
     free_space_g: "10%"
     rotate_index: hourly
-    index_management_enabled: "true"
-    index_management_optimization_period: "3h"
-    index_management_retention_time: "4h"
+    index_management_enabled: "false"
+    index_management_optimization_period: "30d"
+    index_management_retention_time: "90d"
     index_management_older_session_replicas: "0"
-    index_management_history_retention_weeks: "1"
+    index_management_history_retention_weeks: "13"
     index_management_segments: "1"
     index_management_hot_warm_enabled: "false"
 
