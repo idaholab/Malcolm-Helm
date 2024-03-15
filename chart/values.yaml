@@ -104,7 +104,8 @@ siem_env:
     # Default time field used by for sessions in Arkime viewer
     arkime_network_index_time_field: "firstPacket"
   production:
-    malcolm_network_index_pattern: "malcolm_suricata_zeek-*"
+    # malcolm_network_index_pattern: "malcolm_suricata_zeek-*"
+    malcolm_network_index_pattern: "arkime_sessions3-*"
     malcolm_network_index_time_field: "firstPacket"
     malcolm_network_index_suffix: "%{%y%m%dh%H}"
     malcolm_other_index_pattern: "malcolm_beats_*"
