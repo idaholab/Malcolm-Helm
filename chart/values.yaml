@@ -104,7 +104,7 @@ siem_env:
     # Default time field used by for sessions in Arkime viewer
     arkime_network_index_time_field: "firstPacket"
   production:
-    malcolm_network_index_pattern: "arkime_sessions3-*"
+    malcolm_network_index_pattern: "malcolm_suricata_zeek-*"
     malcolm_network_index_time_field: "firstPacket"
     malcolm_network_index_suffix: "%{%y%m%dh%H}"
     malcolm_other_index_pattern: "malcolm_beats_*"
@@ -237,11 +237,11 @@ suricata_live:
     max_pending_packets: 1024
     # Used if is production is set to true
   production:
-    af_packet_iface_threads: 16
+    af_packet_iface_threads: 32
     # Default is calculated threads * max-pending-packets (Default of max-pending-packets is 1024)
     # This calculation was made with the assumtion that max-pending-packets is set to 1024
-    af_packet_ring_size: 65536
-    max_pending_packets: 4096
+    af_packet_ring_size: 131072
+    max_pending_packets: 8192
 
 dashboards_helper_env:
   opensearch_index_size_prune_limit: 80%
@@ -351,7 +351,7 @@ arkime_env:
     index_management_older_session_replicas: "0"
     index_management_history_retention_weeks: "1"
     index_management_segments: "1"
-    index_management_hot_warm_enabled: "true"
+    index_management_hot_warm_enabled: "false"
 
 arkime_live:
   enabled: true
