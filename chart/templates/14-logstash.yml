@@ -71,7 +71,7 @@ spec:
   selector:
     matchLabels:
       name: logstash-deployment
-  replicas: {{ include "malcolm.nodeCount" . }}
+  replicas: {{ max 1 (div (include "malcolm.nodeCount" .) 2) }}
   template:
     metadata:
       labels:
