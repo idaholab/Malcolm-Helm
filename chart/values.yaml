@@ -270,8 +270,8 @@ zeek_live:
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "67108864"
   production:
-    zeek_lb_procs: "12"
-    worker_lb_procs: "12"
+    zeek_lb_procs: "24"
+    worker_lb_procs: "24"
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "134217728"
 
@@ -370,9 +370,9 @@ arkime_live:
     arkime_compression_level: "3"
     arkime_db_bulk_size: "4000000"
     arkime_max_packets_in_queue: "300000"
-    arkime_packet_threads: "8"
+    arkime_packet_threads: "16"
     arkime_pcap_write_size: "2560000"
-    arkime_tpacketv3_num_threads: "8"
+    arkime_tpacketv3_num_threads: "16"
     arkime_tpacketv3_block_size: "8388608"
 
   # Arkime live is a Daemonset but it will only schedule on kubernetes nodes that has following label
