@@ -20,7 +20,6 @@ data:
   ZEEK_AF_PACKET_BUFFER_SIZE: "{{ .zeek_af_packet_buffer_size }}"
   ZEEK_PIN_CPUS_LOGGER: "{{ .zeek_pin_cpus_logger }}"
   ZEEK_PIN_CPUS_MANAGER: "{{ .zeek_pin_cpus_manager }}"
-  ZEEK_PIN_CPUS_MANAGER: "{{ .zeek_pin_cpus_manager }}"
   ZEEK_PIN_CPUS_PROXY: "{{ .zeek_pin_cpus_proxy }}"
     {{- end }}
   {{- else }}
@@ -30,7 +29,6 @@ data:
   ZEEK_LB_METHOD: "{{ .zeek_lb_method }}"
   ZEEK_AF_PACKET_BUFFER_SIZE: "{{ .zeek_af_packet_buffer_size }}"
   ZEEK_PIN_CPUS_LOGGER: "{{ .zeek_pin_cpus_logger }}"
-  ZEEK_PIN_CPUS_MANAGER: "{{ .zeek_pin_cpus_manager }}"
   ZEEK_PIN_CPUS_MANAGER: "{{ .zeek_pin_cpus_manager }}"
   ZEEK_PIN_CPUS_PROXY: "{{ .zeek_pin_cpus_proxy }}"
     {{- end }}

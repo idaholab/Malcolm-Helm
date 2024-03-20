@@ -269,7 +269,6 @@ zeek_live:
     zeek_af_packet_buffer_size: "67108864"
     zeek_pin_cpus_logger: ""
     zeek_pin_cpus_manager: ""
-    zeek_pin_cpus_manager: ""
     zeek_pin_cpus_proxy: ""
   production:
     zeek_lb_procs: "24"
@@ -277,7 +276,6 @@ zeek_live:
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "134217728"
     zeek_pin_cpus_logger: ""
-    zeek_pin_cpus_manager: ""
     zeek_pin_cpus_manager: ""
     zeek_pin_cpus_proxy: ""
 
