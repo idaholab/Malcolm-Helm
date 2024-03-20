@@ -86,32 +86,30 @@ external_elasticsearch:
 siem_env:
   # OpenSearch index patterns and timestamp fields
   # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
-  development:
-    malcolm_network_index_pattern: "arkime_sessions3-*"
-    # Default time field to use for network traffic logs in Logstash and Dashboards
-    malcolm_network_index_time_field: "firstPacket"
-    # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
-    # e.g., hourly: %{%y%m%dh%H}, daily: %{%y%m%d}, weekly: %{%yw%U}, monthly: %{%ym%m}
-    malcolm_network_index_suffix: "%{%y%m%d}"
-    # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
-    malcolm_other_index_pattern: "malcolm_beats_*"
-    # Default time field to use for other logs in Logstash and Dashboards
-    malcolm_other_index_time_field: "@timestamp"
-    # Suffix used to create index to which other logs are written (supports Ruby strftime strings in %{})
-    malcolm_other_index_suffix: "%{%y%m%d}"
-    # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
-    arkime_network_index_pattern: "arkime_sessions3-*"
-    # Default time field used by for sessions in Arkime viewer
-    arkime_network_index_time_field: "firstPacket"
-  production:
-    malcolm_network_index_pattern: "malcolm_suricata_zeek-*"
-    malcolm_network_index_time_field: "firstPacket"
-    malcolm_network_index_suffix: "%{%y%m%d}"
-    malcolm_other_index_pattern: "malcolm_beats_*"
-    malcolm_other_index_time_field: "@timestamp"
-    malcolm_other_index_suffix: "%{%y%m%d}"
-    arkime_network_index_pattern: "arkime_sessions3-*"
-    arkime_network_index_time_field: "firstPacket"
+  logstash_override:
+    # When enabled the elasticsearch / opensarch logstash output plugin is modified to point to an ilm rollover alias
+    # ILM policy and rollover_alias will need to be defined outside of this deployment for this to work as expected.
+    enabled: false
+    ilm_policy: nta
+    # Must match arkime_network_index_pattern
+    rollover_alias: malcolm_suricata_zeek
+
+  malcolm_network_index_pattern: "arkime_sessions3-*"
+  # Default time field to use for network traffic logs in Logstash and Dashboards
+  malcolm_network_index_time_field: "firstPacket"
+  # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
+  # e.g., hourly: %{%y%m%dh%H}, daily: %{%y%m%d}, weekly: %{%yw%U}, monthly: %{%ym%m}
+  malcolm_network_index_suffix: "%{%y%m%d}"
+  # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
+  malcolm_other_index_pattern: "malcolm_beats_*"
+  # Default time field to use for other logs in Logstash and Dashboards
+  malcolm_other_index_time_field: "@timestamp"
+  # Suffix used to create index to which other logs are written (supports Ruby strftime strings in %{})
+  malcolm_other_index_suffix: "%{%y%m%d}"
+  # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
+  arkime_network_index_pattern: "arkime_sessions3-*"
+  # Default time field used by for sessions in Arkime viewer
+  arkime_network_index_time_field: "firstPacket"
 
 
 logstash:

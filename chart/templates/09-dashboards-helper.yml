@@ -87,6 +87,25 @@ spec:
           timeoutSeconds: 15
           successThreshold: 1
           failureThreshold: 10
+{{- if .Values.siem_env.logstash_override.enabled }}
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - |
+              output=$(curl -sSfk $OPENSEARCH_URL/_cat/component_templates/custom_*)
+              if echo $output | grep -q -E 'custom_zeek' && echo $output | grep -q -E 'custom_suricata' && echo $output | grep -q -E 'custom_arkime' && echo $output | grep -q -E 'custom_zeek_ot'; then
+                  exit 0
+              else
+                  exit 1
+              fi
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+{{- end }}
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: dashboards-helper-var-local-catrust-volume
