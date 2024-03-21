@@ -19,12 +19,24 @@ data:
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
   SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
   SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
+  SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
+  SURICATA_HOST_MEMCAP: "{{ .host_memcap }}"
+  SURICATA_DEFRAG_MEMCAP: "{{ .defrag_memcap }}"
+  SURICATA_FTP_MEMCAP: "{{ .ftp_memcap }}"
+  SURICATA_STREAM_REASSEMBLY_MEMCAP: "{{ .stream_reassembly_memcap }}"
+  SURICATA_FLOW_MEMCAP: "{{ .flow_memcap }}"
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_live.development }}
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
   SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
   SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
+  SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
+  SURICATA_HOST_MEMCAP: "{{ .host_memcap }}"
+  SURICATA_DEFRAG_MEMCAP: "{{ .defrag_memcap }}"
+  SURICATA_FTP_MEMCAP: "{{ .ftp_memcap }}"
+  SURICATA_STREAM_REASSEMBLY_MEMCAP: "{{ .stream_reassembly_memcap }}"
+  SURICATA_FLOW_MEMCAP: "{{ .flow_memcap }}"
   {{- end }}
 {{- end }}
 kind: ConfigMap

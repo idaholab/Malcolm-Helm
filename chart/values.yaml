@@ -233,6 +233,12 @@ suricata_live:
     af_packet_iface_threads: 2
     af_packet_ring_size: 2048
     max_pending_packets: 1024
+    stream_memcap: "64mb"
+    host_memcap: "32mb"
+    defrag_memcap: "32mb"
+    ftp_memcap: "64mb"
+    stream_reassembly_memcap: "256mb"
+    flow_memcap: "128mb"
     # Used if is production is set to true
   production:
     af_packet_iface_threads: 32
@@ -240,6 +246,12 @@ suricata_live:
     # This calculation was made with the assumtion that max-pending-packets is set to 1024
     af_packet_ring_size: 131072
     max_pending_packets: 8192
+    stream_memcap: "16gb"
+    host_memcap: "32mb"
+    defrag_memcap: "16gb"
+    ftp_memcap: "4gb"
+    stream_reassembly_memcap: "16gb"
+    flow_memcap: "16gb"
 
 dashboards_helper_env:
   opensearch_index_size_prune_limit: 0
@@ -267,11 +279,13 @@ zeek_live:
     worker_lb_procs: "1"
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "67108864"
+    zeek_pin_cpus_worker_1: "1"
   production:
     zeek_lb_procs: "24"
     worker_lb_procs: "24"
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "134217728"
+    zeek_pin_cpus_worker_1: "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
 
 
 # Only affects the zeek offline deployment
