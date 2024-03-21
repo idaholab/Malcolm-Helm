@@ -355,8 +355,8 @@ arkime_env:
     # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
     index_management_hot_warm_enabled: "false"
   production:
-    free_space_g: "10%"
-    rotate_index: daily
+    free_space_g: "20%"
+    rotate_index: hourly
     index_management_enabled: "false"
     index_management_optimization_period: "30d"
     index_management_retention_time: "90d"
@@ -433,6 +433,8 @@ filebeat:
   filebeat_close_inactive_live: 90m
   filebeat_ignore_older: 120m
   filebeat_scan_frequency: 10s
+  zip_cleanup_minutes: "90"
+  log_cleanup_minutes: "90"
 
 # Default affinity ensures that the filebeat Daemonset is applied with anything that also has suricata or zeek live capture running on it.
   nodeAffinity:

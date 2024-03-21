@@ -10,6 +10,8 @@ data:
   FILEBEAT_CLOSE_RENAMED: "true"
   FILEBEAT_IGNORE_OLDER: {{ .Values.filebeat.filebeat_ignore_older }}
   FILEBEAT_SCAN_FREQUENCY: {{ .Values.filebeat.filebeat_scan_frequency }}
+  ZIP_CLEANUP_MINUTES: "{{ .Values.filebeat.zip_cleanup_minutes }}"
+  LOG_CLEANUP_MINUTES: "{{ .Values.filebeat.log_cleanup_minutes }}"
   FILEBEAT_TCP_LISTEN: "true"
   FILEBEAT_TCP_LOG_FORMAT: json
   FILEBEAT_TCP_PARSE_DROP_FIELD: message
