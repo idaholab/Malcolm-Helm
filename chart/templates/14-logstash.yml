@@ -92,9 +92,7 @@ data:
     }
 kind: ConfigMap
 metadata:
-  creationTimestamp: null
   name: elastic-output-override
-  namespace: malcolm
 {{- end }}
 ---
 apiVersion: apps/v1
