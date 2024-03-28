@@ -131,7 +131,7 @@ netbox:
   enabled: true
   # Set this this value to your reverse proxy url or leave it blank
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
-  netbox_default_site: Cyberville  
+  netbox_default_site: Cyberville
   netbox_auto_populate: false
   netbox_cache_size: "1000"
   netbox_cache_ttl: "30"
@@ -139,9 +139,10 @@ netbox:
   database:
    host: netbox-postgres
    name: netbox
+   password: "ChangeMe!"
    # Set true if using custom database for netbox
    is_custom: false
-   # Create extra secrets for database, empty attributes will be set to randomly general postgres password.
+   # Create extra secrets for custom database, empty attributes will be set to password key.
    # The password will be same for all empty attributes.
    extra_secrets: [{}]
     # Example
