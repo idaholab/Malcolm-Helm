@@ -466,3 +466,9 @@ process_env:
 # Only set to true if you intend on mounting these specific folders yourself using a kustomize overlay.
 rule_mount_override:
   enabled: false
+
+zeek_chart_overrides:
+  serviceAccountName: ""
+  sideCars: []
+  volumes: []
+  volumeMounts: []
