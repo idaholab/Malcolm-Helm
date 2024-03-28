@@ -8,7 +8,6 @@ metadata:
     meta.helm.sh/release-namespace: kube-system
   labels:
     app.kubernetes.io/instance: rke2-coredns
-    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rke2-coredns
     k8s-app: kube-dns
     kubernetes.io/cluster-service: "true"
