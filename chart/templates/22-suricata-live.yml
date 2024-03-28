@@ -25,6 +25,8 @@ data:
   SURICATA_FTP_MEMCAP: "{{ .ftp_memcap }}"
   SURICATA_STREAM_REASSEMBLY_MEMCAP: "{{ .stream_reassembly_memcap }}"
   SURICATA_FLOW_MEMCAP: "{{ .flow_memcap }}"
+  SURICATA_EVE_THREADED: "{{ .eve_threaded }}"
+  SURICATA_EVE_ROTATE_INTERVAL: "{{ .eve_rotate_interval }}"
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_live.development }}
@@ -37,6 +39,8 @@ data:
   SURICATA_FTP_MEMCAP: "{{ .ftp_memcap }}"
   SURICATA_STREAM_REASSEMBLY_MEMCAP: "{{ .stream_reassembly_memcap }}"
   SURICATA_FLOW_MEMCAP: "{{ .flow_memcap }}"
+  SURICATA_EVE_THREADED: "{{ .eve_threaded }}"
+  SURICATA_EVE_ROTATE_INTERVAL: "{{ .eve_rotate_interval }}"
   {{- end }}
 {{- end }}
 kind: ConfigMap

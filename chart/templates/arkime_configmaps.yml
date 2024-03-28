@@ -70,6 +70,7 @@ data:
   #   https://arkime.com/faq#pcap-deletion
   MANAGE_PCAP_FILES: "true"
   OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
+  ARKIME_DEBUG_LEVEL: "{{ .Values.arkime_env.arkime_debug_level }}"
 {{- if .Values.is_production }}
   {{- with .Values.arkime_env.production }}
   ARKIME_FREESPACEG: "{{ .free_space_g }}"

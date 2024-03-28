@@ -22,7 +22,7 @@ image:
   pcap_monitor_tag: ""
   arkime_tag: ""
   api_tag: ""
-  zeek_container_override: "ghcr.io/naps-dev/containers/zeek:malcolm-dev-24.03.0"
+  zeek_container_override: ""
   suricata_tag: ""
   dashboards_helper_tag: ""
   file_monitor_tag: ""
@@ -97,8 +97,9 @@ siem_env:
   malcolm_network_index_pattern: "arkime_sessions3-*"
   # Default time field to use for network traffic logs in Logstash and Dashboards
   malcolm_network_index_time_field: "firstPacket"
-  # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
-  # e.g., hourly: %{%y%m%dh%H}, daily: %{%y%m%d}, weekly: %{%yw%U}, monthly: %{%ym%m}
+  # Suffix used to create index to which network traffic logs are written
+  #   (supports Ruby strftime strings in %{}; e.g.,
+  #    hourly: %{%y%m%dh%H}, twice daily: %{%P%y%m%d}, daily: %{%y%m%d}, weekly: %{%yw%U}, monthly: %{%ym%m})
   malcolm_network_index_suffix: "%{%y%m%d}"
   # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
   malcolm_other_index_pattern: "malcolm_beats_*"
@@ -130,8 +131,11 @@ netbox:
   enabled: true
   # Set this this value to your reverse proxy url or leave it blank
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
-  netbox_default_site: Cyberville
+  netbox_default_site: Cyberville  
   netbox_auto_populate: false
+  netbox_cache_size: "1000"
+  netbox_cache_ttl: "30"
+
   database:
    host: netbox-postgres
    name: netbox
@@ -239,6 +243,8 @@ suricata_live:
     ftp_memcap: "64mb"
     stream_reassembly_memcap: "256mb"
     flow_memcap: "128mb"
+    eve_threaded: "true"
+    eve_rotate_interval: "1h"
     # Used if is production is set to true
   production:
     af_packet_iface_threads: 32
@@ -252,6 +258,8 @@ suricata_live:
     ftp_memcap: "4gb"
     stream_reassembly_memcap: "16gb"
     flow_memcap: "16gb"
+    eve_threaded: "true"
+    eve_rotate_interval: "1h"
 
 dashboards_helper_env:
   opensearch_index_size_prune_limit: 0
@@ -297,13 +305,6 @@ zeek_offline:
   production:
     zeek_auto_analyze_pcap_threads: 3
 
-upload_common_env:
-  # The age (in minutes) at which already-processed log files containing network traffic metadata should
-  #   be pruned from the filesystem
-  log_cleanup_minutes: 360
-  # The age (in minutes) at which the compressed archives containing already-processed log files should
-  #   be pruned from the filesystem
-  zip_cleanup_minutes: 720
 
 # Affects all zeek deployment live and offline
 zeek_env:
@@ -336,6 +337,7 @@ zeek_env:
 
 # Variables apply to both offline and live version of arkime
 arkime_env:
+  arkime_debug_level: "0"
   development:
     free_space_g: "10%"
     rotate_index: daily
@@ -433,8 +435,13 @@ filebeat:
   filebeat_close_inactive_live: 90m
   filebeat_ignore_older: 120m
   filebeat_scan_frequency: 10s
+  # The age (in minutes) at which already-processed log files containing network traffic metadata should
+  #   be pruned from the filesystem
+  log_cleanup_minutes: "60"
+  # The age (in minutes) at which the compressed archives containing already-processed log files should
+  #   be pruned from the filesystem
   zip_cleanup_minutes: "90"
-  log_cleanup_minutes: "90"
+
 
 # Default affinity ensures that the filebeat Daemonset is applied with anything that also has suricata or zeek live capture running on it.
   nodeAffinity:

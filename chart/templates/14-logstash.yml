@@ -1,13 +1,8 @@
 ---
 apiVersion: v1
 data:
-  LOGSTASH_NETBOX_AUTO_POPULATE: "{{ .Values.netbox.netbox_auto_populate }}"
-  # Whether or not Logstash will enrich network traffic metadata via NetBox API calls
-  LOGSTASH_NETBOX_ENRICHMENT: "{{ .Values.netbox.enabled }}"
   # Which types of logs will be enriched via NetBox (comma-separated list of provider.dataset, or the string all to enrich all logs)
   LOGSTASH_NETBOX_ENRICHMENT_DATASETS: "suricata.alert,zeek.conn,zeek.known_hosts,zeek.known_services,zeek.notice,zeek.signatures,zeek.software,zeek.weird"
-  LOGSTASH_NETBOX_CACHE_SIZE: "1000"
-  LOGSTASH_NETBOX_CACHE_TTL: "30"
   # Zeek log types that will be ignored (dropped) by LogStash
   # Defaults are: analyzer,broker,bsap_ip_unknown,bsap_serial_unknown,capture_loss,cluster,config,ecat_arp_info,loaded_scripts,packet_filter,png,print,prof,reporter,stats,stderr,stdout
   LOGSTASH_ZEEK_IGNORED_LOGS: "bsap_ip_unknown,bsap_serial_unknown,ecat_arp_info,loaded_scripts,png,stderr,stdout"
