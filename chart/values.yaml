@@ -371,7 +371,7 @@ arkime_live:
   enabled: true
   pcap_hostpath: "/zpool/nta-pcap"
   development:
-    arkime_compression_type: none
+    arkime_compression_type: zstd
     arkime_compression_level: "0"
     arkime_db_bulk_size: "4000000"
     arkime_max_packets_in_queue: "300000"
