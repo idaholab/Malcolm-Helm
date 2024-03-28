@@ -472,3 +472,13 @@ zeek_chart_overrides:
   sideCars: []
   volumes: []
   volumeMounts: []
+  live_volumes: []
+  live_volumeMounts: []
+
+suricata_chart_overrides:
+  serviceAccountName: ""
+  sideCars: []
+  volumes: []
+  volumeMounts: []
+  live_volumes: []
+  live_volumeMounts: []
