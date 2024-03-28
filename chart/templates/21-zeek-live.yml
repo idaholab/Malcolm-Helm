@@ -18,6 +18,7 @@ data:
   WORKER_LB_PROCS: "{{ .worker_lb_procs }}"
   ZEEK_LB_METHOD: "{{ .zeek_lb_method }}"
   ZEEK_AF_PACKET_BUFFER_SIZE: "{{ .zeek_af_packet_buffer_size }}"
+  ZEEK_PIN_CPUS_WORKER_1: "{{ .zeek_pin_cpus_worker_1 }}"
     {{- end }}
   {{- else }}
     {{- with .Values.zeek_live.development }}
@@ -25,6 +26,7 @@ data:
   WORKER_LB_PROCS: "{{ .worker_lb_procs }}"
   ZEEK_LB_METHOD: "{{ .zeek_lb_method }}"
   ZEEK_AF_PACKET_BUFFER_SIZE: "{{ .zeek_af_packet_buffer_size }}"
+  ZEEK_PIN_CPUS_WORKER_1: "{{ .zeek_pin_cpus_worker_1 }}"
     {{- end }}
   {{- end }}
 kind: ConfigMap

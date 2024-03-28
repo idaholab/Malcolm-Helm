@@ -84,7 +84,7 @@ Vagrant.configure("2") do |config|
     read -ra my_hostips <<< $myip_string
     cp /vagrant/vagrant_dependencies/Corefile.yaml /tmp/Corefile.yaml
     sed -i "s/###NODE_IP_ADDRESS###/${my_hostips[0]}/g" /tmp/Corefile.yaml
-    kubectl apply -f /tmp/Corefile.yaml
+    kubectl replace -f /tmp/Corefile.yaml
     sleep 5
     echo "Rebooting the VM"
 
