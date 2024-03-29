@@ -19,12 +19,28 @@ data:
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
   SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
   SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
+  SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
+  SURICATA_HOST_MEMCAP: "{{ .host_memcap }}"
+  SURICATA_DEFRAG_MEMCAP: "{{ .defrag_memcap }}"
+  SURICATA_FTP_MEMCAP: "{{ .ftp_memcap }}"
+  SURICATA_STREAM_REASSEMBLY_MEMCAP: "{{ .stream_reassembly_memcap }}"
+  SURICATA_FLOW_MEMCAP: "{{ .flow_memcap }}"
+  SURICATA_EVE_THREADED: "{{ .eve_threaded }}"
+  SURICATA_EVE_ROTATE_INTERVAL: "{{ .eve_rotate_interval }}"
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_live.development }}
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
   SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
   SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
+  SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
+  SURICATA_HOST_MEMCAP: "{{ .host_memcap }}"
+  SURICATA_DEFRAG_MEMCAP: "{{ .defrag_memcap }}"
+  SURICATA_FTP_MEMCAP: "{{ .ftp_memcap }}"
+  SURICATA_STREAM_REASSEMBLY_MEMCAP: "{{ .stream_reassembly_memcap }}"
+  SURICATA_FLOW_MEMCAP: "{{ .flow_memcap }}"
+  SURICATA_EVE_THREADED: "{{ .eve_threaded }}"
+  SURICATA_EVE_ROTATE_INTERVAL: "{{ .eve_rotate_interval }}"
   {{- end }}
 {{- end }}
 kind: ConfigMap
@@ -45,6 +61,7 @@ spec:
       labels:
         name: suricata-live-daemonset
     spec:
+      serviceAccountName: {{ .Values.suricata_chart_overrides.serviceAccountName | default "default" }}
       # Required for coredns to work with hostnetwork set to true.
       dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
@@ -53,7 +70,7 @@ spec:
       tolerations:
 {{ toYaml .Values.live_capture.tolerations | indent 6 }}
       containers:
-      - name: suricata-live-container
+      - name: suricata-container
         image: "{{ .Values.image.repository }}/suricata:{{ .Values.image.suricata_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -91,16 +108,21 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
         volumeMounts:
+          {{- if ne (len .Values.suricata_chart_overrides.live_volumeMounts) 0 }}
+          {{- toYaml .Values.suricata_chart_overrides.live_volumeMounts | nindent 10 }}
+          {{- else }}
           - mountPath: /var/local/ca-trust/configmap
             name: suricata-live-var-local-catrust-volume
           - mountPath: /var/log/suricata
             name: suricata-live-suricata-logs-volume
-          {{- if not .Values.rule_mount_override.enabled }}
           - mountPath: "/opt/suricata/rules/configmap"
-            name: suricata-live-custom-rules-volume
+            name: suricata-custom-rules-volume
           - mountPath: "/opt/suricata/include-configs/configmap"
-            name: suricata-live-custom-configs-volume
+            name: suricata-custom-configs-volume
           {{- end }}
+      {{- if ne (len .Values.suricata_chart_overrides.sideCars) 0 }}
+      {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
+      {{- end }}
       initContainers:
       - name: suricata-live-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
@@ -117,6 +139,9 @@ spec:
           - name: suricata-live-suricata-logs-volume
             mountPath: "/data/suricata-logs"
       volumes:
+        {{- if ne (len .Values.suricata_chart_overrides.live_volumes) 0 }}
+        {{- toYaml .Values.suricata_chart_overrides.live_volumes | nindent 8 }}
+        {{- else }}
         - name: suricata-live-var-local-catrust-volume
           configMap:
             name: var-local-catrust
@@ -124,11 +149,10 @@ spec:
           hostPath:
             path: "{{ .Values.suricata_live.suricata_log_path }}"
             type: DirectoryOrCreate
-        {{- if not .Values.rule_mount_override.enabled }}
-        - name: suricata-live-custom-rules-volume
+        - name: suricata-custom-rules-volume
           configMap:
             name: suricata-rules
-        - name: suricata-live-custom-configs-volume
+        - name: suricata-custom-configs-volume
           configMap:
             name: suricata-configs
         {{- end }}

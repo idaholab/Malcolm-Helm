@@ -166,7 +166,7 @@ opensearch-{{ $index }},
 Generate extra secrets for database
 */}}
 {{- define "netbox.databaseExtravars" }}
-{{- range $index, $value := .netbox.database.extra_secrets }}
+{{- range $index, $value := .Values.netbox.database.extra_secrets }}
 apiVersion: v1
 kind: Secret
 type: Opaque
@@ -178,7 +178,7 @@ data:
         {{- if $value2 }}
   {{ $key1 }}: {{ $value2 | b64enc }}
         {{- else }}
-  {{ $key1 }}: {{ $.postgresPassword | b64enc }}
+  {{ $key1 }}: {{ $.Values.netbox.database.password | b64enc }}
         {{- end }}
     {{- end }}
   {{- end }}

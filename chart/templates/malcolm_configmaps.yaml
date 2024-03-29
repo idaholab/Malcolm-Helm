@@ -35,14 +35,26 @@ metadata:
 apiVersion: v1
 data:
   NETBOX_CRON: "{{ .Values.netbox.enabled }}"
+  # The name of the default "site" to be created upon NetBox initialization, and to be queried for enrichment
   NETBOX_DEFAULT_SITE: "{{ .Values.netbox.netbox_default_site }}"
   # Customize manufacturer matching/creation with LOGSTASH_NETBOX_AUTO_POPULATE (see logstash.env)
   NETBOX_DEFAULT_AUTOCREATE_MANUFACTURER: "true"
   NETBOX_DEFAULT_FUZZY_THRESHOLD: "0.95"
-  NETBOX_PRELOAD_PREFIXES: "{{ .Values.netbox.netbox_auto_populate }}"
   NETBOX_DISABLED: "{{ not .Values.netbox.enabled }}"
   NETBOX_POSTGRES_DISABLED: "{{ not .Values.netbox.enabled }}"
   NETBOX_REDIS_DISABLED: "{{ not .Values.netbox.enabled }}"
+
+  # Whether or not Logstash will enrich network traffic metadata via NetBox API calls
+  NETBOX_ENRICHMENT: "{{ .Values.netbox.enabled }}"
+  # Whether or not unobserved network entities in Logstash data will be used to populate NetBox
+  NETBOX_AUTO_POPULATE: "{{ .Values.netbox.netbox_auto_populate }}"
+  # Whether or not unobserved network subnets in Logstash data will be created automatically in NetBox
+  NETBOX_AUTO_CREATE_PREFIX: "{{ .Values.netbox.netbox_auto_populate }}"
+  # Whether or not services (i.e., destination IP/port) will be looked up during NetBox enrichment
+  NETBOX_ENRICHMENT_LOOKUP_SERVICE: "{{ .Values.netbox.enabled }}"
+  # Customize manufacturer matching/creation with NETBOX_AUTO_POPULATE
+  NETBOX_CACHE_SIZE: "{{ .Values.netbox.netbox_cache_size }}"
+  NETBOX_CACHE_TTL: "{{ .Values.netbox.netbox_cache_ttl }}"
 kind: ConfigMap
 metadata:
   name: netbox-common-env
@@ -155,22 +167,13 @@ data:
   path.repo: /opt/opensearch/backup
   node.roles: ingest,data,remote_cluster_client,cluster_manager
   discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
-  # OpenSearch index patterns and timestamp fields
-  # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
   MALCOLM_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_network_index_pattern }}"
-  # Default time field to use for network traffic logs in Logstash and Dashboards
   MALCOLM_NETWORK_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_network_index_time_field }}"
-  # Suffix used to create index to which network traffic logs are written (supports Ruby strftime strings in %{})
   MALCOLM_NETWORK_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_network_index_suffix }}"
-  # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
   MALCOLM_OTHER_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_other_index_pattern }}"
-  # Default time field to use for other logs in Logstash and Dashboards
   MALCOLM_OTHER_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_other_index_time_field }}"
-  # Suffix used to create index to which other logs are written (supports Ruby strftime strings in %{})
   MALCOLM_OTHER_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_other_index_suffix }}"
-  # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
   ARKIME_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.arkime_network_index_pattern }}"
-  # Default time field used by for sessions in Arkime viewer
   ARKIME_NETWORK_INDEX_TIME_FIELD: "{{ .Values.siem_env.arkime_network_index_time_field }}"
 kind: ConfigMap
 metadata:
@@ -227,13 +230,11 @@ metadata:
 apiVersion: v1
 data:
   AUTO_TAG: "true"
-  LOG_CLEANUP_MINUTES: "{{ .Values.upload_common_env.log_cleanup_minutes }}"
   PCAP_MONITOR_HOST: pcap-monitor
   PCAP_PIPELINE_IGNORE_PREEXISTING: "false"
   PCAP_PIPELINE_POLLING: "true"
   PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
   PCAP_PIPELINE_VERBOSITY: ""
-  ZIP_CLEANUP_MINUTES: "{{ .Values.upload_common_env.zip_cleanup_minutes }}"
 kind: ConfigMap
 metadata:
   name: upload-common-env

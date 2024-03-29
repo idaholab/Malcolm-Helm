@@ -36,8 +36,9 @@ spec:
       labels:
         name: zeek-offline-deployment
     spec:
+      serviceAccountName: {{ .Values.zeek_chart_overrides.serviceAccountName | default "default" }}
       containers:
-      - name: zeek-offline-container
+      - name: zeek-container
         image: "{{ $image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -72,6 +73,9 @@ spec:
           successThreshold: 1
           failureThreshold: 10
         volumeMounts:
+          {{- if ne (len .Values.zeek_chart_overrides.volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_chart_overrides.volumeMounts | nindent 10 }}
+          {{- else }}
           - mountPath: /var/local/ca-trust/configmap
             name: zeek-offline-var-local-catrust-volume
           - mountPath: "/pcap"
@@ -82,15 +86,17 @@ spec:
           - mountPath: "/zeek/upload"
             name: zeek-offline-zeek-volume
             subPath: "upload"
-          {{- if not .Values.rule_mount_override.enabled }}
           - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
-            name: zeek-offline-custom-volume
-          {{- end }}
+            name: zeek-custom-volume
           - mountPath: "/opt/zeek/share/zeek/site/intel-preseed/configmap"
             name: zeek-offline-intel-preseed-volume
           - mountPath: "/opt/zeek/share/zeek/site/intel"
             name: zeek-offline-intel-volume
             subPath: "zeek/intel"
+          {{- end }}
+      {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
+      {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
+      {{- end }}
       initContainers:
       - name: zeek-offline-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
@@ -111,6 +117,9 @@ spec:
           - name: zeek-offline-zeek-volume
             mountPath: "/data/zeek-logs"
       volumes:
+        {{- if ne (len .Values.zeek_chart_overrides.volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.volumes | nindent 8 }}
+        {{- else }}
         - name: zeek-offline-var-local-catrust-volume
           configMap:
             name: var-local-catrust
@@ -120,14 +129,13 @@ spec:
         - name: zeek-offline-zeek-volume
           persistentVolumeClaim:
             claimName: zeek-claim
-        {{- if not .Values.rule_mount_override.enabled }}
-        - name: zeek-offline-custom-volume
+        - name: zeek-custom-volume
           configMap:
             name: zeek-custom
-        {{- end }}
         - name: zeek-offline-intel-preseed-volume
           configMap:
             name: zeek-intel-preseed
         - name: zeek-offline-intel-volume
           persistentVolumeClaim:
             claimName: config-claim
+        {{- end }}

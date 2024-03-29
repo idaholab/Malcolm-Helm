@@ -18,6 +18,7 @@ data:
   WORKER_LB_PROCS: "{{ .worker_lb_procs }}"
   ZEEK_LB_METHOD: "{{ .zeek_lb_method }}"
   ZEEK_AF_PACKET_BUFFER_SIZE: "{{ .zeek_af_packet_buffer_size }}"
+  ZEEK_PIN_CPUS_WORKER_1: "{{ .zeek_pin_cpus_worker_1 }}"
     {{- end }}
   {{- else }}
     {{- with .Values.zeek_live.development }}
@@ -25,6 +26,7 @@ data:
   WORKER_LB_PROCS: "{{ .worker_lb_procs }}"
   ZEEK_LB_METHOD: "{{ .zeek_lb_method }}"
   ZEEK_AF_PACKET_BUFFER_SIZE: "{{ .zeek_af_packet_buffer_size }}"
+  ZEEK_PIN_CPUS_WORKER_1: "{{ .zeek_pin_cpus_worker_1 }}"
     {{- end }}
   {{- end }}
 kind: ConfigMap
@@ -46,6 +48,7 @@ spec:
         name: zeek-live-daemonset
     spec:
       # Required for coredns to work with hostnetwork set to true.
+      serviceAccountName: {{ .Values.zeek_chart_overrides.serviceAccountName | default "default" }}
       dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       nodeSelector:
@@ -53,7 +56,7 @@ spec:
       tolerations:
 {{ toYaml .Values.live_capture.tolerations | indent 6 }}
       containers:
-      - name: zeek-live-container
+      - name: zeek-container
         image: "{{ $image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -89,6 +92,9 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
         volumeMounts:
+          {{- if ne (len .Values.zeek_chart_overrides.live_volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_chart_overrides.live_volumeMounts | nindent 10 }}
+          {{- else }}
           - mountPath: /var/local/ca-trust/configmap
             name: zeek-live-var-local-catrust-volume
           - mountPath: "/zeek/extract_files"
@@ -99,15 +105,17 @@ spec:
             subPath: "upload"
           - mountPath: "/zeek-live-logs"
             name: zeek-live-logs-volume
-          {{- if not .Values.rule_mount_override.enabled }}
           - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
-            name: zeek-live-custom-volume
-          {{- end }}
+            name: zeek-custom-volume
           - mountPath: "/opt/zeek/share/zeek/site/intel-preseed/configmap"
             name: zeek-live-intel-preseed-volume
           - mountPath: "/opt/zeek/share/zeek/site/intel"
             name: zeek-live-intel-volume
             subPath: "zeek/intel"
+          {{- end }}
+      {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
+      {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
+      {{- end }}
       initContainers:
       - name: zeek-live-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
@@ -128,17 +136,18 @@ spec:
           - name: zeek-live-zeek-volume
             mountPath: "/data/zeek-shared"
       volumes:
+        {{- if ne (len .Values.zeek_chart_overrides.live_volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.live_volumes | nindent 8 }}
+        {{- else }}
         - name: zeek-live-var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: zeek-live-zeek-volume
           persistentVolumeClaim:
             claimName: zeek-claim
-        {{- if not .Values.rule_mount_override.enabled }}
-        - name: zeek-live-custom-volume
+        - name: zeek-custom-volume
           configMap:
             name: zeek-custom
-        {{- end }}
         - name: zeek-live-intel-preseed-volume
           configMap:
             name: zeek-intel-preseed
@@ -149,4 +158,5 @@ spec:
           hostPath:
             path: "{{ .Values.zeek_live.zeek_log_path }}"
             type: DirectoryOrCreate
+        {{- end }}
 {{- end }}

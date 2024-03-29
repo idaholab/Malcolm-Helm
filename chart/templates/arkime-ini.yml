@@ -12,11 +12,16 @@ data:
     #certFile=/opt/arkime/etc/viewer.crt
     compressES=false
     cronQueries=true
+    debug={{ .Values.arkime_env.arkime_debug_level }}
     dropGroup=arkime
     dropUser=arkime
+{{- if ne .Values.siem_env.malcolm_network_index_pattern "arkime_sessions3-*" }}
+    queryExtraIndices={{ .Values.siem_env.malcolm_network_index_pattern }}
+{{- else }}
+    queryExtraIndices=
+{{- end }}
     elasticsearch={{ include "malcolm.opensearchprimaryurl" . }}
     footerTemplate=_version_ | <a href="https://arkime.com">arkime.com 🦉</a> | <a href="/">Malc⦿lm 📄</a> | <a href="/dashboards/">Dashboards 📊</a> | <a href="/netbox/">NetBox 💻 | _responseTime_ ⏱️</a>
-    freeSpaceG={{ .Values.arkime_env.free_space_g }}
     geoLite2ASN=/opt/arkime/etc/GeoLite2-ASN.mmdb
     geoLite2Country=/opt/arkime/etc/GeoLite2-Country.mmdb
     httpRealm=Arkime
@@ -49,7 +54,17 @@ data:
     readTruncatedPackets=true
     reqBodyOnlyUtf8=true
     rirFile=/opt/arkime/etc/ipv4-address-space.csv
-    rotateIndex={{ .Values.arkime_env.rotate_index }}
+{{- if .Values.is_production }}
+  {{- with .Values.arkime_env.production }}
+    rotateIndex={{ .rotate_index }}
+    freeSpaceG={{ .free_space_g }}
+  {{- end }}
+{{- else }}
+  {{- with .Values.arkime_env.development }}
+    rotateIndex={{ .rotate_index }}
+    freeSpaceG={{ .free_space_g }}
+  {{- end }}
+{{- end }}
     rulesFiles=
     smtpIpHeaders=X-Originating-IP:;X-Barracuda-Apparent-Source-IP:
     spiDataMaxIndices=7

@@ -70,25 +70,32 @@ data:
   #   https://arkime.com/faq#pcap-deletion
   MANAGE_PCAP_FILES: "true"
   OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
-  ARKIME_FREESPACEG: "{{ .Values.arkime_env.free_space_g }}"
-  # How often to create a new index in OpenSearch/Elasticsearch
-  #   https://arkime.com/settings#rotateIndex
-  ARKIME_ROTATE_INDEX: "{{ .Values.arkime_env.rotate_index }}"
-  # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
-  # Whether or not Arkime should perform index management
-  INDEX_MANAGEMENT_ENABLED: "{{ .Values.arkime_env.index_management_enabled }}"
-  # Time in hours/days before moving to warm and force merge (number followed by h or d)
-  INDEX_MANAGEMENT_OPTIMIZATION_PERIOD: "{{ .Values.arkime_env.index_management_optimization_period }}"
-  # Time in hours/days before deleting index (number followed by h or d)
-  INDEX_MANAGEMENT_RETENTION_TIME: "{{ .Values.arkime_env.index_management_retention_time }}"
-  # Number of replicas for older sessions indices
-  INDEX_MANAGEMENT_OLDER_SESSION_REPLICAS: "{{ .Values.arkime_env.index_management_older_session_replicas }}"
-  # Number of weeks of history to retain
-  INDEX_MANAGEMENT_HISTORY_RETENTION_WEEKS: "{{ .Values.arkime_env.index_management_history_retention_weeks }}"
-  # Number of segments to optimize sessions for
-  INDEX_MANAGEMENT_SEGMENTS: "{{ .Values.arkime_env.index_management_segments }}"
-  # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
-  INDEX_MANAGEMENT_HOT_WARM_ENABLED: "{{ .Values.arkime_env.index_management_hot_warm_enabled }}"
+  ARKIME_DEBUG_LEVEL: "{{ .Values.arkime_env.arkime_debug_level }}"
+{{- if .Values.is_production }}
+  {{- with .Values.arkime_env.production }}
+  ARKIME_FREESPACEG: "{{ .free_space_g }}"
+  ARKIME_ROTATE_INDEX: "{{ .rotate_index }}"
+  INDEX_MANAGEMENT_ENABLED: "{{ .index_management_enabled }}"
+  INDEX_MANAGEMENT_OPTIMIZATION_PERIOD: "{{ .index_management_optimization_period }}"
+  INDEX_MANAGEMENT_RETENTION_TIME: "{{ .index_management_retention_time }}"
+  INDEX_MANAGEMENT_OLDER_SESSION_REPLICAS: "{{ .index_management_older_session_replicas }}"
+  INDEX_MANAGEMENT_HISTORY_RETENTION_WEEKS: "{{ .index_management_history_retention_weeks }}"
+  INDEX_MANAGEMENT_SEGMENTS: "{{ .index_management_segments }}"
+  INDEX_MANAGEMENT_HOT_WARM_ENABLED: "{{ .index_management_hot_warm_enabled }}"
+  {{- end }}
+{{- else }}
+  {{- with .Values.arkime_env.development }}
+  ARKIME_FREESPACEG: "{{ .free_space_g }}"
+  ARKIME_ROTATE_INDEX: "{{ .rotate_index }}"
+  INDEX_MANAGEMENT_ENABLED: "{{ .index_management_enabled }}"
+  INDEX_MANAGEMENT_OPTIMIZATION_PERIOD: "{{ .index_management_optimization_period }}"
+  INDEX_MANAGEMENT_RETENTION_TIME: "{{ .index_management_retention_time }}"
+  INDEX_MANAGEMENT_OLDER_SESSION_REPLICAS: "{{ .index_management_older_session_replicas }}"
+  INDEX_MANAGEMENT_HISTORY_RETENTION_WEEKS: "{{ .index_management_history_retention_weeks }}"
+  INDEX_MANAGEMENT_SEGMENTS: "{{ .index_management_segments }}"
+  INDEX_MANAGEMENT_HOT_WARM_ENABLED: "{{ .index_management_hot_warm_enabled }}"
+  {{- end }}
+{{- end }}
 kind: ConfigMap
 metadata:
   name: arkime-env
