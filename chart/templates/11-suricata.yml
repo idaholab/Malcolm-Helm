@@ -33,8 +33,9 @@ spec:
       labels:
         name: suricata-offline-deployment
     spec:
+      serviceAccountName: {{ .Values.suricata_chart_overrides.serviceAccountName | default "default" }}
       containers:
-      - name: suricata-offline-container
+      - name: suricata-container
         image: "{{ .Values.image.repository }}/suricata:{{ .Values.image.suricata_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -67,18 +68,23 @@ spec:
           successThreshold: 1
           failureThreshold: 10
         volumeMounts:
+          {{- if ne (len .Values.suricata_chart_overrides.volumeMounts) 0 }}
+          {{- toYaml .Values.suricata_chart_overrides.volumeMounts | nindent 10 }}
+          {{- else }}
           - mountPath: /var/local/ca-trust/configmap
             name: suricata-offline-var-local-catrust-volume
           - mountPath: "/data/pcap"
             name: suricata-offline-pcap-volume
           - mountPath: "/var/log/suricata"
             name: suricata-offline-suricata-logs-volume
-          {{- if not .Values.rule_mount_override.enabled }}
           - mountPath: "/opt/suricata/rules/configmap"
-            name: suricata-offline-custom-rules-volume
+            name: suricata-custom-rules-volume
           - mountPath: "/opt/suricata/include-configs/configmap"
-            name: suricata-offline-custom-configs-volume
+            name: suricata-custom-configs-volume
           {{- end }}
+      {{- if ne (len .Values.suricata_chart_overrides.sideCars) 0 }}
+      {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
+      {{- end }}
       initContainers:
       - name: suricata-offline-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
@@ -95,6 +101,9 @@ spec:
           - name: suricata-offline-pcap-volume
             mountPath: "/data/pcap"
       volumes:
+        {{- if ne (len .Values.suricata_chart_overrides.volumes) 0 }}
+        {{- toYaml .Values.suricata_chart_overrides.volumes | nindent 8 }}
+        {{- else }}
         - name: suricata-offline-var-local-catrust-volume
           configMap:
             name: var-local-catrust
@@ -104,11 +113,10 @@ spec:
         - name: suricata-offline-suricata-logs-volume
           persistentVolumeClaim:
             claimName: suricata-claim-offline
-        {{- if not .Values.rule_mount_override.enabled }}
-        - name: suricata-offline-custom-rules-volume
+        - name: suricata-custom-rules-volume
           configMap:
             name: suricata-rules
-        - name: suricata-offline-custom-configs-volume
+        - name: suricata-custom-configs-volume
           configMap:
             name: suricata-configs
         {{- end }}
