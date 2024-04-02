@@ -222,6 +222,24 @@ istio:
   virtualservicename: malcolm
   domain: vp.bigbang.dev
 
+
+# Affects both the live and offline deployment of suricata
+suricata_env:
+  development:
+    stream_memcap: "64mb"
+    host_memcap: "32mb"
+    defrag_memcap: "32mb"
+    ftp_memcap: "64mb"
+    stream_reassembly_memcap: "256mb"
+    flow_memcap: "128mb"
+  production:
+    stream_memcap: "16gb"
+    host_memcap: "32mb"
+    defrag_memcap: "16gb"
+    ftp_memcap: "4gb"
+    stream_reassembly_memcap: "16gb"
+    flow_memcap: "16gb"
+
 # Suricata live is enabled by default and will listen pcap_iface
 # Defined under pcap_capture_env
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
@@ -238,12 +256,6 @@ suricata_live:
     af_packet_iface_threads: 2
     af_packet_ring_size: 2048
     max_pending_packets: 1024
-    stream_memcap: "64mb"
-    host_memcap: "32mb"
-    defrag_memcap: "32mb"
-    ftp_memcap: "64mb"
-    stream_reassembly_memcap: "256mb"
-    flow_memcap: "128mb"
     eve_threaded: "true"
     eve_rotate_interval: "1h"
     # Used if is production is set to true
@@ -253,12 +265,6 @@ suricata_live:
     # This calculation was made with the assumtion that max-pending-packets is set to 1024
     af_packet_ring_size: 131072
     max_pending_packets: 8192
-    stream_memcap: "16gb"
-    host_memcap: "32mb"
-    defrag_memcap: "16gb"
-    ftp_memcap: "4gb"
-    stream_reassembly_memcap: "16gb"
-    flow_memcap: "16gb"
     eve_threaded: "true"
     eve_rotate_interval: "1h"
 
