@@ -226,7 +226,7 @@ istio:
 # Affects both the live and offline deployment of suricata
 suricata_env:
   development:
-    stream_memcap: "64mb"
+    stream_memcap: "1gb"
     host_memcap: "32mb"
     defrag_memcap: "32mb"
     ftp_memcap: "64mb"
