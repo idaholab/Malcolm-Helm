@@ -329,6 +329,18 @@ zeek_env:
   extracted_file_http_server_enable: true
   extracted_file_http_server_recursive: true
   extracted_file_preservation: quarantined
+  # When querying a TAXII or MISP feed, only process threat indicators that have
+  #   been created or modified since the time represented by this value;
+  #   it may be either a fixed date/time (01/01/2021) or relative interval (30 days ago)
+  # valid value "72 hours ago" blank means its disabled
+  zeek_intel_feed_since: ""
+  # Specifies the value for Zeek's Intel::item_expiration timeout (-1min to disable)
+  # -1min means intel items will never expire
+  zeek_intel_item_expiration: "-1min"
+  # Specifies a cron expression indicating the refresh interval for generating the
+  #   Zeek Intelligence Framework files ('' disables automatic refresh)
+  # Valid value woudl be "0 */12 * * *" which would pull every 12 hours
+  zeek_intel_refresh_cron_expression: "0 */12 * * *"
   development:
     capa_max_requests: 4
     clamd_max_requests: 8
