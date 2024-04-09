@@ -42,6 +42,10 @@ metadata:
 data:
   zeekdeploy.sh: |
 {{ $.Files.Get "files/zeekdeploy.sh" | indent 4 }}
+  custom_entry.sh: |
+    #!/bin/bash
+    /usr/bin/cp /tmp/zeekdeploy.sh /opt/zeek/bin/zeekdeploy.sh
+    /usr/bin/tini -- /usr/local/bin/docker-uid-gid-setup.sh /usr/local/bin/service_check_passthrough.sh -s zeek /usr/bin/supervisord -c /etc/supervisord.conf -n
 
 ---
 apiVersion: apps/v1
@@ -70,8 +74,8 @@ spec:
         image: "{{ $image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         # TODO Workaround until next release remove it later
-        command: ["/usr/bin/tini"]
-        args: ["--", "/usr/local/bin/docker-uid-gid-setup.sh", "/usr/local/bin/service_check_passthrough.sh", "-s", "zeek", "/usr/bin/supervisord", "-c", "/etc/supervisord.conf", "-n"]
+        command: ["/usr/bin/bash"]
+        args: ["/opt/zeek/bin/custom_entry.sh"]
         stdin: false
         tty: true
         securityContext:
@@ -106,9 +110,12 @@ spec:
                 fieldPath: spec.nodeName
         volumeMounts:
           # TODO remove later this is a workaround
-          - mountPath: /opt/zeek/bin/zeekdeploy.sh
+          - mountPath: /tmp/zeekdeploy.sh
             name: zeekdeploy-override
             subPath: zeekdeploy.sh
+          - mountPath: /opt/zeek/bin/custom_entry.sh
+            name: zeekdeploy-override
+            subPath: custom_entry.sh
           {{- if ne (len .Values.zeek_chart_overrides.live_volumeMounts) 0 }}
           {{- toYaml .Values.zeek_chart_overrides.live_volumeMounts | nindent 10 }}
           {{- else }}
