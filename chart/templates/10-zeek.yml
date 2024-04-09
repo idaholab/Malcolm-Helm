@@ -12,7 +12,7 @@ data:
   ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
   {{- end }}
 {{- end }}
-  ZEEK_CRON: "false"
+  ZEEK_CRON: "true"
   ZEEK_PCAP_PROCESSOR: "true"
   ZEEK_ROTATED_PCAP: "false"
   # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
