@@ -22,7 +22,7 @@ image:
   pcap_monitor_tag: ""
   arkime_tag: ""
   api_tag: ""
-  zeek_container_override: ""
+  zeek_container_override: "ghcr.io/naps-dev/containers/zeek:malcolm-misp-test-v1"
   suricata_tag: ""
   dashboards_helper_tag: ""
   file_monitor_tag: ""
@@ -307,6 +307,8 @@ zeek_live:
 zeek_offline:
   # The number of Zeek processes for analyzing uploaded PCAP files allowed
   #   to run concurrently
+  zeek_intel_refresh_cron_expression: "0 */12 * * *"
+  zeek_intel_refresh_on_entrypoint: "true"
   development:
     zeek_auto_analyze_pcap_threads: 1
   production:
@@ -339,8 +341,7 @@ zeek_env:
   zeek_intel_item_expiration: "-1min"
   # Specifies a cron expression indicating the refresh interval for generating the
   #   Zeek Intelligence Framework files ('' disables automatic refresh)
-  # Valid value woudl be "0 */12 * * *" which would pull every 12 hours
-  zeek_intel_refresh_cron_expression: "0 */12 * * *"
+  # Valid value woudl be "0 */12 * * *" which would pull every 12 hours  
   development:
     capa_max_requests: 4
     clamd_max_requests: 8

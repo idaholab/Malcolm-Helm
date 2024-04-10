@@ -12,11 +12,12 @@ data:
   ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
   {{- end }}
 {{- end }}
-  ZEEK_CRON: "true"
   ZEEK_PCAP_PROCESSOR: "true"
   ZEEK_ROTATED_PCAP: "false"
   # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
   ZEEK_DISABLE_STATS: "true"
+  ZEEK_INTEL_REFRESH_CRON_EXPRESSION: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
+  ZEEK_INTEL_REFRESH_ON_ENTRYPOINT: "{{ .Values.zeek_offline.zeek_intel_refresh_on_entrypoint }}"
 kind: ConfigMap
 metadata:
   name: zeek-offline-env

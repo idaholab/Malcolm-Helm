@@ -5,7 +5,6 @@
 apiVersion: v1
 data:
   EXTRACT_FILES_PATH: /zeek/extract_files
-  ZEEK_CRON: "false"
   ZEEK_INTEL_PATH: /opt/zeek/share/zeek/site/intel
   ZEEK_LIVE_CAPTURE: "true"
   ZEEK_LOG_PATH: "/zeek-live-logs/live"
@@ -34,20 +33,6 @@ metadata:
   name: zeek-live-env
 
 ---
-# TODO remove this on next release
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: zeekdeploy-override
-data:
-  zeekdeploy.sh: |
-{{ $.Files.Get "files/zeekdeploy.sh" | indent 4 }}
-  custom_entry.sh: |
-    #!/bin/bash
-    /usr/bin/cp /tmp/zeekdeploy.sh /opt/zeek/bin/zeekdeploy.sh
-    /usr/bin/tini -- /usr/local/bin/docker-uid-gid-setup.sh /usr/local/bin/service_check_passthrough.sh -s zeek /usr/bin/supervisord -c /etc/supervisord.conf -n
-
----
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -73,9 +58,6 @@ spec:
       - name: zeek-container
         image: "{{ $image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        # TODO Workaround until next release remove it later
-        command: ["/usr/bin/bash"]
-        args: ["/opt/zeek/bin/custom_entry.sh"]
         stdin: false
         tty: true
         securityContext:
@@ -109,13 +91,6 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
         volumeMounts:
-          # TODO remove later this is a workaround
-          - mountPath: /tmp/zeekdeploy.sh
-            name: zeekdeploy-override
-            subPath: zeekdeploy.sh
-          - mountPath: /opt/zeek/bin/custom_entry.sh
-            name: zeekdeploy-override
-            subPath: custom_entry.sh
           {{- if ne (len .Values.zeek_chart_overrides.live_volumeMounts) 0 }}
           {{- toYaml .Values.zeek_chart_overrides.live_volumeMounts | nindent 10 }}
           {{- else }}
@@ -160,10 +135,6 @@ spec:
           - name: zeek-live-zeek-volume
             mountPath: "/data/zeek-shared"
       volumes:
-        # TODO remove later this is a workaround
-        - name: zeekdeploy-override
-          configMap:
-            name: zeekdeploy-override
         {{- if ne (len .Values.zeek_chart_overrides.live_volumes) 0 }}
         {{- toYaml .Values.zeek_chart_overrides.live_volumes | nindent 8 }}
         {{- else }}

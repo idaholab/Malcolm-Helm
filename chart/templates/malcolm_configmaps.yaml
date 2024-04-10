@@ -339,7 +339,6 @@ data:
   ZEEK_INTEL_FEED_SINCE: "{{ .Values.zeek_env.zeek_intel_feed_since }}"
   ZEEK_INTEL_FEED_SSL_CERTIFICATE_VERIFICATION: "false"
   ZEEK_INTEL_ITEM_EXPIRATION: "{{ .Values.zeek_env.zeek_intel_item_expiration }}"
-  ZEEK_INTEL_REFRESH_CRON_EXPRESSION: "{{ .Values.zeek_env.zeek_intel_refresh_cron_expression }}"
   ZEEK_INTEL_REFRESH_THREADS: "2"
   ZEEK_SYNCHROPHASOR_DETAILED: ""
   ZEEK_SYNCHROPHASOR_PORTS: ""
