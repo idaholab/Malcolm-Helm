@@ -59,18 +59,18 @@ external_elasticsearch:
   enabled: false
   # Internal url or clusterIP service and supports https or http urls for elasticsearch
   url: https://dataplane-ek-es-http.dataplane-ek.svc:9200
-  username: "elastic"
+  username: "malcolm"
   password: ""
   # Secret must be in following format if using elastic_secret_name:
   # apiVersion: v1
   #  data:
-  #    elastic: passwordbase64encoded
+  #    password: passwordbase64encoded
   # kind: Secret
   # type: Opaque
   # metadata:
   #   name: somename
   #   namespace: somenamespace
-  elastic_secret_name: "dataplane-ek-es-elastic-user"
+  elastic_secret_name: "dataplane-ek-malcolm-es-auth"
   elastic_secret_namespace: "dataplane-ek"
 
   # Copy of the elastic certificate from elasticsearch namespace

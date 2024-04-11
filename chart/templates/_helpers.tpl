@@ -7,7 +7,7 @@ in values.yaml file directly.
         {{- printf "%s" .Values.external_elasticsearch.password }}
     {{- else if .Values.external_elasticsearch.elastic_secret_name }}
         {{- $elastic_secret := (lookup "v1" "Secret" .Values.external_elasticsearch.elastic_secret_namespace .Values.external_elasticsearch.elastic_secret_name).data }}
-        {{- $elastic_password := get $elastic_secret .Values.external_elasticsearch.username | b64dec }}
+        {{- $elastic_password := get $elastic_secret "password" | b64dec }}
         {{- printf "%s" $elastic_password }}
     {{- else }}
         {{- printf "%s" "" }}
