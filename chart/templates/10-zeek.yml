@@ -72,7 +72,7 @@ spec:
           periodSeconds: 30
           timeoutSeconds: 15
           successThreshold: 1
-          failureThreshold: 10
+          failureThreshold: 50
         volumeMounts:
           {{- if ne (len .Values.zeek_chart_overrides.volumeMounts) 0 }}
           {{- toYaml .Values.zeek_chart_overrides.volumeMounts | nindent 10 }}
