@@ -12,11 +12,12 @@ data:
   ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
   {{- end }}
 {{- end }}
-  ZEEK_CRON: "false"
   ZEEK_PCAP_PROCESSOR: "true"
   ZEEK_ROTATED_PCAP: "false"
   # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
   ZEEK_DISABLE_STATS: "true"
+  ZEEK_INTEL_REFRESH_CRON_EXPRESSION: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
+  ZEEK_INTEL_REFRESH_ON_ENTRYPOINT: "{{ .Values.zeek_offline.zeek_intel_refresh_on_entrypoint }}"
 kind: ConfigMap
 metadata:
   name: zeek-offline-env
@@ -71,7 +72,7 @@ spec:
           periodSeconds: 30
           timeoutSeconds: 15
           successThreshold: 1
-          failureThreshold: 10
+          failureThreshold: 50
         volumeMounts:
           {{- if ne (len .Values.zeek_chart_overrides.volumeMounts) 0 }}
           {{- toYaml .Values.zeek_chart_overrides.volumeMounts | nindent 10 }}
@@ -91,7 +92,7 @@ spec:
           - mountPath: "/opt/zeek/share/zeek/site/intel-preseed/configmap"
             name: zeek-offline-intel-preseed-volume
           - mountPath: "/opt/zeek/share/zeek/site/intel"
-            name: zeek-offline-intel-volume
+            name: zeek-intel-volume
             subPath: "zeek/intel"
           {{- end }}
       {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
@@ -110,7 +111,7 @@ spec:
           - name: PUSER_MKDIR
             value: "/data/config:zeek/intel/MISP,zeek/intel/STIX;/data/pcap:processed;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload"
         volumeMounts:
-          - name: zeek-offline-intel-volume
+          - name: zeek-intel-volume
             mountPath: "/data/config"
           - name: zeek-offline-pcap-volume
             mountPath: "/data/pcap"
@@ -135,7 +136,7 @@ spec:
         - name: zeek-offline-intel-preseed-volume
           configMap:
             name: zeek-intel-preseed
-        - name: zeek-offline-intel-volume
+        - name: zeek-intel-volume
           persistentVolumeClaim:
             claimName: config-claim
         {{- end }}

@@ -222,6 +222,25 @@ data:
   SURICATA_UPDATE_ETOPEN: "true"
   SURICATA_UPDATE_RULES: "false"
   SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net }}]'"
+{{- if .Values.is_production }}
+  {{- with .Values.suricata_env.production }}
+  SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
+  SURICATA_HOST_MEMCAP: "{{ .host_memcap }}"
+  SURICATA_DEFRAG_MEMCAP: "{{ .defrag_memcap }}"
+  SURICATA_FTP_MEMCAP: "{{ .ftp_memcap }}"
+  SURICATA_STREAM_REASSEMBLY_MEMCAP: "{{ .stream_reassembly_memcap }}"
+  SURICATA_FLOW_MEMCAP: "{{ .flow_memcap }}"
+  {{- end }}
+{{- else }}
+  {{- with .Values.suricata_env.development }}
+  SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
+  SURICATA_HOST_MEMCAP: "{{ .host_memcap }}"
+  SURICATA_DEFRAG_MEMCAP: "{{ .defrag_memcap }}"
+  SURICATA_FTP_MEMCAP: "{{ .ftp_memcap }}"
+  SURICATA_STREAM_REASSEMBLY_MEMCAP: "{{ .stream_reassembly_memcap }}"
+  SURICATA_FLOW_MEMCAP: "{{ .flow_memcap }}"
+  {{- end }}
+{{- end }}
 kind: ConfigMap
 metadata:
   name: suricata-env
@@ -317,10 +336,9 @@ data:
   ZEEK_EXTRACTOR_MODE: {{ .Values.zeek_env.extract_mode }}
   ZEEK_ENIP_PORTS: ""
   ZEEK_GENISYS_PORTS: ""
-  ZEEK_INTEL_FEED_SINCE: ""
+  ZEEK_INTEL_FEED_SINCE: "{{ .Values.zeek_env.zeek_intel_feed_since }}"
   ZEEK_INTEL_FEED_SSL_CERTIFICATE_VERIFICATION: "false"
-  ZEEK_INTEL_ITEM_EXPIRATION: -1min
-  ZEEK_INTEL_REFRESH_CRON_EXPRESSION: ""
+  ZEEK_INTEL_ITEM_EXPIRATION: "{{ .Values.zeek_env.zeek_intel_item_expiration }}"
   ZEEK_INTEL_REFRESH_THREADS: "2"
   ZEEK_SYNCHROPHASOR_DETAILED: ""
   ZEEK_SYNCHROPHASOR_PORTS: ""
