@@ -22,7 +22,7 @@ image:
   pcap_monitor_tag: ""
   arkime_tag: ""
   api_tag: ""
-  zeek_container_override: "ghcr.io/naps-dev/containers/zeek:malcolm-misp-test-v1"
+  zeek_container_override: ""
   suricata_tag: ""
   dashboards_helper_tag: ""
   file_monitor_tag: ""
