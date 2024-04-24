@@ -62,17 +62,18 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-        livenessProbe:
-          exec:
-            command:
-            - supervisorctl
-            - status
-            - pcap-zeek
-          initialDelaySeconds: 60
-          periodSeconds: 30
-          timeoutSeconds: 15
-          successThreshold: 1
-          failureThreshold: 50
+        # TODO commented it out for now because sometimes it takes a really log time for the container to pull all the misp data and I dont want it restarting. We should move this logic to a separate kubernetes job and cronjob
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #     - supervisorctl
+        #     - status
+        #     - pcap-zeek
+        #   initialDelaySeconds: 60
+        #   periodSeconds: 30
+        #   timeoutSeconds: 15
+        #   successThreshold: 1
+        #   failureThreshold: 50
         volumeMounts:
           {{- if ne (len .Values.zeek_chart_overrides.volumeMounts) 0 }}
           {{- toYaml .Values.zeek_chart_overrides.volumeMounts | nindent 10 }}
