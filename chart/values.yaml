@@ -278,6 +278,7 @@ suricata_live:
 dashboards_helper_env:
   opensearch_index_size_prune_limit: 0
   opensearch_index_size_prune_name_sort: false
+  dashboards_prefix: "Malcolm"
 
 suricata_offline:
   development:
@@ -355,12 +356,21 @@ zeek_env:
     yara_max_requests: 8
     extracted_file_max_bytes: "134217728"
     extracted_file_min_bytes: "64"
+    # Prune ./zeek-logs/extract_files/ when it exceeds this size...
+    extracted_file_prune_threshold_max_size: 1TB
+    # ... or when the *total* disk usage exceeds this percentage
+    extracted_file_prune_threshold_total_disk_usage_percent: 0
+    # Interval in seconds for checking whether to prune ./zeek-logs/extract_files/
+    extracted_file_prune_interval_seconds: 300
   production:
     capa_max_requests: 8
     clamd_max_requests: 16
     yara_max_requests: 16
     extracted_file_max_bytes: "134217728"
     extracted_file_min_bytes: "64"
+    extracted_file_prune_threshold_max_size: 1TB
+    extracted_file_prune_threshold_total_disk_usage_percent: 0
+    extracted_file_prune_interval_seconds: 300
 
 # Variables apply to both offline and live version of arkime
 arkime_env:
