@@ -67,7 +67,7 @@ data:
 {{- end }}
     rulesFiles=
     smtpIpHeaders=X-Originating-IP:;X-Barracuda-Apparent-Source-IP:
-    spiDataMaxIndices=7
+    spiDataMaxIndices=-1
     spiViewCategoryOrder=malcolm
     supportSha256=false
     tcpSaveTimeout=720
