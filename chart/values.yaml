@@ -263,7 +263,7 @@ suricata_live:
     eve_rotate_interval: "1h"
     # Used if is production is set to true
   production:
-    af_packet_iface_threads: 6
+    af_packet_iface_threads: 12
     # Default is calculated threads * max-pending-packets (Default of max-pending-packets is 1024)
     # This calculation was made with the assumtion that max-pending-packets is set to 1024
     af_packet_ring_size: 131072
@@ -299,8 +299,8 @@ zeek_live:
     zeek_af_packet_buffer_size: "67108864"
     zeek_pin_cpus_worker_1: ""
   production:
-    zeek_lb_procs: "6"
-    worker_lb_procs: "6"
+    zeek_lb_procs: "12"
+    worker_lb_procs: "12"
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "134217728"
     zeek_pin_cpus_worker_1: ""
@@ -407,7 +407,7 @@ arkime_live:
     arkime_compression_level: "3"
     arkime_db_bulk_size: "15000000"
     arkime_max_packets_in_queue: "300000"
-    arkime_packet_threads: "6"
+    arkime_packet_threads: "12"
     arkime_pcap_write_size: "2560000"
     arkime_tpacketv3_num_threads: "2"
     arkime_tpacketv3_block_size: "8388608"
