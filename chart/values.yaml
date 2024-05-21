@@ -475,6 +475,7 @@ filebeat:
           operator: In
           values:
           - "true"
+      - matchExpressions:
         - key: cnaps.io/zeek-capture
           operator: In
           values:
