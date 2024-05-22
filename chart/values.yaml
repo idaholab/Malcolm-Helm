@@ -87,13 +87,16 @@ siem_env:
   # OpenSearch index patterns and timestamp fields
   # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
   logstash_override:
-    # When enabled the elasticsearch / opensarch logstash output plugin is modified to point to an ilm rollover alias
+    # When enabled the elasticsearch / opensearch logstash output plugin is modified to point to an ilm rollover alias
     # ILM policy and rollover_alias will need to be defined outside of this deployment for this to work as expected.
     enabled: false
     ilm_policy: nta
     # Must match arkime_network_index_pattern
     rollover_alias: malcolm_suricata_zeek
-
+  # Allows user to add a default_pipeline to malcolm_beat_template
+  malcolm_beats_template_override:
+    enabled: false
+    default_pipeline: ""
   malcolm_network_index_pattern: "arkime_sessions3-*"
   # Default time field to use for network traffic logs in Logstash and Dashboards
   malcolm_network_index_time_field: "firstPacket"
