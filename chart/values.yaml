@@ -303,8 +303,8 @@ zeek_live:
     zeek_af_packet_buffer_size: "67108864"
     zeek_pin_cpus_worker_1: ""
   production:
-    zeek_lb_procs: "48"
-    worker_lb_procs: "48"
+    zeek_lb_procs: "32"
+    worker_lb_procs: "32"
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "134217728"
     zeek_pin_cpus_worker_1: ""
