@@ -42,7 +42,9 @@ apiVersion: v1
 data:
   malcolm_template.json: |
     {
-      "index_patterns" : ["MALCOLM_NETWORK_INDEX_PATTERN_REPLACER"],
+      "index_patterns": [
+        "MALCOLM_NETWORK_INDEX_PATTERN_REPLACER"
+      ],
       "composed_of": [
         "ecs_base",
         "ecs_ecs",
@@ -70,90 +72,220 @@ data:
         "custom_zeek",
         "custom_zeek_ot"
       ],
-      "template" :{
-        "settings" : {
-          "index" : {
+      "template": {
+        "settings": {
+          "index": {
             "lifecycle.name": "{{ .Values.siem_env.logstash_override.ilm_policy }}",
             "lifecycle.rollover_alias": "{{ .Values.siem_env.logstash_override.rollover_alias }}",
-            "mapping.total_fields.limit" : "5000",
-            "mapping.nested_fields.limit" : "250",
-            "max_docvalue_fields_search" : "200"
+            "mapping.total_fields.limit": "5000",
+            "mapping.nested_fields.limit": "250",
+            "max_docvalue_fields_search": "200"
           }
         },
         "mappings": {
           "properties": {
-            "destination.ip_reverse_dns": { "type": "keyword" },
-            "destination.oui": { "type": "keyword" },
+            "destination.ip_reverse_dns": {
+              "type": "keyword"
+            },
+            "destination.oui": {
+              "type": "keyword"
+            },
             "destination.device": {
               "properties": {
-                "cluster": { "type": "keyword" },
-                "device_type": { "type": "keyword" },
-                "id": { "type": "integer" },
-                "manufacturer": { "type": "keyword" },
-                "name": { "type": "keyword" },
-                "role": { "type": "keyword" },
-                "service": { "type": "keyword" },
-                "site": { "type": "keyword" },
-                "url": { "type": "keyword" },
-                "details": { "type": "nested" }
+                "cluster": {
+                  "type": "keyword"
+                },
+                "device_type": {
+                  "type": "keyword"
+                },
+                "id": {
+                  "type": "integer"
+                },
+                "manufacturer": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                },
+                "role": {
+                  "type": "keyword"
+                },
+                "service": {
+                  "type": "keyword"
+                },
+                "site": {
+                  "type": "keyword"
+                },
+                "url": {
+                  "type": "keyword"
+                },
+                "details": {
+                  "type": "nested"
+                }
               }
             },
             "destination.segment": {
               "properties": {
-                "id": { "type": "integer" },
-                "name": { "type": "keyword" },
-                "site": { "type": "keyword" },
-                "tenant": { "type": "keyword" },
-                "url": { "type": "keyword" },
-                "details": { "type": "nested" }
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "keyword"
+                },
+                "site": {
+                  "type": "keyword"
+                },
+                "tenant": {
+                  "type": "keyword"
+                },
+                "url": {
+                  "type": "keyword"
+                },
+                "details": {
+                  "type": "nested"
+                }
               }
             },
-            "event.freq_score_v1": { "type": "float" },
-            "event.freq_score_v2": { "type": "float" },
-            "event.hits": { "type": "long" },
-            "event.result": { "type": "keyword" },
-            "event.severity_tags": { "type": "keyword" },
-            "file.source": { "type": "keyword" },
-            "network.is_orig": { "type": "keyword" },
-            "network.protocol_version": { "type": "keyword" },
-            "related.mac": { "type": "keyword" },
-            "related.oui": { "type": "keyword" },
-            "related.password": { "type": "keyword", "ignore_above": 256, "fields": { "text": { "type": "text" } } },
-            "related.device_id": { "type": "integer" },
-            "related.device_name": { "type": "keyword" },
-            "related.device_type": { "type": "keyword" },
-            "related.manufacturer": { "type": "keyword" },
-            "related.role": { "type": "keyword" },
-            "related.service": { "type": "keyword" },
-            "related.site": { "type": "keyword" },
-            "source.ip_reverse_dns": { "type": "keyword" },
-            "source.oui": { "type": "keyword" },
+            "event.freq_score_v1": {
+              "type": "float"
+            },
+            "event.freq_score_v2": {
+              "type": "float"
+            },
+            "event.hits": {
+              "type": "long"
+            },
+            "event.result": {
+              "type": "keyword"
+            },
+            "event.severity_tags": {
+              "type": "keyword"
+            },
+            "file.source": {
+              "type": "keyword"
+            },
+            "network.is_orig": {
+              "type": "keyword"
+            },
+            "network.protocol_version": {
+              "type": "keyword"
+            },
+            "related.mac": {
+              "type": "keyword"
+            },
+            "related.oui": {
+              "type": "keyword"
+            },
+            "related.password": {
+              "type": "keyword",
+              "ignore_above": 256,
+              "fields": {
+                "text": {
+                  "type": "text"
+                }
+              }
+            },
+            "related.device_id": {
+              "type": "integer"
+            },
+            "related.device_name": {
+              "type": "keyword"
+            },
+            "related.device_type": {
+              "type": "keyword"
+            },
+            "related.manufacturer": {
+              "type": "keyword"
+            },
+            "related.role": {
+              "type": "keyword"
+            },
+            "related.service": {
+              "type": "keyword"
+            },
+            "related.site": {
+              "type": "keyword"
+            },
+            "source.ip_reverse_dns": {
+              "type": "keyword"
+            },
+            "source.oui": {
+              "type": "keyword"
+            },
             "source.device": {
               "properties": {
-                "cluster": { "type": "keyword" },
-                "device_type": { "type": "keyword" },
-                "id": { "type": "integer" },
-                "manufacturer": { "type": "keyword" },
-                "name": { "type": "keyword" },
-                "role": { "type": "keyword" },
-                "service": { "type": "keyword" },
-                "site": { "type": "keyword" },
-                "url": { "type": "keyword" },
-                "details": { "type": "nested" }
+                "cluster": {
+                  "type": "keyword"
+                },
+                "device_type": {
+                  "type": "keyword"
+                },
+                "id": {
+                  "type": "integer"
+                },
+                "manufacturer": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                },
+                "role": {
+                  "type": "keyword"
+                },
+                "service": {
+                  "type": "keyword"
+                },
+                "site": {
+                  "type": "keyword"
+                },
+                "url": {
+                  "type": "keyword"
+                },
+                "details": {
+                  "type": "nested"
+                }
               }
             },
             "source.segment": {
               "properties": {
-                "id": { "type": "integer" },
-                "name": { "type": "keyword" },
-                "site": { "type": "keyword" },
-                "tenant": { "type": "keyword" },
-                "url": { "type": "keyword" },
-                "details": { "type": "nested" }
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "keyword"
+                },
+                "site": {
+                  "type": "keyword"
+                },
+                "tenant": {
+                  "type": "keyword"
+                },
+                "url": {
+                  "type": "keyword"
+                },
+                "details": {
+                  "type": "nested"
+                }
               }
             },
-            "tls.client.ja3_description": { "type": "keyword", "ignore_above": 1024, "fields": { "text": { "type": "text" } } },
-            "tls.server.ja3s_description": { "type": "keyword", "ignore_above": 1024, "fields": { "text": { "type": "text" } } }
+            "tls.client.ja3_description": {
+              "type": "keyword",
+              "ignore_above": 1024,
+              "fields": {
+                "text": {
+                  "type": "text"
+                }
+              }
+            },
+            "tls.server.ja3s_description": {
+              "type": "keyword",
+              "ignore_above": 1024,
+              "fields": {
+                "text": {
+                  "type": "text"
+                }
+              }
+            }
           }
         }
       }
@@ -161,6 +293,69 @@ data:
 kind: ConfigMap
 metadata:
   name: malcolm-template-override
+{{- end }}
+---
+
+{{- if .Values.siem_env.malcolm_beats_template_override.enabled }}
+---
+apiVersion: v1
+data:
+  malcolm_beats_template.json: |
+    {
+      "index_patterns": [
+        "MALCOLM_OTHER_INDEX_PATTERN_REPLACER"
+      ],
+      "composed_of": [
+        "ecs_base",
+        "ecs_ecs",
+        "ecs_event",
+        "ecs_agent",
+        "ecs_client",
+        "ecs_destination",
+        "ecs_error",
+        "ecs_file",
+        "ecs_host",
+        "ecs_http",
+        "ecs_log",
+        "ecs_network",
+        "ecs_process",
+        "ecs_related",
+        "ecs_server",
+        "ecs_source",
+        "ecs_threat",
+        "ecs_url",
+        "ecs_user",
+        "ecs_user_agent",
+        "custom_miscbeat",
+        "custom_suricata_stats",
+        "custom_zeek_diagnostic"
+      ],
+      "template": {
+        "settings": {
+          "index": {
+            "default_pipeline": "{{ .Values.siem_env.malcolm_beats_template_override.default_pipeline }}",
+            "mapping.total_fields.limit": "5000",
+            "mapping.nested_fields.limit": "250"
+          }
+        },
+        "mappings": {
+          "properties": {
+            "timestamp": {
+              "type": "date"
+            },
+            "node": {
+              "type": "keyword"
+            },
+            "event.result": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: malcolm-beats-template-override
 {{- end }}
 
 ---
@@ -224,6 +419,11 @@ spec:
             name: malcolm-template-override
             subPath: malcolm_template.json
 {{- end }}
+{{- if .Values.siem_env.malcolm_beats_template_override.enabled }}
+          - mountPath: /opt/templates/malcolm_beats_template.json
+            name: malcolm-beats-template-override
+            subPath: malcolm_beats_template.json
+{{- end }}
       volumes:
         - name: dashboards-helper-var-local-catrust-volume
           configMap:
@@ -235,4 +435,9 @@ spec:
         - name: malcolm-template-override
           configMap:
             name: malcolm-template-override
+{{- end }}
+{{- if .Values.siem_env.malcolm_beats_template_override.enabled }}
+        - name: malcolm-beats-template-override
+          configMap:
+            name: malcolm-beats-template-override
 {{- end }}
