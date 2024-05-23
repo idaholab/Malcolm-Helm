@@ -258,6 +258,8 @@ suricata_live:
   development:
     af_packet_iface_threads: 2
     af_packet_ring_size: 2048
+    af_packet_block_size: 32768
+    af_packet_block_timeout: 100
     max_pending_packets: 1024
     eve_threaded: "true"
     eve_rotate_interval: "1h"
@@ -267,7 +269,9 @@ suricata_live:
     # Default is calculated threads * max-pending-packets (Default of max-pending-packets is 1024)
     # This calculation was made with the assumtion that max-pending-packets is set to 1024
     af_packet_ring_size: 131072
-    max_pending_packets: 8192
+    af_packet_block_size: 1048576
+    af_packet_block_timeout: 1000
+    max_pending_packets: 30000
     eve_threaded: "true"
     eve_rotate_interval: "1h"
 
@@ -297,13 +301,13 @@ zeek_live:
     worker_lb_procs: "1"
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "67108864"
-    zeek_pin_cpus_worker_1: "1"
+    zeek_pin_cpus_worker_1: ""
   production:
-    zeek_lb_procs: "24"
-    worker_lb_procs: "24"
+    zeek_lb_procs: "32"
+    worker_lb_procs: "32"
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "134217728"
-    zeek_pin_cpus_worker_1: "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
+    zeek_pin_cpus_worker_1: ""
 
 
 # Only affects the zeek offline deployment
@@ -407,9 +411,9 @@ arkime_live:
     arkime_compression_level: "3"
     arkime_db_bulk_size: "15000000"
     arkime_max_packets_in_queue: "300000"
-    arkime_packet_threads: "16"
+    arkime_packet_threads: "6"
     arkime_pcap_write_size: "2560000"
-    arkime_tpacketv3_num_threads: "16"
+    arkime_tpacketv3_num_threads: "2"
     arkime_tpacketv3_block_size: "8388608"
 
   # Arkime live is a Daemonset but it will only schedule on kubernetes nodes that has following label
@@ -475,6 +479,7 @@ filebeat:
           operator: In
           values:
           - "true"
+      - matchExpressions:
         - key: cnaps.io/zeek-capture
           operator: In
           values:
