@@ -393,6 +393,7 @@ arkime_env:
     index_management_segments: "1"
     # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
     index_management_hot_warm_enabled: "false"
+    spi_data_max_indices: "7"
   production:
     free_space_g: "20%"
     rotate_index: hourly
@@ -403,6 +404,7 @@ arkime_env:
     index_management_history_retention_weeks: "13"
     index_management_segments: "1"
     index_management_hot_warm_enabled: "false"
+    spi_data_max_indices: "-1"
 
 arkime_live:
   enabled: true
@@ -464,6 +466,9 @@ live_capture:
     operator: "Equal"
     value: "noncore"
     effect: "NoSchedule"
+
+upload_common_env:
+  extra_tags: "mykit1"
 
 # Filebeat capture
 filebeat:

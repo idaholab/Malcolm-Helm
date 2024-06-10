@@ -254,6 +254,7 @@ data:
   PCAP_PIPELINE_POLLING: "true"
   PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
   PCAP_PIPELINE_VERBOSITY: ""
+  EXTRA_TAGS: "{{ .Values.upload_common_env.extra_tags }}"
 kind: ConfigMap
 metadata:
   name: upload-common-env

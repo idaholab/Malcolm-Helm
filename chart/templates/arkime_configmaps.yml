@@ -82,6 +82,7 @@ data:
   INDEX_MANAGEMENT_HISTORY_RETENTION_WEEKS: "{{ .index_management_history_retention_weeks }}"
   INDEX_MANAGEMENT_SEGMENTS: "{{ .index_management_segments }}"
   INDEX_MANAGEMENT_HOT_WARM_ENABLED: "{{ .index_management_hot_warm_enabled }}"
+  ARKIME_SPI_DATA_MAX_INDICES: "{{ .spi_data_max_indices }}"
   {{- end }}
 {{- else }}
   {{- with .Values.arkime_env.development }}
@@ -94,6 +95,7 @@ data:
   INDEX_MANAGEMENT_HISTORY_RETENTION_WEEKS: "{{ .index_management_history_retention_weeks }}"
   INDEX_MANAGEMENT_SEGMENTS: "{{ .index_management_segments }}"
   INDEX_MANAGEMENT_HOT_WARM_ENABLED: "{{ .index_management_hot_warm_enabled }}"
+  ARKIME_SPI_DATA_MAX_INDICES: "{{ .spi_data_max_indices }}"
   {{- end }}
 {{- end }}
 kind: ConfigMap

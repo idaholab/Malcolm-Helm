@@ -60,16 +60,17 @@ data:
   {{- with .Values.arkime_env.production }}
     rotateIndex={{ .rotate_index }}
     freeSpaceG={{ .free_space_g }}
+    spiDataMaxIndices={{ .spi_data_max_indices }}
   {{- end }}
 {{- else }}
   {{- with .Values.arkime_env.development }}
     rotateIndex={{ .rotate_index }}
     freeSpaceG={{ .free_space_g }}
+    spiDataMaxIndices={{ .spi_data_max_indices }}
   {{- end }}
 {{- end }}
     rulesFiles=
-    smtpIpHeaders=X-Originating-IP:;X-Barracuda-Apparent-Source-IP:
-    spiDataMaxIndices=-1
+    smtpIpHeaders=X-Originating-IP:;X-Barracuda-Apparent-Source-IP:    
     spiViewCategoryOrder=malcolm
     supportSha256=false
     tcpSaveTimeout=720
