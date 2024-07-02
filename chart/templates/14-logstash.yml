@@ -1,3 +1,4 @@
+{{- $logstash_image := .Values.image.logsstash_container_override | default (printf "%s/logstash-oss:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 data:
@@ -116,7 +117,7 @@ spec:
       #       topologyKey: "kubernetes.io/hostname"
       containers:
       - name: logstash-container
-        image: "{{ .Values.image.repository }}/logstash-oss:{{ .Values.image.logstash_tag | default .Chart.AppVersion }}"
+        image: "{{ $logstash_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
