@@ -455,17 +455,7 @@ pcap_capture_env:
 
 # Shared settings across all live capture type things (IE: Zeek live, Suricata live, and Pcap capture)
 live_capture:
-  tolerations:
-  - key: node-role.kubernetes.io/control-plane
-    operator: Exists
-    effect: NoSchedule
-  - key: node-role.kubernetes.io/master
-    operator: Exists
-    effect: NoSchedule
-  - key: "cnaps.io/node-taint"
-    operator: "Equal"
-    value: "noncore"
-    effect: "NoSchedule"
+  tolerations: []
 
 upload_common_env:
   extra_tags: "mykit1"
