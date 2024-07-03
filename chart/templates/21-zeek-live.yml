@@ -52,8 +52,10 @@ spec:
       hostNetwork: true
       nodeSelector:
 {{ toYaml .Values.zeek_live.nodeSelector | indent 8 }}
+{{- with .Values.live_capture.tolerations }}
       tolerations:
-{{ toYaml .Values.live_capture.tolerations | indent 6 }}
+{{ toYaml . | indent 6 }}
+{{- end }}
       containers:
       - name: zeek-container
         image: "{{ $image }}"

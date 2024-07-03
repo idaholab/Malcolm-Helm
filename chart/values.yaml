@@ -20,14 +20,14 @@ image:
   opensearch_tag: ""
   upload_tag: ""
   pcap_monitor_tag: ""
-  arkime_tag: ""
+  arkime_container_override: ""
   api_tag: ""
   zeek_container_override: ""
   suricata_tag: ""
-  dashboards_helper_tag: ""
+  dashboards_helper_container_override: ""
   file_monitor_tag: ""
   filebeat_tag: ""
-  logstash_tag: ""
+  logsstash_container_override: ""
   redis_tag: ""
   postgresql_tag: ""
   netbox_tag: ""
@@ -278,6 +278,7 @@ suricata_live:
 dashboards_helper_env:
   opensearch_index_size_prune_limit: 0
   opensearch_index_size_prune_name_sort: false
+  dashboards_prefix: "Malcolm"
 
 suricata_offline:
   development:
@@ -355,12 +356,21 @@ zeek_env:
     yara_max_requests: 8
     extracted_file_max_bytes: "134217728"
     extracted_file_min_bytes: "64"
+    # Prune ./zeek-logs/extract_files/ when it exceeds this size...
+    extracted_file_prune_threshold_max_size: 1TB
+    # ... or when the *total* disk usage exceeds this percentage
+    extracted_file_prune_threshold_total_disk_usage_percent: 0
+    # Interval in seconds for checking whether to prune ./zeek-logs/extract_files/
+    extracted_file_prune_interval_seconds: 300
   production:
     capa_max_requests: 8
     clamd_max_requests: 16
     yara_max_requests: 16
     extracted_file_max_bytes: "134217728"
     extracted_file_min_bytes: "64"
+    extracted_file_prune_threshold_max_size: 1TB
+    extracted_file_prune_threshold_total_disk_usage_percent: 0
+    extracted_file_prune_interval_seconds: 300
 
 # Variables apply to both offline and live version of arkime
 arkime_env:
@@ -383,6 +393,7 @@ arkime_env:
     index_management_segments: "1"
     # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
     index_management_hot_warm_enabled: "false"
+    spi_data_max_indices: "7"
   production:
     free_space_g: "20%"
     rotate_index: hourly
@@ -393,6 +404,7 @@ arkime_env:
     index_management_history_retention_weeks: "13"
     index_management_segments: "1"
     index_management_hot_warm_enabled: "false"
+    spi_data_max_indices: "-1"
 
 arkime_live:
   enabled: true
@@ -443,17 +455,10 @@ pcap_capture_env:
 
 # Shared settings across all live capture type things (IE: Zeek live, Suricata live, and Pcap capture)
 live_capture:
-  tolerations:
-  - key: node-role.kubernetes.io/control-plane
-    operator: Exists
-    effect: NoSchedule
-  - key: node-role.kubernetes.io/master
-    operator: Exists
-    effect: NoSchedule
-  - key: "cnaps.io/node-taint"
-    operator: "Equal"
-    value: "noncore"
-    effect: "NoSchedule"
+  tolerations: []
+
+upload_common_env:
+  extra_tags: "mykit1"
 
 # Filebeat capture
 filebeat:

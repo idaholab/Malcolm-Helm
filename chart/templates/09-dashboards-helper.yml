@@ -1,3 +1,4 @@
+{{- $dashboard_image := .Values.image.dashboards_helper_container_override | default (printf "%s/dashboards-helper:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 data:
@@ -6,6 +7,7 @@ data:
   ISM_SNAPSHOT_REPO: logs
   OPENSEARCH_INDEX_SIZE_PRUNE_LIMIT: "{{ .Values.dashboards_helper_env.opensearch_index_size_prune_limit }}"
   OPENSEARCH_INDEX_SIZE_PRUNE_NAME_SORT: "{{ .Values.dashboards_helper_env.opensearch_index_size_prune_name_sort }}"
+  DASHBOARDS_PREFIX: "{{ .Values.dashboards_helper_env.dashboards_prefix }}"
 kind: ConfigMap
 metadata:
   name: dashboards-helper-env
@@ -375,7 +377,7 @@ spec:
     spec:
       containers:
       - name: dashboards-helper-container
-        image: "{{ .Values.image.repository }}/dashboards-helper:{{ .Values.image.dashboards_helper_tag | default .Chart.AppVersion }}"
+        image: "{{ $dashboard_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

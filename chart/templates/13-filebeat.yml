@@ -20,6 +20,7 @@ data:
   FILEBEAT_TCP_TAG: _malcolm_beats
   FILEBEAT_WATCHER_POLLING: "true"
   FILEBEAT_WATCHER_POLLING_ASSUME_CLOSED_SEC: "10"
+  FILEBEAT_PREPARE_PROCESS_COUNT: "1" 
 kind: ConfigMap
 metadata:
   name: filebeat-env
@@ -57,8 +58,10 @@ spec:
       affinity:
         nodeAffinity:
 {{ toYaml .Values.filebeat.nodeAffinity | indent 10 }}
+{{- with .Values.live_capture.tolerations }}
       tolerations:
-{{ toYaml .Values.live_capture.tolerations | indent 6 }}
+{{ toYaml . | indent 6 }}
+{{- end }}
       containers:
       - name: filebeat-container
         image: "{{ .Values.image.repository }}/filebeat-oss:{{ .Values.image.filebeat_tag | default .Chart.AppVersion }}"

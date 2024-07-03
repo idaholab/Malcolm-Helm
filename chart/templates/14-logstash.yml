@@ -1,11 +1,12 @@
+{{- $logstash_image := .Values.image.logsstash_container_override | default (printf "%s/logstash-oss:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 data:
-  # Which types of logs will be enriched via NetBox (comma-separated list of provider.dataset, or the string all to enrich all logs)
-  LOGSTASH_NETBOX_ENRICHMENT_DATASETS: "suricata.alert,zeek.conn,zeek.known_hosts,zeek.known_services,zeek.notice,zeek.signatures,zeek.software,zeek.weird"
+  # Which types of logs will be enriched via NetBox (comma-separated list of provider.dataset, or the string all to enrich all logs)  
+  LOGSTASH_NETBOX_ENRICHMENT_DATASETS: "suricata.alert,zeek.conn,zeek.dhcp,zeek.dns,zeek.known_hosts,zeek.known_services,zeek.ntlm,zeek.notice,zeek.signatures,zeek.software,zeek.weird"
   # Zeek log types that will be ignored (dropped) by LogStash
   # Defaults are: analyzer,broker,bsap_ip_unknown,bsap_serial_unknown,capture_loss,cluster,config,ecat_arp_info,loaded_scripts,packet_filter,png,print,prof,reporter,stats,stderr,stdout
-  LOGSTASH_ZEEK_IGNORED_LOGS: "bsap_ip_unknown,bsap_serial_unknown,ecat_arp_info,loaded_scripts,png,stderr,stdout"
+  LOGSTASH_ZEEK_IGNORED_LOGS: "analyzer,broker,cluster,config,loaded_scripts,packet_filter,png,print,prof,reporter,stderr,stdout"
   # Whether or not Logstash will map MAC addresses to vendors for MAC addresses
   LOGSTASH_OUI_LOOKUP: "true"
   # Whether or not Logstash will perform a reverse DNS lookup for external IP addresses
@@ -116,7 +117,7 @@ spec:
       #       topologyKey: "kubernetes.io/hostname"
       containers:
       - name: logstash-container
-        image: "{{ .Values.image.repository }}/logstash-oss:{{ .Values.image.logstash_tag | default .Chart.AppVersion }}"
+        image: "{{ $logstash_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

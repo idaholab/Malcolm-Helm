@@ -1,3 +1,4 @@
+{{- $arkime_image := .Values.image.arkime_container_override | default (printf "%s/arkime:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if .Values.arkime_live.enabled }}
 ---
 apiVersion: apps/v1
@@ -19,11 +20,13 @@ spec:
       hostNetwork: true
       nodeSelector:
 {{ toYaml .Values.arkime_live.nodeSelector | indent 8 }}
+{{- with .Values.live_capture.tolerations }}
       tolerations:
-{{ toYaml .Values.live_capture.tolerations | indent 6 }}
+{{ toYaml . | indent 6 }}
+{{- end }}
       containers:
       - name: arkime-live-container
-        image: "{{ .Values.image.repository }}/arkime:{{ .Values.image.freq_tag | default .Chart.AppVersion }}"
+        image: "{{ $arkime_image }}"
         imagePullPolicy: Always
         stdin: false
         tty: true
