@@ -1,0 +1,136 @@
+{{- if .Values.siem_env.logstash_override.enabled }}
+---
+apiVersion: v1
+data:
+  99_opensearch_output.conf: |
+    output {
+      if [event][kind] == "metric" {
+        elasticsearch {
+          id => "output_opensearch_malcolm_metrics"
+          hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
+          ssl_certificate_verification => "false"
+          manage_template => false
+          index => "%{[@metadata][malcolm_opensearch_index]}"
+          document_id => "%{+YYMMdd}-%{[event][hash]}"
+        }
+      } else if [event][provider] == "suricata" {
+        elasticsearch {
+          id => "output_opensearch_malcolm"
+          hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
+          ssl_certificate_verification => "false"
+          manage_template => false
+          document_id => "%{+YYMMdd}-%{[event][hash]}"
+          ilm_rollover_alias => "{{ .Values.siem_env.logstash_override.rollover_alias_suricata }}"
+          ilm_pattern => "000001"
+          ilm_policy => "{{ .Values.siem_env.logstash_override.ilm_policy }}"
+        }
+      } else {
+        elasticsearch {
+          id => "output_opensearch_malcolm"
+          hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
+          ssl_certificate_verification => "false"
+          manage_template => false
+          document_id => "%{+YYMMdd}-%{[event][hash]}"
+          ilm_rollover_alias => "{{ .Values.siem_env.logstash_override.rollover_alias_zeek }}"
+          ilm_pattern => "000001"
+          ilm_policy => "{{ .Values.siem_env.logstash_override.ilm_policy }}"
+        }
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: elastic-output-override
+
+---
+apiVersion: v1
+data:
+  malcolm_template.json: |
+    {
+      "index_patterns" : ["malcolm_network_zeek-*"],
+      "composed_of": [
+        "ecs_base",
+        "ecs_ecs",
+        "ecs_event",
+        "ecs_agent",
+        "ecs_client",
+        "ecs_destination",
+        "ecs_error",
+        "ecs_file",
+        "ecs_host",
+        "ecs_http",
+        "ecs_log",
+        "ecs_network",
+        "ecs_process",
+        "ecs_related",
+        "ecs_rule",
+        "ecs_server",
+        "ecs_source",
+        "ecs_threat",
+        "ecs_url",
+        "ecs_vulnerability",
+        "ecs_user_agent",
+        "custom_arkime",
+        "custom_suricata",
+        "custom_zeek",
+        "custom_zeek_ot",
+        "custom_malcolm_common"
+      ],
+      "template" :{
+        "settings" : {
+          "index": {
+            "lifecycle.name": "{{ .Values.siem_env.logstash_override.ilm_policy }}",
+            "lifecycle.rollover_alias": "{{ .Values.siem_env.logstash_override.rollover_alias_zeek }}",
+            "mapping.total_fields.limit": "5000",
+            "mapping.nested_fields.limit": "250",
+            "max_docvalue_fields_search": "200"
+          }
+        }
+      }
+    }
+  malcolm_template_suricata.json: |
+    {
+      "index_patterns" : ["malcolm_network_suricata-*"],
+      "composed_of": [
+        "ecs_base",
+        "ecs_ecs",
+        "ecs_event",
+        "ecs_agent",
+        "ecs_client",
+        "ecs_destination",
+        "ecs_error",
+        "ecs_file",
+        "ecs_host",
+        "ecs_http",
+        "ecs_log",
+        "ecs_network",
+        "ecs_process",
+        "ecs_related",
+        "ecs_rule",
+        "ecs_server",
+        "ecs_source",
+        "ecs_threat",
+        "ecs_url",
+        "ecs_vulnerability",
+        "ecs_user_agent",
+        "custom_arkime",
+        "custom_suricata",
+        "custom_zeek",
+        "custom_zeek_ot",
+        "custom_malcolm_common"
+      ],
+      "template" :{
+        "settings" : {
+          "index": {
+            "lifecycle.name": "{{ .Values.siem_env.logstash_override.ilm_policy }}",
+            "lifecycle.rollover_alias": "{{ .Values.siem_env.logstash_override.rollover_alias_suricata }}",
+            "mapping.total_fields.limit": "5000",
+            "mapping.nested_fields.limit": "250",
+            "max_docvalue_fields_search": "200"
+          }
+        }
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: malcolm-template-override
+{{- end }}
