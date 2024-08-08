@@ -15,7 +15,7 @@ data:
         }
       } else if [event][provider] == "suricata" {
         elasticsearch {
-          id => "output_opensearch_malcolm"
+          id => "output_opensearch_malcolm_suricata"
           hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
           ssl_certificate_verification => "false"
           manage_template => false
@@ -26,7 +26,7 @@ data:
         }
       } else {
         elasticsearch {
-          id => "output_opensearch_malcolm"
+          id => "output_opensearch_malcolm_zeek"
           hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
           ssl_certificate_verification => "false"
           manage_template => false
