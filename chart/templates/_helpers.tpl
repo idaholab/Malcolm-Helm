@@ -191,43 +191,43 @@ data:
 {
     "index_patterns" : ["{{ .index_patterns }}"],
     "composed_of": [
-    "ecs_base",
-    "ecs_ecs",
-    "ecs_event",
-    "ecs_agent",
-    "ecs_client",
-    "ecs_destination",
-    "ecs_error",
-    "ecs_file",
-    "ecs_host",
-    "ecs_http",
-    "ecs_log",
-    "ecs_network",
-    "ecs_process",
-    "ecs_related",
-    "ecs_rule",
-    "ecs_server",
-    "ecs_source",
-    "ecs_threat",
-    "ecs_url",
-    "ecs_vulnerability",
-    "ecs_user_agent",
-    "custom_arkime",
-    "custom_suricata",
-    "custom_zeek",
-    "custom_zeek_ot",
-    "custom_malcolm_common"
+        "ecs_base",
+        "ecs_ecs",
+        "ecs_event",
+        "ecs_agent",
+        "ecs_client",
+        "ecs_destination",
+        "ecs_error",
+        "ecs_file",
+        "ecs_host",
+        "ecs_http",
+        "ecs_log",
+        "ecs_network",
+        "ecs_process",
+        "ecs_related",
+        "ecs_rule",
+        "ecs_server",
+        "ecs_source",
+        "ecs_threat",
+        "ecs_url",
+        "ecs_vulnerability",
+        "ecs_user_agent",
+        "custom_arkime",
+        "custom_suricata",
+        "custom_zeek",
+        "custom_zeek_ot",
+        "custom_malcolm_common"
     ],
     "template" :{
-    "settings" : {
-        "index": {
-        "lifecycle.name": "{{ .Values.siem_env.logstash_override.ilm_policy }}",
-        "lifecycle.rollover_alias": "{{ .Values.siem_env.logstash_override.rollover_alias_zeek }}",
-        "mapping.total_fields.limit": "5000",
-        "mapping.nested_fields.limit": "250",
-        "max_docvalue_fields_search": "200"
+        "settings" : {
+            "index": {
+            "lifecycle.name": "{{ .values.siem_env.logstash_override.ilm_policy }}",
+            "lifecycle.rollover_alias": "{{ .values.siem_env.logstash_override.rollover_alias_zeek }}",
+            "mapping.total_fields.limit": "5000",
+            "mapping.nested_fields.limit": "250",
+            "max_docvalue_fields_search": "200"
+            }
         }
-    }
   }
 }
 {{- end }}
