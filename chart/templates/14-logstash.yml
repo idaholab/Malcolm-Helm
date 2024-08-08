@@ -58,38 +58,6 @@ spec:
   selector:
     name: logstash-deployment
 
-{{- if .Values.siem_env.logstash_override.enabled }}
----
-apiVersion: v1
-data:
-  99_opensearch_output.conf: |
-    output {
-      if [event][kind] == "metric" {
-        elasticsearch {
-          id => "output_opensearch_malcolm_metrics"
-          hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
-          ssl_certificate_verification => "false"
-          manage_template => false
-          index => "%{[@metadata][malcolm_opensearch_index]}"
-          document_id => "%{+YYMMdd}-%{[event][hash]}"
-        }
-      } else {
-        elasticsearch {
-          id => "output_opensearch_malcolm"
-          hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
-          ssl_certificate_verification => "false"
-          manage_template => false
-          document_id => "%{+YYMMdd}-%{[event][hash]}"
-          ilm_rollover_alias => "{{ .Values.siem_env.logstash_override.rollover_alias }}"
-          ilm_pattern => "000001"
-          ilm_policy => "{{ .Values.siem_env.logstash_override.ilm_policy }}"
-        }
-      }
-    }
-kind: ConfigMap
-metadata:
-  name: elastic-output-override
-{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment

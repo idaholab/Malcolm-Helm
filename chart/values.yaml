@@ -91,8 +91,9 @@ siem_env:
     # ILM policy and rollover_alias will need to be defined outside of this deployment for this to work as expected.
     enabled: false
     ilm_policy: nta
-    # Must match arkime_network_index_pattern
-    rollover_alias: malcolm_suricata_zeek
+    # Must match the patterns located inside of logstash_override.yml
+    rollover_alias_zeek: malcolm_network_zeek
+    rollover_alias_suricata: malcolm_network_suricata
   # Allows user to add a default_pipeline to malcolm_beat_template
   malcolm_beats_template_override:
     enabled: false
