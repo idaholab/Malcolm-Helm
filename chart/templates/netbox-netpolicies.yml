@@ -1,0 +1,101 @@
+# Selects all the postgress pods for netbox app.kubernetes.io/component=postgresql
+# Selects the netbox pods name=netbox-deployment
+
+# Netbox redis   name=netbox-redis
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netbox-postgress-ns
+  namespace: malcolm
+spec:
+  podSelector:    
+    # Selects all the postgress pods in the malcolm so all traffic is either ingress or egress from here.
+    matchExpressions:
+    - key: app.kubernetes.io/component
+      operator: In
+      values:
+        - postgresql
+        - pgpool
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow DNS (port 53) for both TCP and UDP to any destination
+  - ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  # Only allow traffic coming from netbox to postgress over port 5432
+  - from:    
+    - podSelector:
+        matchLabels:
+          name: netbox-deployment
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow all traffic in from all other postgress pods
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: postgresql
+  egress:
+  # Allow DNS (port 53) for both TCP and UDP to any destination
+  - ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  # Allow any egress to the netbox-deployment on any port as well as any other postgres pod
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: postgresql
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: pgpool
+  - to:
+    - podSelector:
+        matchLabels:
+          name: netbox-deployment
+
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: redis-ns
+#   namespace: malcolm
+# spec:
+#   podSelector:
+#     matchExpressions:
+#     - key: name
+#       operator: In
+#       values:
+#         - netbox-redis
+#         - netbox-redis-cache
+#   policyTypes:
+#   - Ingress
+#   - Egress
+#   ingress:
+#   # Rule 1: Only allow traffic coming from netbox to netbox over port 6379
+#   - from:    
+#     - podSelector:
+#         matchLabels:
+#           name: netbox-deployment
+#     ports:
+#     - protocol: TCP
+#       port: 6379
+#   egress:
+#   # Rule 2: Allow DNS (port 53) for both TCP and UDP to any destination
+#   - ports:
+#     - protocol: TCP
+#       port: 53
+#     - protocol: UDP
+#       port: 53
+#   # Rule 3: Allow any egress to the netbox-deployment on any port
+#   - to:
+#     - podSelector:
+#         matchLabels:
+#           name: netbox-deployment
