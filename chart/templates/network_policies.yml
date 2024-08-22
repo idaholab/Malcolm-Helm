@@ -4,7 +4,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-internal-block-external
-  namespace: malcolm
 spec:
   # Select all the pods
   podSelector: {}
@@ -37,7 +36,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-external-es-kb
-  namespace: malcolm
 spec:
   podSelector: {}
   policyTypes:
@@ -65,25 +63,30 @@ spec:
       port: 5601
 {{ end }}
 
+{{ if .Values.istio.enabled }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: deny-all-suricata-zeek-live
+  name: allow-istio-ingress-egress
   namespace: malcolm
 spec:
-  podSelector:
-    matchExpressions:
-    - key: name
-      operator: In
-      values:
-        - suricata-live-daemonset
-        - zeek-live-daemonset
+  # Select all the pods
+  podSelector: {}
   policyTypes:
-    - Ingress
-    - Egress
-  ingress: []
-  egress: []
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.istio.istio_namespace }}
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.istio.istio_namespace }}
+{{ end }}
 
 ---
 apiVersion: networking.k8s.io/v1

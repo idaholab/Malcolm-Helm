@@ -233,6 +233,7 @@ istio:
   gateway: istio-system/tenant
   virtualservicename: malcolm
   domain: vp.bigbang.dev
+  istio_namespace: istio-system
 
 
 # Affects both the live and offline deployment of suricata
