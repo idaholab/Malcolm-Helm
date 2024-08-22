@@ -60,6 +60,8 @@ external_elasticsearch:
   enabled: false
   # Internal url or clusterIP service and supports https or http urls for elasticsearch
   url: https://dataplane-ek-es-http.dataplane-ek.svc:9200
+  es_port: 9200
+  kibana_port: 5601
   username: "malcolm"
   password: ""
   # Secret must be in following format if using elastic_secret_name:

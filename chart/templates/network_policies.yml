@@ -11,6 +11,7 @@ spec:
   - Ingress
   - Egress
   ingress:
+  # Allow dns traffic
   - ports:
     - protocol: TCP
       port: 53
@@ -21,6 +22,7 @@ spec:
         matchLabels:
           kubernetes.io/metadata.name: malcolm
   egress:
+  # Allow dns traffic
   - ports:
     - protocol: TCP
       port: 53
@@ -50,7 +52,7 @@ spec:
           kubernetes.io/metadata.name: {{ .Values.external_elasticsearch.namespace }}
     ports:
     - protocol: TCP
-      port: 9200
+      port: {{ .Values.external_elasticsearch.es_port }}
   - to:
     - podSelector:
         matchLabels:
@@ -60,7 +62,7 @@ spec:
           kubernetes.io/metadata.name: {{ .Values.external_elasticsearch.namespace }}
     ports:
     - protocol: TCP
-      port: 5601
+      port: {{ .Values.external_elasticsearch.kibana_port }}
 {{ end }}
 
 {{ if .Values.istio.enabled }}
