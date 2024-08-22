@@ -2,6 +2,7 @@
 # It was created for swapping between running the chart on a development kubernetes cluster with minimal
 # resources vs a production one.
 is_production: false
+enable_network_policies: true
 
 # When scaling the _helpers.tpl function that is used for scaling out nodes will do a calculation based on this label
 # Basically it will count the total number of nodes that have this label
@@ -70,8 +71,15 @@ external_elasticsearch:
   # metadata:
   #   name: somename
   #   namespace: somenamespace
+  namespace: "dataplane-ek"
   elastic_secret_name: "dataplane-ek-malcolm-es-auth"
-  elastic_secret_namespace: "dataplane-ek"
+  matchLabels:
+    kibana:
+      common.k8s.elastic.co/type: kibana
+      kibana.k8s.elastic.co/name: dataplane-ek
+    elastic:
+      common.k8s.elastic.co/type: elasticsearch
+      elasticsearch.k8s.elastic.co/cluster-name: dataplane-ek
 
   # Copy of the elastic certificate from elasticsearch namespace
   elastic_cert_name: "dataplane-ek-es-http-certs-public"

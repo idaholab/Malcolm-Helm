@@ -1,3 +1,4 @@
+{{ if .Values.enable_network_policies }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -30,43 +31,7 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: malcolm
-
-# The same as yours
-# kind: NetworkPolicy
-# apiVersion: networking.k8s.io/v1
-# metadata:
-#   name: deny-all-egress
-#   namespace: malcolm
-# spec:
-#   policyTypes:
-#   - Egress
-#   podSelector: {}
-# ---
-# # allows connections to all pods in your namespace from all pods in your namespace
-# apiVersion: networking.k8s.io/v1
-# kind: NetworkPolicy
-# metadata:
-#   name: allow-namespace-egress
-#   namespace: malcolm
-# spec:
-#   podSelector: {}
-#   policyTypes:
-#   - Egress
-#   egress:
-#   - to:
-#     - podSelector:
-#         matchLabels: {}
-# ---
-# # allows connections from all pods in your namespace to all pods in your namespace
-# apiVersion: networking.k8s.io/v1
-# kind: NetworkPolicy
-# metadata:
-#   name: allow-namespace-internal
-#   namespace: malcolm
-# spec:
-#   podSelector: {}
-
-# This needs to move to malcolm repo
+{{ if .Values.external_elasticsearch.enabled }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -81,47 +46,24 @@ spec:
   - to:
     - podSelector:
         matchLabels:
-          common.k8s.elastic.co/type: elasticsearch
-          elasticsearch.k8s.elastic.co/cluster-name: dataplane-ek
+          {{- toYaml .Values.external_elasticsearch.matchLabels.elastic | nindent 10 }}
       namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: dataplane-ek
+          kubernetes.io/metadata.name: {{ .Values.external_elasticsearch.namespace }}
     ports:
     - protocol: TCP
       port: 9200
   - to:
     - podSelector:
         matchLabels:
-          common.k8s.elastic.co/type: kibana
-          kibana.k8s.elastic.co/name: dataplane-ek
+          {{- toYaml .Values.external_elasticsearch.matchLabels.kibana | nindent 10 }}
       namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: dataplane-ek
+          kubernetes.io/metadata.name: {{ .Values.external_elasticsearch.namespace }}
     ports:
     - protocol: TCP
       port: 5601
-
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-external-misp
-  namespace: malcolm
-spec:
-  podSelector: {}
-  policyTypes:
-  - Egress
-  egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          app: misp-core
-      namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: misp
-    ports:
-    - protocol: TCP
-      port: 80
+{{ end }}
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -159,3 +101,4 @@ spec:
   - ports:
     - protocol: TCP
       port: 443
+{{ end }}
