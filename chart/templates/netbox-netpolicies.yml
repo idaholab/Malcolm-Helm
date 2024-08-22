@@ -1,101 +1,161 @@
-# Selects all the postgress pods for netbox app.kubernetes.io/component=postgresql
-# Selects the netbox pods name=netbox-deployment
-
-# Netbox redis   name=netbox-redis
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: netbox-postgress-ns
+  name: allow-internal-block-external
   namespace: malcolm
 spec:
-  podSelector:    
-    # Selects all the postgress pods in the malcolm so all traffic is either ingress or egress from here.
-    matchExpressions:
-    - key: app.kubernetes.io/component
-      operator: In
-      values:
-        - postgresql
-        - pgpool
+  # Select all the pods
+  podSelector: {}
   policyTypes:
   - Ingress
   - Egress
   ingress:
-  # Allow DNS (port 53) for both TCP and UDP to any destination
   - ports:
     - protocol: TCP
       port: 53
     - protocol: UDP
       port: 53
-  # Only allow traffic coming from netbox to postgress over port 5432
-  - from:    
-    - podSelector:
-        matchLabels:
-          name: netbox-deployment
-    ports:
-    - protocol: TCP
-      port: 5432
-  # Allow all traffic in from all other postgress pods
   - from:
-    - podSelector:
+    - namespaceSelector:
         matchLabels:
-          app.kubernetes.io/component: postgresql
+          kubernetes.io/metadata.name: malcolm
   egress:
-  # Allow DNS (port 53) for both TCP and UDP to any destination
   - ports:
     - protocol: TCP
       port: 53
     - protocol: UDP
       port: 53
-  # Allow any egress to the netbox-deployment on any port as well as any other postgres pod
   - to:
-    - podSelector:
+    - namespaceSelector:
         matchLabels:
-          app.kubernetes.io/component: postgresql
-  - to:
-    - podSelector:
-        matchLabels:
-          app.kubernetes.io/component: pgpool
-  - to:
-    - podSelector:
-        matchLabels:
-          name: netbox-deployment
+          kubernetes.io/metadata.name: malcolm
 
+# The same as yours
+# kind: NetworkPolicy
+# apiVersion: networking.k8s.io/v1
+# metadata:
+#   name: deny-all-egress
+#   namespace: malcolm
+# spec:
+#   policyTypes:
+#   - Egress
+#   podSelector: {}
 # ---
+# # allows connections to all pods in your namespace from all pods in your namespace
 # apiVersion: networking.k8s.io/v1
 # kind: NetworkPolicy
 # metadata:
-#   name: redis-ns
+#   name: allow-namespace-egress
 #   namespace: malcolm
 # spec:
-#   podSelector:
-#     matchExpressions:
-#     - key: name
-#       operator: In
-#       values:
-#         - netbox-redis
-#         - netbox-redis-cache
+#   podSelector: {}
 #   policyTypes:
-#   - Ingress
 #   - Egress
-#   ingress:
-#   # Rule 1: Only allow traffic coming from netbox to netbox over port 6379
-#   - from:    
-#     - podSelector:
-#         matchLabels:
-#           name: netbox-deployment
-#     ports:
-#     - protocol: TCP
-#       port: 6379
 #   egress:
-#   # Rule 2: Allow DNS (port 53) for both TCP and UDP to any destination
-#   - ports:
-#     - protocol: TCP
-#       port: 53
-#     - protocol: UDP
-#       port: 53
-#   # Rule 3: Allow any egress to the netbox-deployment on any port
 #   - to:
 #     - podSelector:
-#         matchLabels:
-#           name: netbox-deployment
+#         matchLabels: {}
+# ---
+# # allows connections from all pods in your namespace to all pods in your namespace
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: allow-namespace-internal
+#   namespace: malcolm
+# spec:
+#   podSelector: {}
+
+# This needs to move to malcolm repo
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-es-kb
+  namespace: malcolm
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          common.k8s.elastic.co/type: elasticsearch
+          elasticsearch.k8s.elastic.co/cluster-name: dataplane-ek
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: dataplane-ek
+    ports:
+    - protocol: TCP
+      port: 9200
+  - to:
+    - podSelector:
+        matchLabels:
+          common.k8s.elastic.co/type: kibana
+          kibana.k8s.elastic.co/name: dataplane-ek
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: dataplane-ek
+    ports:
+    - protocol: TCP
+      port: 5601
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-misp
+  namespace: malcolm
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: misp-core
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: misp
+    ports:
+    - protocol: TCP
+      port: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all-suricata-zeek-live
+  namespace: malcolm
+spec:
+  podSelector:
+    matchExpressions:
+    - key: name
+      operator: In
+      values:
+        - suricata-live-daemonset
+        - zeek-live-daemonset
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-to-ingress-proxy
+  namespace: malcolm
+spec:
+  podSelector:
+    matchLabels:
+      name: nginx-proxy-deployment
+  policyTypes:
+    - Ingress
+  ingress:
+  - ports:
+    - protocol: TCP
+      port: 443
