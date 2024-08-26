@@ -2,6 +2,7 @@
 # It was created for swapping between running the chart on a development kubernetes cluster with minimal
 # resources vs a production one.
 is_production: false
+enable_network_policies: false
 
 # When scaling the _helpers.tpl function that is used for scaling out nodes will do a calculation based on this label
 # Basically it will count the total number of nodes that have this label
@@ -59,6 +60,8 @@ external_elasticsearch:
   enabled: false
   # Internal url or clusterIP service and supports https or http urls for elasticsearch
   url: https://dataplane-ek-es-http.dataplane-ek.svc:9200
+  es_port: 9200
+  kibana_port: 5601
   username: "malcolm"
   password: ""
   # Secret must be in following format if using elastic_secret_name:
@@ -70,8 +73,15 @@ external_elasticsearch:
   # metadata:
   #   name: somename
   #   namespace: somenamespace
+  namespace: "dataplane-ek"
   elastic_secret_name: "dataplane-ek-malcolm-es-auth"
-  elastic_secret_namespace: "dataplane-ek"
+  matchLabels:
+    kibana:
+      common.k8s.elastic.co/type: kibana
+      kibana.k8s.elastic.co/name: dataplane-ek
+    elastic:
+      common.k8s.elastic.co/type: elasticsearch
+      elasticsearch.k8s.elastic.co/cluster-name: dataplane-ek
 
   # Copy of the elastic certificate from elasticsearch namespace
   elastic_cert_name: "dataplane-ek-es-http-certs-public"
@@ -225,6 +235,7 @@ istio:
   gateway: istio-system/tenant
   virtualservicename: malcolm
   domain: vp.bigbang.dev
+  istio_namespace: istio-system
 
 
 # Affects both the live and offline deployment of suricata

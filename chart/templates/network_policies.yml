@@ -1,0 +1,109 @@
+{{ if .Values.enable_network_policies }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internal-block-external
+spec:
+  # Select all the pods
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow dns traffic
+  - ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: malcolm
+  egress:
+  # Allow dns traffic
+  - ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: malcolm
+{{ if .Values.external_elasticsearch.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-es-kb
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          {{- toYaml .Values.external_elasticsearch.matchLabels.elastic | nindent 10 }}
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.external_elasticsearch.namespace }}
+    ports:
+    - protocol: TCP
+      port: {{ .Values.external_elasticsearch.es_port }}
+  - to:
+    - podSelector:
+        matchLabels:
+          {{- toYaml .Values.external_elasticsearch.matchLabels.kibana | nindent 10 }}
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.external_elasticsearch.namespace }}
+    ports:
+    - protocol: TCP
+      port: {{ .Values.external_elasticsearch.kibana_port }}
+{{ end }}
+
+{{ if .Values.istio.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-istio-ingress-egress
+  namespace: malcolm
+spec:
+  # Select all the pods
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.istio.istio_namespace }}
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.istio.istio_namespace }}
+{{ end }}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-to-ingress-proxy
+  namespace: malcolm
+spec:
+  podSelector:
+    matchLabels:
+      name: nginx-proxy-deployment
+  policyTypes:
+    - Ingress
+  ingress:
+  - ports:
+    - protocol: TCP
+      port: 443
+{{ end }}
