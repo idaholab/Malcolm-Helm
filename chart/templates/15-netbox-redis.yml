@@ -85,6 +85,9 @@ spec:
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
         envFrom:
           - configMapRef:
               name: process-env
