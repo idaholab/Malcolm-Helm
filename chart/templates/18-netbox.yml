@@ -39,6 +39,10 @@ spec:
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
+        # TODO we should not be using root here
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
         ports:
           - name: http-main
             protocol: TCP

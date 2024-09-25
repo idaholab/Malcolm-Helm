@@ -34,6 +34,9 @@ spec:
         - "/bin/bash"
         - "/opt/command_override.sh"
         securityContext:
+          # TODO we should not be using root here
+          runAsGroup: 0
+          runAsUser: 0
           capabilities:
             add:
               # IPC_LOCK - to lock memory, preventing swapping
