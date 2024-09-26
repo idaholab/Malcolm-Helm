@@ -221,8 +221,8 @@ data:
     "template" :{
         "settings" : {
             "index": {
-            "lifecycle.name": "{{ .values.siem_env.logstash_override.ilm_policy }}",
-            "lifecycle.rollover_alias": "{{ .values.siem_env.logstash_override.rollover_alias_zeek }}",
+            "lifecycle.name": "{{ .ilm_policy }}",
+            "lifecycle.rollover_alias": "{{ .alias }}",
             "mapping.total_fields.limit": "5000",
             "mapping.nested_fields.limit": "250",
             "max_docvalue_fields_search": "200"
