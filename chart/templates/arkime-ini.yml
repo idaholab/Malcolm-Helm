@@ -353,7 +353,7 @@ data:
     zeek.cip.cip_status_code=db:zeek.cip.cip_status_code;group:zeek_cip;kind:termfield;viewerOnly:true;friendly:Status Code;help:Status Code
     zeek.cip.cip_extended_status_code=db:zeek.cip.cip_extended_status_code;group:zeek_cip;kind:termfield;viewerOnly:true;friendly:Extended Status Code;help:Extended Status Code
     zeek.cip.cip_extended_status=db:zeek.cip.cip_extended_status;group:zeek_cip;kind:termfield;viewerOnly:true;friendly:Extended Status;help:Extended Status
-    zeek.cip.packet_correlation_id=db:zeek.cip.packet_correlation_id;group:zeek_cip;kind:termfield;viewerOnly:true;friendly:Packet Correlation ID;help:Packet Correlation ID
+    # zeek.cip.packet_correlation_id=db:zeek.cip.packet_correlation_id;group:zeek_cip;kind:termfield;viewerOnly:true;friendly:Packet Correlation ID;help:Packet Correlation ID
 
     # cip_identity.log
     # https://github.com/cisagov/ICSNPP
