@@ -71,8 +71,8 @@ spec:
         tty: true
         securityContext:
         # TODO we should not be using root here
-          runAsGroup: 0
-          runAsUser: 0
+          runAsGroup: 1000
+          runAsUser: 1000
           capabilities:
             add:
               # IPC_LOCK - to lock memory, preventing swapping
@@ -138,8 +138,8 @@ spec:
         stdin: false
         tty: true
         securityContext:
-          runAsGroup: 0
-          runAsUser: 0
+          runAsGroup: 1000
+          runAsUser: 1000
         envFrom:
           - configMapRef:
               name: process-env
