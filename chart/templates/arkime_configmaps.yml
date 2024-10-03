@@ -181,3 +181,8 @@ metadata:
 data:
   empty-script.lua: |
     -- Empty Lua script for Arkime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: netbox-custom-plugins
