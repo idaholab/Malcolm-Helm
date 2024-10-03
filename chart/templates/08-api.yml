@@ -34,7 +34,7 @@ spec:
         tty: true
         # TODO fix to use 1000 user instead
         securityContext:
-          runAsGroup: 1000
+          runAsGroup: 0
           runAsUser: 1000
         command: ["/usr/bin/tini"]
         args: ["--",
