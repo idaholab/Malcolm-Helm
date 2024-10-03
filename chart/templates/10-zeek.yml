@@ -48,8 +48,6 @@ spec:
         securityContext:
           runAsGroup: 0
           runAsUser: 0
-          capabilities:
-            add: ["CAP_DAC_OVERRIDE", "CAP_FOWNER"] 
         envFrom:
           - configMapRef:
               name: process-env
