@@ -157,7 +157,7 @@ spec:
         stdin: false
         tty: true
         securityContext:
-          runAsGroup: 0
+          runAsGroup: 1000
           runAsUser: 1000
         envFrom:
           - configMapRef:

@@ -35,7 +35,7 @@ spec:
         - "/opt/command_override.sh"
         securityContext:
           # TODO we should not be using root here
-          runAsGroup: 0
+          runAsGroup: 1000
           runAsUser: 1000
           capabilities:
             add:
@@ -103,7 +103,7 @@ spec:
         stdin: false
         tty: true
         securityContext:
-          runAsGroup: 0
+          runAsGroup: 1000
           runAsUser: 1000
         envFrom:
           - configMapRef:
