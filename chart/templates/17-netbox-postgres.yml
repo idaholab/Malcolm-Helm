@@ -123,8 +123,8 @@ spec:
         stdin: false
         tty: true
         securityContext:
-          runAsGroup: 1000
-          runAsUser: 1000
+          runAsGroup: 0
+          runAsUser: 0
         envFrom:
           - configMapRef:
               name: process-env

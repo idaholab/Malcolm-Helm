@@ -68,8 +68,8 @@ spec:
         tty: true
         securityContext:
           # TODO we should not be using root here
-          runAsGroup: 1000
-          runAsUser: 1000
+          runAsGroup: 0
+          runAsUser: 0
         ports:
           - name: https
             protocol: TCP
@@ -134,8 +134,8 @@ spec:
         stdin: false
         tty: true
         securityContext:
-          runAsGroup: 1000
-          runAsUser: 1000
+          runAsGroup: 0
+          runAsUser: 0
         envFrom:
           - configMapRef:
               name: process-env

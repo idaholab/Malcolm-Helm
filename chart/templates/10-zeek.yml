@@ -46,8 +46,10 @@ spec:
         tty: true
         # TODO we should not be using root here
         securityContext:
-          runAsGroup: 1000
-          runAsUser: 1000
+          runAsGroup: 0
+          runAsUser: 0
+          capabilities:
+            add: ["CAP_DAC_OVERRIDE", "CAP_FOWNER"] 
         envFrom:
           - configMapRef:
               name: process-env
@@ -110,8 +112,8 @@ spec:
         stdin: false
         tty: true
         securityContext:
-          runAsGroup: 1000
-          runAsUser: 1000
+          runAsGroup: 0
+          runAsUser: 0
         envFrom:
           - configMapRef:
               name: process-env
