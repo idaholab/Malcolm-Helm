@@ -76,7 +76,7 @@ data:
         "settings": {
           "index": {
             "default_pipeline": "{{ .Values.siem_env.malcolm_beats_template_override.default_pipeline }}",
-            "mapping.total_fields.limit": "5000",
+            "mapping.total_fields.limit": "6000",
             "mapping.nested_fields.limit": "250"
           }
         },

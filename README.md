@@ -99,3 +99,32 @@ Check the chart/values.yaml file for all the features that can be enabled disabl
 1. `git clone <repo url>`
 2. `cd <project dir that contains chart foler>`
 3. `helm install malcolm chart/ -n malcolm`
+
+## Upgrade procedures
+
+Upgrading Malcolm-Helm to a new version of Malcolm requires manually applying the changes between the current and desired versions. To find the current version of Malcolm used by Malcolm-Helm, check the `appVersion` in the `Malcolm-Helm/chart/Chart.yaml` file.
+
+Here’s a step-by-step guide for upgrading Malcolm-Helm to a new version of Malcolm. The following example demonstrates an upgrade from version `24.07.0` to `24.10.0`, which is the latest release on Malcolm/main at the time of writing.
+
+Step 1:
+Checkout the Malcolm-Helm branch containing the current version of Malcolm (24.07.0)
+Run the following command to checkout the relevant branch:
+`git checkout Malcolm-Helm/main`
+
+Step 2:
+Checkout the Malcolm branch matching the current version in Malcolm-Helm (24.07.0)
+Use this command to align your Malcolm repo with the version used in Malcolm-Helm:
+`git checkout Malcolm/v24.07.0`
+
+Step 3:
+View the changes between the current version (v24.07.0) and the new desired version (main)
+Compare the changes between these two versions to understand what updates need to be applied:
+`git difftool -d v24.07.0..main`
+
+Step 4:
+Map changes to Malcolm-Helm files
+For each change identified in Step 3, modify the corresponding files in Malcolm-Helm to reflect the updates. Ensure that all changes are accurately mirrored.
+
+Step 5:
+Test the updated Malcolm-Helm configuration
+After mapping all changes, launch Dataplane's Malcolm instance to verify the upgrade. Ensure there are no breaking changes and that everything functions as expected.

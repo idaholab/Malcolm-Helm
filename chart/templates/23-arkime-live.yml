@@ -81,6 +81,8 @@ spec:
           - name: arkime-live-shell-override-volume
             mountPath: /opt/command_override.sh
             subPath: command_override.sh
+          - mountPath: "/opt/arkime/lua/configmap"
+            name: arkime-live-lua-volume
           - mountPath: /var/local/ca-trust/configmap
             name: arkime-live-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
@@ -119,6 +121,9 @@ spec:
         - name: arkime-live-var-local-catrust-volume
           configMap:
             name: var-local-catrust
+        - name: arkime-live-lua-volume
+          configMap:
+            name: arkime-lua
         - name: arkime-live-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc

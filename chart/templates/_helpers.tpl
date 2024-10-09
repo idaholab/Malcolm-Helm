@@ -223,7 +223,7 @@ data:
             "index": {
             "lifecycle.name": "{{ .ilm_policy }}",
             "lifecycle.rollover_alias": "{{ .alias }}",
-            "mapping.total_fields.limit": "5000",
+            "mapping.total_fields.limit": "6000",
             "mapping.nested_fields.limit": "250",
             "max_docvalue_fields_search": "200"
             }
