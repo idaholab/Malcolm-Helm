@@ -104,7 +104,7 @@ Check the chart/values.yaml file for all the features that can be enabled disabl
 
 Upgrading Malcolm-Helm to a new version of Malcolm requires manually applying the changes between the current and desired versions. To find the current version of Malcolm used by Malcolm-Helm, check the `appVersion` in the `Malcolm-Helm/chart/Chart.yaml` file.
 
-Here’s a step-by-step guide for upgrading Malcolm-Helm to a new version of Malcolm. The following example demonstrates an upgrade from version `24.07.0` to `24.09.0`, which is the latest release on Malcolm/main at the time of writing.
+Here’s a step-by-step guide for upgrading Malcolm-Helm to a new version of Malcolm. The following example demonstrates an upgrade from version `24.07.0` to `24.10.0`, which is the latest release on Malcolm/main at the time of writing.
 
 Step 1:
 Checkout the Malcolm-Helm branch containing the current version of Malcolm (24.07.0)

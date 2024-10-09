@@ -28,8 +28,7 @@ image:
   dashboards_helper_container_override: ""
   file_monitor_tag: ""
   filebeat_tag: ""
-  logsstash_container_override: "ghcr.io/idaholab/malcolm/logstash-oss:24.09.0"
-  logstash_tag: "24.09.0"
+  logsstash_container_override: ""
   redis_tag: ""
   postgresql_tag: ""
   netbox_tag: ""
@@ -133,9 +132,9 @@ siem_env:
 logstash:
   # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
   development:
-    java_memory: -Xmx1g -Xms1g -Xss1536k -XX
+    java_memory: -Xmx2500m -Xms2500m -Xss1536k -XX
     #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
-    workers: 6
+    workers: 3
     batch_delay: 50
     batch_size: 75
   production:

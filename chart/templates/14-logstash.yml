@@ -86,7 +86,6 @@ spec:
       containers:
       - name: logstash-container
         image: "{{ $logstash_image }}"
-        # image: "{{ .Values.image.repository }}/logstash-oss:{{ .Values.image.logstash_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
