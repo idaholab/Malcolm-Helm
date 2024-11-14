@@ -520,6 +520,7 @@ zeek_chart_overrides:
   volumeMounts: []
   live_volumes: []
   live_volumeMounts: []
+  extra_init_containers: []
 
 suricata_chart_overrides:
   serviceAccountName: ""
@@ -528,3 +529,9 @@ suricata_chart_overrides:
   volumeMounts: []
   live_volumes: []
   live_volumeMounts: []
+
+kafka:
+  enabled: "false"
+  # This is either the bootstrap IP:PORT or a comma separated list of broker IP:PORT (s)
+  brokers: "kafka.local:9091"
+  topic: "zeek"
