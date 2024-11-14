@@ -356,6 +356,17 @@ data:
 kind: ConfigMap
 metadata:
   name: zeek-env
+{{- if .Values.kafka.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+data:
+  ZEEK_KAFKA_ENABLED: "{{ .Values.kafka.enabled }}"
+  ZEEK_KAFKA_BROKERS: "{{ .Values.kafka.brokers }}"
+  ZEEK_KAFKA_TOPIC: "{{ .Values.kafka.topic }}"
+{{- end }}
 ---
 apiVersion: v1
 data:

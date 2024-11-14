@@ -79,6 +79,10 @@ spec:
               name: upload-common-env
           - configMapRef:
               name: zeek-env
+          {{- if .Values.kafka.enabled }}
+          - configMapRef:
+              name: kafka-config
+          {{- end }}
           - secretRef:
               name: zeek-secret-env
           - configMapRef:
@@ -129,6 +133,9 @@ spec:
       {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
       initContainers:
+      {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
+      {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
+      {{- end }}
       - name: zeek-live-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
@@ -151,6 +158,9 @@ spec:
           - name: zeek-live-zeek-volume
             mountPath: "/data/zeek-shared"
       volumes:
+        {{- if ne (len .Values.zeek_chart_overrides.volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.volumes | nindent 8 }}
+        {{- end }}
         {{- if ne (len .Values.zeek_chart_overrides.live_volumes) 0 }}
         {{- toYaml .Values.zeek_chart_overrides.live_volumes | nindent 8 }}
         {{- else }}
