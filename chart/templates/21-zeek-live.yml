@@ -79,8 +79,10 @@ spec:
               name: upload-common-env
           - configMapRef:
               name: zeek-env
+          {{- if .Values.kafka.enabled }}
           - configMapRef:
               name: kafka-config
+          {{- end }}
           - secretRef:
               name: zeek-secret-env
           - configMapRef:
