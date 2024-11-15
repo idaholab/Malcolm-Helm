@@ -108,6 +108,9 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
         volumeMounts:
+          {{- if ne (len.Values.zeek_container_overrides.live_extra_volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_container_overrides.live_extra_volumeMounts | nindent 10 }}
+          {{- end }}
           {{- if ne (len .Values.zeek_chart_overrides.live_volumeMounts) 0 }}
           {{- toYaml .Values.zeek_chart_overrides.live_volumeMounts | nindent 10 }}
           {{- else }}
@@ -158,8 +161,8 @@ spec:
           - name: zeek-live-zeek-volume
             mountPath: "/data/zeek-shared"
       volumes:
-        {{- if ne (len .Values.zeek_chart_overrides.volumes) 0 }}
-        {{- toYaml .Values.zeek_chart_overrides.volumes | nindent 8 }}
+        {{- if ne (len .Values.zeek_chart_overrides.live_extra_volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.live_extra_volumes | nindent 8 }}
         {{- end }}
         {{- if ne (len .Values.zeek_chart_overrides.live_volumes) 0 }}
         {{- toYaml .Values.zeek_chart_overrides.live_volumes | nindent 8 }}
