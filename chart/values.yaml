@@ -521,6 +521,8 @@ zeek_chart_overrides:
   live_volumes: []
   live_volumeMounts: []
   extra_init_containers: []
+  live_extra_volumes: []
+  live_extra_volumeMounts: []
 
 suricata_chart_overrides:
   serviceAccountName: ""
