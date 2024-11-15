@@ -108,8 +108,8 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
         volumeMounts:
-          {{- if ne (len.Values.zeek_container_overrides.live_extra_volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_container_overrides.live_extra_volumeMounts | nindent 10 }}
+          {{- if ne (len .Values.zeek_chart_overrides.live_extra_volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_chart_overrides.live_extra_volumeMounts | nindent 10 }}
           {{- end }}
           {{- if ne (len .Values.zeek_chart_overrides.live_volumeMounts) 0 }}
           {{- toYaml .Values.zeek_chart_overrides.live_volumeMounts | nindent 10 }}
