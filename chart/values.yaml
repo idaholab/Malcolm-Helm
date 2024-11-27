@@ -533,7 +533,7 @@ suricata_chart_overrides:
   live_volumeMounts: []
 
 kafka:
-  enabled: "false"
+  enabled: "false" # Must be string "true" to enable
   # This is either the bootstrap IP:PORT or a comma separated list of broker IP:PORT (s)
   brokers: "kafka.local:9091"
   topic: "zeek"
