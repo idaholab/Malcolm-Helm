@@ -79,7 +79,7 @@ spec:
               name: upload-common-env
           - configMapRef:
               name: zeek-env
-          {{- if .Values.kafka.enabled }}
+          {{- if eq .Values.kafka.enabled "true" }}
           - configMapRef:
               name: kafka-config
           {{- end }}
