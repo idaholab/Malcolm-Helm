@@ -330,7 +330,7 @@ zeek_offline:
   # The number of Zeek processes for analyzing uploaded PCAP files allowed
   #   to run concurrently
   zeek_intel_refresh_cron_expression: "0 */12 * * *"
-  zeek_intel_refresh_on_entrypoint: "true"
+  zeek_intel_refresh_on_startup: "true"
   development:
     zeek_auto_analyze_pcap_threads: 1
   production:
