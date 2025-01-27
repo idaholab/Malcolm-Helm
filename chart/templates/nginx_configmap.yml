@@ -210,7 +210,7 @@ data:
           set $upstream $2:8006;
           set $filereq $3;
           rewrite ^/(dashboards/app/)?hh-extracted-files/([a-zA-Z0-9-\.]+)(.*)$ $filereq break;
-          proxy_pass https://$upstream;
+          proxy_pass http://$upstream;
           proxy_ssl_verify off;
           proxy_set_header Host $2;
           proxy_set_header X-Malcolm-Forward "/hh-extracted-files/$2";
@@ -248,7 +248,7 @@ data:
               set $forwarded_scheme https;
           }
           rewrite ^.*/iddash2ark/(.*) $forwarded_scheme://$host/arkime/sessions?expression=($1) redirect;
-          proxy_pass https://arkime;
+          proxy_pass http://arkime;
           proxy_ssl_verify off;
           proxy_redirect off;
           proxy_set_header Host arkime.malcolm.local;
@@ -278,7 +278,7 @@ data:
           add_header Content-Type "application/javascript";
           default_type application/javascript;
           add_header X-Content-Type-Options 'nosniff';
-          proxy_pass https://arkime/cyberchef/$1;
+          proxy_pass http://arkime/cyberchef/$1;
           proxy_ssl_verify off;
           proxy_redirect off;
           proxy_set_header Host arkime.malcolm.local;
@@ -325,7 +325,7 @@ data:
         # Arkime
         location /arkime {
           include /etc/nginx/nginx_auth_rt.conf;
-          proxy_pass https://arkime;
+          proxy_pass http://arkime;
           proxy_redirect off;
           proxy_set_header Host arkime.malcolm.local;
           proxy_set_header http_auth_http_user $authenticated_user;
