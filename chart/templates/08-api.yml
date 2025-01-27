@@ -56,10 +56,16 @@ spec:
           - configMapRef:
               name: ssl-env
           - configMapRef:
+              name: upload-common-env
+          - configMapRef:
+              name: dashboards-env
+          - configMapRef:
               name: opensearch-env
         env:
           - name: VIRTUAL_HOST
             value: "api.malcolm.local"
+          - name: ARKIME_PORT
+            value: "8005"
         livenessProbe:
           httpGet:
             path: /mapi/ping

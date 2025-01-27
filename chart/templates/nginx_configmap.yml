@@ -125,13 +125,6 @@ data:
           subs_filter '/fonts/glyphicons' '/auth/fonts/glyphicons' gi;
         }
 
-        # Malcolm readme
-        location /readme {
-          include /etc/nginx/nginx_auth_rt.conf;
-          root /usr/share/nginx/html;
-          try_files $uri $uri/index.html;
-        }
-
         # Malcolm file upload
         location /upload {
           include /etc/nginx/nginx_auth_rt.conf;
@@ -155,6 +148,72 @@ data:
           proxy_request_buffering off;
           proxy_buffering off;
           client_max_body_size 50G;
+        }
+
+        # netbox
+        {{- if .Values.netbox.enabled }}
+        location /netbox {
+          include /etc/nginx/nginx_auth_rt.conf;
+          proxy_pass http://netbox;
+          proxy_redirect off;
+          proxy_set_header Host netbox.malcolm.local;
+          proxy_set_header X-Forwarded-Host $http_host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header X-Remote-Auth $authenticated_user;
+        }
+        {{- end }}
+        # netbox from dashboards pivot link (because Dashboards is prepending its own prefix, we have to handle it)
+        location ~* ^/dashboards/app/netbox/(.*) {
+          set $forwarded_scheme $scheme;
+          if ($http_x_forwarded_proto = 'https') {
+              set $forwarded_scheme https;
+          }
+          set $fwuri $1;
+          rewrite ^/dashboards/app/netbox/(.*) $forwarded_scheme://$host/netbox/$1 redirect;
+          proxy_pass http://netbox;
+          proxy_redirect off;
+          proxy_set_header Host netbox.malcolm.local;
+          proxy_set_header X-Forwarded-Host $http_host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header X-Remote-Auth $authenticated_user;
+        }
+
+        # extracted file download
+        location ~* ^/extracted-files\b(.*) {
+          include /etc/nginx/nginx_auth_rt.conf;
+          # thanks to https://stackoverflow.com/a/31440150, handle spaces in names
+          set $filereq $1;
+          proxy_pass http://extracted-file-http-server$filereq$is_args$args;
+          proxy_redirect off;
+          proxy_set_header Host file-monitor.malcolm.local;
+        }
+
+        # extracted files from dashboards link (because Dashboards is prepending its own prefix, we have to handle it)
+        location ~* ^/dashboards/app/extracted-files/(.*) {
+          set $forwarded_scheme $scheme;
+          if ($http_x_forwarded_proto = 'https') {
+              set $forwarded_scheme https;
+          }
+          set $fwuri $1;
+          rewrite ^/dashboards/app/extracted-files/(.*) $forwarded_scheme://$host/extracted-files/$1 redirect;
+          proxy_pass http://extracted-file-http-server;
+          proxy_redirect off;
+          proxy_set_header Host file-monitor.malcolm.local;
+        }
+
+        # extracted file download hedgehog redirect
+        location ~* ^/(dashboards/app/)?hh-extracted-files/([a-zA-Z0-9-\.]+)\b(.*) {
+          include /etc/nginx/nginx_auth_rt.conf;
+          include /etc/nginx/nginx_system_resolver.conf;
+          set $upstream $2:8006;
+          set $filereq $3;
+          rewrite ^/(dashboards/app/)?hh-extracted-files/([a-zA-Z0-9-\.]+)(.*)$ $filereq break;
+          proxy_pass http://$upstream;
+          proxy_ssl_verify off;
+          proxy_set_header Host $2;
+          proxy_set_header X-Malcolm-Forward "/hh-extracted-files/$2";
         }
 
         # Arkime -> Dashboards shortcut
@@ -184,7 +243,11 @@ data:
 
         # Dashboards -> Arkime shortcut
         location ~* /iddash2ark/(.*) {
-          rewrite ^.*/iddash2ark/(.*) /arkime/sessions?expression=($1) redirect;
+          set $forwarded_scheme $scheme;
+          if ($http_x_forwarded_proto = 'https') {
+              set $forwarded_scheme https;
+          }
+          rewrite ^.*/iddash2ark/(.*) $forwarded_scheme://$host/arkime/sessions?expression=($1) redirect;
           proxy_pass http://arkime;
           proxy_ssl_verify off;
           proxy_redirect off;
@@ -206,27 +269,6 @@ data:
           proxy_set_header Host dashboards-helper.malcolm.local;
         }
 
-        location ~* ^/extracted-files\b(.*) {
-          include /etc/nginx/nginx_auth_rt.conf;
-          proxy_pass http://extracted-file-http-server$1;
-          proxy_redirect off;
-          proxy_set_header Host file-monitor.malcolm.local;
-        }
-
-        {{- if .Values.netbox.enabled }}
-        # netbox
-        location /netbox {
-          include /etc/nginx/nginx_auth_rt.conf;
-          proxy_pass http://netbox;
-          proxy_redirect off;
-          proxy_set_header Host netbox.malcolm.local;
-          proxy_set_header X-Forwarded-Host $http_host;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-Forwarded-Proto $scheme;
-          proxy_set_header X-Remote-Auth $authenticated_user;
-        }
-        {{- end }}
-
         # Fix cyberchef JS module(s)
         # https://localhost/arkime/session/190924-KgO9H30qhdREw7ltsDXn1Rgp/modules/Regex.js
         location ~* ^/arkime/session/.*/(modules/.*\.js) {
@@ -244,6 +286,34 @@ data:
           proxy_set_header Authorization "";
         }
 
+        # passthrough Logstash statistics from the Malcolm API
+        location /mapi/logstash/ {
+          include /etc/nginx/nginx_auth_rt.conf;
+          proxy_pass http://logstash-stats/;
+          proxy_redirect off;
+        }
+
+        # passthrough OpenSearch from the Malcolm API
+        location /mapi/opensearch/ {
+          include /etc/nginx/nginx_auth_rt.conf;
+          proxy_pass http://opensearch/;
+          proxy_redirect off;
+          proxy_set_header Host os.malcolm.local;
+          client_max_body_size 50m;
+        }
+
+        # passthrough NetBox from the Malcolm API
+        location /mapi/netbox/ {
+          include /etc/nginx/nginx_auth_rt.conf;
+          proxy_pass http://netbox/netbox/api/;
+          proxy_redirect off;
+          proxy_set_header Host netbox.malcolm.local;
+          proxy_set_header X-Forwarded-Host $http_host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header X-Remote-Auth $authenticated_user;
+        }
+
         # Malcolm API
         location /mapi {
           include /etc/nginx/nginx_auth_rt.conf;
@@ -256,7 +326,6 @@ data:
         location /arkime {
           include /etc/nginx/nginx_auth_rt.conf;
           proxy_pass http://arkime;
-          # proxy_ssl_verify off;
           proxy_redirect off;
           proxy_set_header Host arkime.malcolm.local;
           proxy_set_header http_auth_http_user $authenticated_user;
@@ -267,7 +336,10 @@ data:
         location / {
           include /etc/nginx/nginx_auth_rt.conf;
           root /usr/share/nginx/html;
-          try_files $uri $uri/index.html;
+          index index.html
+          try_files $uri $uri/ =404;
+          error_page 404 /404.html;
+          error_page 502 /502.html;
         }
       }
 

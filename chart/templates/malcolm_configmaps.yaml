@@ -97,11 +97,17 @@ data:
   REDIS_SSL: "false"
   RELEASE_CHECK_URL: ""
   REMOTE_AUTH_AUTO_CREATE_USER: "True"
+  REMOTE_AUTH_AUTO_CREATE_GROUPS: "True"
+  REMOTE_AUTH_GROUP_SYNC_ENABLED: "False"
   REMOTE_AUTH_BACKEND: netbox.authentication.RemoteUserBackend
   REMOTE_AUTH_DEFAULT_GROUPS: standard
   REMOTE_AUTH_DEFAULT_PERMISSIONS: standard_permission
   REMOTE_AUTH_ENABLED: "True"
   REMOTE_AUTH_HEADER: HTTP_X_REMOTE_AUTH
+  REMOTE_AUTH_GROUP_HEADER: HTTP_X_REMOTE_AUTH_GROUP
+  REMOTE_AUTH_USER_EMAIL: HTTP_X_REMOTE_AUTH_EMAIL
+  REMOTE_AUTH_USER_FIRST_NAME: HTTP_X_REMOTE_AUTH_FIRST_NAME
+  REMOTE_AUTH_USER_LAST_NAME: HTTP_X_REMOTE_AUTH_LAST_NAME
   REMOTE_AUTH_STAFF_GROUPS: administrator
   REMOTE_AUTH_STAFF_USERS: ""
   REMOTE_AUTH_SUPERUSER_GROUPS: administrator
@@ -163,7 +169,7 @@ data:
 {{- end }}
   cluster.name: opensearch-cluster
   network.host: 0.0.0.0
-  indices.query.bool.max_clause_count: "4096"
+  indices.query.bool.max_clause_count: "8192"
   logger.level: INFO
   path.repo: /opt/opensearch/backup
   node.roles: ingest,data,remote_cluster_client,cluster_manager
@@ -325,6 +331,7 @@ data:
   ZEEK_DISABLE_ICS_GENISYS: "true"
   ZEEK_DISABLE_ICS_GE_SRTP: ""
   ZEEK_DISABLE_ICS_HART_IP: ""
+  ZEEK_DISABLE_ICS_OMRON_FINS: ""
   ZEEK_DISABLE_ICS_MODBUS: ""
   ZEEK_DISABLE_ICS_OPCUA_BINARY: ""
   ZEEK_DISABLE_ICS_PROFINET: ""
@@ -350,9 +357,13 @@ data:
   ZEEK_INTEL_ITEM_EXPIRATION: "{{ .Values.zeek_env.zeek_intel_item_expiration }}"
   ZEEK_INTEL_REFRESH_THREADS: "2"
   ZEEK_SYNCHROPHASOR_DETAILED: ""
+  ZEEK_OMRON_FINS_DETAILED: "true"
   ZEEK_SYNCHROPHASOR_PORTS: ""
   ZEEK_LOCAL_NETS: "{{ .Values.pcap_capture_env.home_net }}"
   ZEEK_JSON: ""
+  # ZEEK_KAFKA_ENABLED: ""
+  # ZEEK_KAFKA_BROKERS: "kafka.local:9091"
+  # ZEEK_KAFKA_TOPIC: "zeek"
 kind: ConfigMap
 metadata:
   name: zeek-env
