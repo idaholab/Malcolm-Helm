@@ -361,9 +361,9 @@ data:
   ZEEK_SYNCHROPHASOR_PORTS: ""
   ZEEK_LOCAL_NETS: "{{ .Values.pcap_capture_env.home_net }}"
   ZEEK_JSON: ""
-  ZEEK_KAFKA_ENABLED: ""
-  ZEEK_KAFKA_BROKERS: "kafka.local:9091"
-  ZEEK_KAFKA_TOPIC: "zeek"
+  # ZEEK_KAFKA_ENABLED: ""
+  # ZEEK_KAFKA_BROKERS: "kafka.local:9091"
+  # ZEEK_KAFKA_TOPIC: "zeek"
 kind: ConfigMap
 metadata:
   name: zeek-env
