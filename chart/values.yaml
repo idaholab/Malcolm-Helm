@@ -227,8 +227,21 @@ storage:
       className: local-path
 
 ingress:
-  # Enable this if deploying in RKE2 environment with the default nginx ingress controller
+  # Enable this to use the default nginx ingress controller
   enabled: true
+  specRules:
+    rules:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: nginx-proxy
+              port:
+                number: 443
+      # uncomment this line if you want to specify an ingress hostname with the path above
+      # host: "malcolm.malcolmhost.network.local"
 
 istio:
   # Enable this if deploying in Kuberenetes environment leveraging istio service mesh
