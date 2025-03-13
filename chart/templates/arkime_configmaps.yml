@@ -42,7 +42,6 @@ data:
 kind: ConfigMap
 metadata:
   name: arkime-rules
-  namespace: malcolm
 
 ---
 apiVersion: v1
