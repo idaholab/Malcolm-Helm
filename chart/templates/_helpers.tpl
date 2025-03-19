@@ -166,7 +166,7 @@ opensearch-{{ $index }},
 Generate extra secrets for database
 */}}
 {{- define "netbox.databaseExtravars" }}
-{{- range $index, $value := .Values.netbox.database.extra_secrets }}
+{{- range $index, $value := .Values.postgres.extra_secrets }}
 apiVersion: v1
 kind: Secret
 type: Opaque
@@ -178,7 +178,7 @@ data:
         {{- if $value2 }}
   {{ $key1 }}: {{ $value2 | b64enc }}
         {{- else }}
-  {{ $key1 }}: {{ $.Values.netbox.database.password | b64enc }}
+  {{ $key1 }}: {{ $.Values.postgres.password | b64enc }}
         {{- end }}
     {{- end }}
   {{- end }}
@@ -219,10 +219,13 @@ data:
         "custom_malcolm_common"
     ],
     "template" :{
+        "aliases": {
+            "{{ .search_alias }}": {}
+        },
         "settings" : {
             "index": {
             "lifecycle.name": "{{ .ilm_policy }}",
-            "lifecycle.rollover_alias": "{{ .alias }}",
+            "lifecycle.rollover_alias": "{{ .rollover_alias }}",
             "mapping.total_fields.limit": "6000",
             "mapping.nested_fields.limit": "250",
             "max_docvalue_fields_search": "200"

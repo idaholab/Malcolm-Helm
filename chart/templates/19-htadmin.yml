@@ -1,3 +1,4 @@
+{{- if eq .Values.auth.mode "basic" }}
 ---
 apiVersion: v1
 data:
@@ -104,6 +105,15 @@ spec:
           - mountPath: /var/www/htadmin/config
             name: htadmin-config-volume
             subPath: "htadmin"
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
       initContainers:
       - name: htadmin-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
@@ -135,3 +145,4 @@ spec:
         - name: htadmin-config-default-secret-volume
           secret:
             secretName: htadmin-config
+{{- end }}

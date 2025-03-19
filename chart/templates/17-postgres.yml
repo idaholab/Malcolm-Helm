@@ -1,22 +1,21 @@
-{{- if and .Values.netbox.enabled (not .Values.netbox.database.is_custom) }}
+{{- if and .Values.postgres.enabled }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: netbox-postgres
+  name: postgres
 spec:
   ports:
     - port: 5432
       protocol: TCP
       name: postgresql
   selector:
-    name: netbox-postgres
-
+    name: postgres-statefulset
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: netbox-postgres-headless
+  name: postgres-headless
 spec:
   type: ClusterIP
   clusterIP: None
@@ -26,18 +25,17 @@ spec:
       protocol: TCP
       name: postgresql
   selector:
-    name: netbox-postgres
-
+    name: postgres-statefulset
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: netbox-postgres
+  name: postgres-statefulset
 spec:
   selector:
     matchLabels:
-      name: netbox-postgres
-  serviceName: netbox-postgres-headless
+      name: postgres-statefulset
+  serviceName: postgres-headless
   volumeClaimTemplates:
 {{- if .Values.is_production }}
   {{- with .Values.storage.production }}
@@ -70,10 +68,10 @@ spec:
   template:
     metadata:
       labels:
-        name: netbox-postgres
+        name: postgres-statefulset
     spec:
       containers:
-      - name: netbox-postgres-container
+      - name: postgres-container
         image: "{{ .Values.image.repository }}/postgresql:{{ .Values.image.postgresql_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -90,21 +88,14 @@ spec:
           - configMapRef:
               name: netbox-common-env
           - secretRef:
-              name: netbox-postgres-env
+              name: postgres-env
         env:
           - name: VIRTUAL_HOST
             value: "netbox-postgres.malcolm.local"
         livenessProbe:
           exec:
             command:
-             - sh
-             - "-c"
-             - |
-               /bin/bash <<'EOF'
-
-               [[ "$NETBOX_POSTGRES_DISABLED" == 'true' ]] || pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
-
-               EOF
+            - /usr/local/bin/container_health.sh
           initialDelaySeconds: 90
           periodSeconds: 60
           timeoutSeconds: 15
@@ -117,7 +108,7 @@ spec:
             name: netbox-postgres-claim
             subPath: netbox/postgres
       initContainers:
-      - name: netbox-postgres-dirinit-container
+      - name: postgres-dirinit-container
         image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false

@@ -146,10 +146,7 @@ spec:
         livenessProbe:
           exec:
             command:
-            - supervisorctl
-            - status
-            - cron
-            - maps
+            - /usr/local/bin/container_health.sh
           initialDelaySeconds: 30
           periodSeconds: 30
           timeoutSeconds: 15
@@ -168,11 +165,6 @@ spec:
             name: malcolm-template-override
             subPath: malcolm_template_suricata.json
 {{- end }}
-{{- if .Values.siem_env.malcolm_beats_template_override.enabled }}
-          - mountPath: /opt/templates/malcolm_beats_template.json
-            name: malcolm-beats-template-override
-            subPath: malcolm_beats_template.json
-{{- end }}
       volumes:
         - name: dashboards-helper-var-local-catrust-volume
           configMap:
@@ -184,9 +176,4 @@ spec:
         - name: malcolm-template-override
           configMap:
             name: malcolm-template-override
-{{- end }}
-{{- if .Values.siem_env.malcolm_beats_template_override.enabled }}
-        - name: malcolm-beats-template-override
-          configMap:
-            name: malcolm-beats-template-override
 {{- end }}
