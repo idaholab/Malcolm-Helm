@@ -1,0 +1,142 @@
+--- ../Malcolm/arkime/etc/config.ini	2025-03-20 11:44:57.089445058 -0400
++++ config.ini	2025-03-20 13:29:32.258258509 -0400
+@@ -8,22 +8,32 @@
+ 
+ [default]
+ antiSynDrop=false
+-certFile=/opt/arkime/etc/viewer.crt
++{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
++certFile=/usr/local/share/ca-certificates/elastic_ca.crt
++{{- end }}
+ compressES=false
+ cronQueries=true
+-debug=0
++debug={{ .Values.arkime_env.arkime_debug_level }}
+ dropGroup=arkime
+ dropUser=arkime
+-elasticsearch=http://opensearch:9200
++elasticsearch={{ include "malcolm.opensearchprimaryurl" . }}
+ footerTemplate=_version_ | <a href="https://arkime.com">arkime.com 🦉</a> | <a href="/">Malc⦿lm 📄</a> | <a href="/dashboards/">Dashboards 📊</a> | <a href="/netbox/">NetBox 💻 | _responseTime_ ⏱️</a>
+-freeSpaceG=10%
++{{- if .Values.is_production }}
++{{- with .Values.arkime_env.production }}
++freeSpaceG={{ .free_space_g }}
++{{- end }}
++{{- else }}
++{{- with .Values.arkime_env.development }}
++freeSpaceG={{ .free_space_g }}
++{{- end }}
++{{- end }}
+ geoLite2ASN=/opt/arkime/etc/GeoLite2-ASN.mmdb
+ geoLite2Country=/opt/arkime/etc/GeoLite2-Country.mmdb
+ httpRealm=Arkime
+ icmpTimeout=10
+ interface=eth0
+ bpf=
+-keyFile=/opt/arkime/etc/viewer.key
++#keyFile=/opt/arkime/etc/viewer.key
+ logESRequests=false
+ logEveryXPackets=500000
+ logFileCreation=true
+@@ -47,15 +57,36 @@
+ pcapDir=/data/pcap/processed
+ plugins=lua.so;wise.so
+ pluginsDir=/opt/arkime/plugins
++{{- if ne .Values.siem_env.malcolm_network_index_pattern "arkime_sessions3-*" }}
++queryAllIndices=true
++queryExtraIndices={{ .Values.siem_env.malcolm_network_index_pattern }}
++{{- else }}
+ queryAllIndices=false
+ queryExtraIndices=
++{{- end }}
+ readTruncatedPackets=true
+ reqBodyOnlyUtf8=true
+ rirFile=/opt/arkime/etc/ipv4-address-space.csv
+-rotateIndex=daily
++{{- if .Values.is_production }}
++{{- with .Values.arkime_env.production }}
++rotateIndex={{ .rotate_index }}
++{{- end }}
++{{- else }}
++{{- with .Values.arkime_env.development }}
++rotateIndex={{ .rotate_index }}
++{{- end }}
++{{- end }}
+ rulesFiles=
+ smtpIpHeaders=X-Originating-IP:;X-Barracuda-Apparent-Source-IP:
+-spiDataMaxIndices=7
++{{- if .Values.is_production }}
++{{- with .Values.arkime_env.production }}
++spiDataMaxIndices={{ .spi_data_max_indices }}
++{{- end }}
++{{- else }}
++{{- with .Values.arkime_env.development }}
++spiDataMaxIndices={{ .spi_data_max_indices }}
++{{- end }}
++{{- end }}
+ spiViewCategoryOrder=malcolm
+ supportSha256=false
+ tcpSaveTimeout=720
+@@ -64,6 +95,7 @@
+ uploadCommand=
+ userAuthIps=::,0.0.0.0/0
+ viewerPlugins=wise.js
++viewHost=0.0.0.0
+ viewPort=8005
+ wiseHost=127.0.0.1
+ wisePort=8081
+@@ -74,21 +106,37 @@
+ userAutoCreateTmpl={"userId": "${this.http_auth_http_user}", "userName": "${this.http_auth_http_user}", "enabled": true, "createEnabled": false, "webEnabled": true, "headerAuthEnabled": true, "emailSearch": true, "removeEnabled": false, "packetSearch": true, "hideStats": false, "hideFiles": false, "hidePcap": false, "disablePcapDownload": false, "settings": { "timezone": "local", "detailFormat": "last", "hideTags": "netbox", "showTimestamps": "last", "sortColumn": "firstPacket", "sortDirection": "desc", "spiGraph": "protocol", "connSrcField": "source.ip", "connDstField": "destination.ip", "numPackets": "last", "theme" : "custom1: #222222,#E2E2E2,#FFFFFF,#00789E,#004A79,#017D73,#092B40,#42b7c5,#2A7580,#ecb30a,#333333,#89ADCC,#6D6D6D,#FFE7E7,#ECFEFF", "manualQuery": false }, "tableStates": { "sessionsNew": { "order": [ [ "firstPacket", "desc" ] ], "visibleHeaders": [ "protocol", "event.provider", "event.dataset", "firstPacket", "lastPacket", "src", "source.port", "dst", "destination.port", "network.packets", "dbby", "tags", "info" ] } } }
+ # temporarily disabling viewer autocomplete to see if it helps slugishness
+ valueAutoComplete=false
+-
+ ### High Performance settings
+ # https://github.com/arkime/arkime/wiki/Settings#High_Performance_Settings
+ magicMode=basic
+ pcapReadMethod=tpacketv3
+-tpacketv3NumThreads=2
+-tpacketv3BlockSize=8388608
++{{- if .Values.is_production }}
++{{- with .Values.arkime_live.production }}
++tpacketv3NumThreads={{ .arkime_tpacketv3_num_threads }}
++tpacketv3BlockSize={{ .arkime_tpacketv3_block_size }}
++pcapWriteMethod=simple
++pcapWriteSize={{ .arkime_pcap_write_size }}
++simpleCompression={{ .arkime_compression_type }}
++simpleZstdLevel={{ .arkime_compression_level }}
++simpleGzipLevel={{ .arkime_compression_level }}
++packetThreads={{ .arkime_packet_threads }}
++maxPacketsInQueue={{ .arkime_max_packets_in_queue }}
++dbBulkSize={{ .arkime_db_bulk_size }}
++{{- end }}
++{{- else }}
++{{- with .Values.arkime_live.development }}
++tpacketv3NumThreads={{ .arkime_tpacketv3_num_threads }}
++tpacketv3BlockSize={{ .arkime_tpacketv3_block_size }}
+ pcapWriteMethod=simple
+-pcapWriteSize=2560000
+-simpleCompression=zstd
+-simpleZstdLevel=3
+-simpleGzipLevel=3
+-packetThreads=2
+-maxPacketsInQueue=300000
+-dbBulkSize=4000000
++pcapWriteSize={{ .arkime_pcap_write_size }}
++simpleCompression={{ .arkime_compression_type }}
++simpleZstdLevel={{ .arkime_compression_level }}
++simpleGzipLevel={{ .arkime_compression_level }}
++packetThreads={{ .arkime_packet_threads }}
++maxPacketsInQueue={{ .arkime_max_packets_in_queue }}
++dbBulkSize={{ .arkime_db_bulk_size }}
++{{- end }}
++{{- end }}
+ 
+ [custom-fields]
+ # see https://docs.zeek.org/en/stable/script-reference/log-files.html for Zeek logfile documentation
+@@ -3682,4 +3730,4 @@
+ p_suricata_tcp=require:suricata.tcp;title:Suricata TCP;fields:suricata.tcp.ack,suricata.tcp.cwr,suricata.tcp.ecn,suricata.tcp.fin,suricata.tcp.psh,suricata.tcp.rst,suricata.tcp.state,suricata.tcp.syn,suricata.tcp.tcp_flags,suricata.tcp.tcp_flags_tc,suricata.tcp.tcp_flags_ts,suricata.tcp.urg
+ p_suricata_tftp=require:suricata.tftp;title:Suricata TFTP;fields:suricata.tftp.file,suricata.tftp.mode,suricata.tftp.packet
+ p_suricata_tls=require:suricata.tls;title:Suricata TLS;fields:suricata.tls.fingerprint,suricata.tls.from_proto,suricata.tls.issuerdn,suricata.tls.notafter,suricata.tls.notbefore,suricata.tls.serial,suricata.tls.session_resumed,suricata.tls.sni,suricata.tls.subject,suricata.tls.version
+-p_suricata_tunnel=require:suricata.tunnel;title:Suricata Tunnel;fields:suricata.tunnel.depth,suricata.tunnel.dest_ip,suricata.tunnel.dest_port,suricata.tunnel.proto,suricata.tunnel.src_ip,suricata.tunnel.src_port
+\ No newline at end of file
++p_suricata_tunnel=require:suricata.tunnel;title:Suricata Tunnel;fields:suricata.tunnel.depth,suricata.tunnel.dest_ip,suricata.tunnel.dest_port,suricata.tunnel.proto,suricata.tunnel.src_ip,suricata.tunnel.src_port
