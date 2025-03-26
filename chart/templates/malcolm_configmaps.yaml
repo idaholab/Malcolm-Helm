@@ -1,7 +1,7 @@
 ---
 apiVersion: v1
 data:
-  NGINX_BASIC_AUTH: "true"
+  NGINX_AUTH_MODE: "{{ .Values.auth.mode }}"
   NGINX_LDAP_TLS_STUNNEL: "false"
   NGINX_LDAP_TLS_STUNNEL_CHECK_HOST: ""
   NGINX_LDAP_TLS_STUNNEL_CHECK_IP: ""
@@ -22,7 +22,6 @@ metadata:
 ---
 apiVersion: v1
 data:
-  CONNECTION_SECONDS_SEVERITY_THRESHOLD: "3600"
   FREQ_LOOKUP: "true"
   FREQ_SEVERITY_THRESHOLD: "2.0"
   SENSITIVE_COUNTRY_CODES: AM,AZ,BY,CN,CU,DZ,GE,HK,IL,IN,IQ,IR,KG,KP,KZ,LY,MD,MO,PK,RU,SD,SS,SY,TJ,TM,TW,UA,UZ
@@ -41,8 +40,6 @@ data:
   NETBOX_DEFAULT_AUTOCREATE_MANUFACTURER: "true"
   NETBOX_DEFAULT_FUZZY_THRESHOLD: "0.95"
   NETBOX_DISABLED: "{{ not .Values.netbox.enabled }}"
-  NETBOX_POSTGRES_DISABLED: "{{ not .Values.netbox.enabled }}"
-  NETBOX_REDIS_DISABLED: "{{ not .Values.netbox.enabled }}"
 
   # Whether or not Logstash will enrich network traffic metadata via NetBox API calls
   NETBOX_ENRICHMENT: "{{ .Values.netbox.enabled }}"
@@ -70,8 +67,6 @@ data:
 {{- else }}
   CSRF_TRUSTED_ORIGINS: {{ .Values.netbox.csrf_trusted_origins | default "http://* https://*" | quote }}
 {{- end }}
-  DB_HOST: {{ .Values.netbox.database.host }}
-  DB_NAME: {{ .Values.netbox.database.name }}
   EMAIL_FROM: netbox@bar.com
   EMAIL_PORT: "25"
   EMAIL_SERVER: localhost
@@ -126,11 +121,13 @@ apiVersion: v1
 data:
   NGINX_LOG_ACCESS_AND_ERRORS: "false"
   NGINX_SSL: "false"
-  # These values are used to handle the Arkime value actions to pivot from Arkime
-  #   to Dashboards. The nginx-proxy container's entrypoint will try to formulate
-  #   them automatically, but they may be specified explicitly here.
   NGINX_DASHBOARDS_PREFIX: ""
   NGINX_DASHBOARDS_PROXY_PASS: ""
+  NGINX_RESOLVER_OVERRIDE: ""
+  NGINX_RESOLVER_IPV4_OFF: "false"
+  NGINX_RESOLVER_IPV6_OFF: "false"
+  NGINX_X_FORWARDED_PROTO_OVERRIDE: ""
+  NGINX_ERROR_LOG_LEVEL: ""
 kind: ConfigMap
 metadata:
   name: nginx-env
@@ -175,6 +172,9 @@ data:
   node.roles: ingest,data,remote_cluster_client,cluster_manager
   discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
   MALCOLM_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_network_index_pattern }}"
+  MALCOLM_NETWORK_INDEX_ALIAS: "{{ .Values.siem_env.logstash_override.search_alias }}"
+  # COMMMENTED out DO NOT add these back in
+  # MALCOLM_OTHER_INDEX_ALIAS:
   MALCOLM_NETWORK_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_network_index_time_field }}"
   MALCOLM_NETWORK_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_network_index_suffix }}"
   MALCOLM_OTHER_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_other_index_pattern }}"
@@ -319,6 +319,12 @@ data:
   EXTRACTED_FILE_WATCHER_POLLING: "true"
   EXTRACTED_FILE_WATCHER_POLLING_ASSUME_CLOSED_SEC: "10"
   EXTRACTED_FILE_YARA_CUSTOM_ONLY: "false"
+  # Adjust how often the JA4SSH hash is calculated
+  ZEEK_JA4SSH_PACKET_COUNT: "200"
+  # for zeek-long-connections plugin
+  ZEEK_LONG_CONN_REPEAT_LAST_DURATION: "true"
+  ZEEK_LONG_CONN_DO_NOTICE: "true"
+  ZEEK_LONG_CONN_DURATIONS: "600,1800,3600,43200,86400"
   VTOT_REQUESTS_PER_MINUTE: "4"
   ZEEK_DISABLE_BEST_GUESS_ICS: ""
   ZEEK_DISABLE_HASH_ALL_FILES: ""

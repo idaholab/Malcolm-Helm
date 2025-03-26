@@ -1,4 +1,5 @@
 {{- $arkime_image := .Values.image.arkime_container_override | default (printf "%s/arkime:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 kind: Service
@@ -70,15 +71,15 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
         livenessProbe:
+          failureThreshold: 10
           httpGet:
             path: /_ns_/nstest.html
             port: 8005
             scheme: HTTP
           initialDelaySeconds: 210
           periodSeconds: 90
-          timeoutSeconds: 30
           successThreshold: 1
-          failureThreshold: 10
+          timeoutSeconds: 30
         volumeMounts:
           - mountPath: /opt/arkime/etc/config.orig.ini
             name: arkime-config-default
@@ -100,7 +101,7 @@ spec:
 {{- end }}
       initContainers:
       - name: arkime-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
+        image: "{{ $dirinit_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

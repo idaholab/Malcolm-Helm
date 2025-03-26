@@ -38,7 +38,7 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.28.2+rke2r1 sh -
+    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.30.3+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
 

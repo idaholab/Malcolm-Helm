@@ -1,3 +1,4 @@
+{{- $dashboards_image := .Values.image.dashboards_container_override | default (printf "%s/dashboards:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if .Values.opensearch.enabled }}
 ---
 apiVersion: v1
@@ -29,7 +30,7 @@ spec:
     spec:
       containers:
       - name: dashboards-container
-        image: "{{ .Values.image.repository }}/dashboards:{{ .Values.image.dashboards_tag | default .Chart.AppVersion }}"
+        image: "{{ $dashboards_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -47,11 +48,10 @@ spec:
         env:
           - name: VIRTUAL_HOST
             value: "dashboards.malcolm.local"
-        livenessProbe:
-          httpGet:
-            path: /dashboards/api/status
-            port: 5601
-            scheme: HTTP
+        livenessProbe:          
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
           initialDelaySeconds: 210
           periodSeconds: 30
           timeoutSeconds: 15

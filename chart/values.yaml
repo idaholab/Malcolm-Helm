@@ -16,26 +16,27 @@ image:
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion found in Chart.yml.
   # Should only need to override these if something is awry with version supplied in Chart.yaml file.
-  dirinit_tag: ""
-  dashboards_tag: ""
-  opensearch_tag: ""
-  upload_tag: ""
-  pcap_monitor_tag: ""
+  dirinit_container_override: ""
+  dashboards_container_override: ""
+  opensearch_container_override: ""
+  upload_container_override: ""
+  pcap_monitor_container_override: ""
   arkime_container_override: ""
-  api_tag: ""
+  api_container_override: ""
   zeek_container_override: ""
-  suricata_tag: ""
+  suricata_container_override: ""
   dashboards_helper_container_override: ""
-  file_monitor_tag: ""
-  filebeat_tag: ""
+  file_monitor_container_override: ""
+  filebeat_container_override: ""
   logsstash_container_override: ""
-  redis_tag: ""
-  postgresql_tag: ""
-  netbox_tag: ""
-  htadmin_tag: ""
-  pcap_capture_tag: ""
-  freq_tag: ""
-  nginx_tag: ""
+  keycloak_container_override: ""
+  redis_container_override: ""
+  postgres_container_override: ""
+  netbox_container_override: ""
+  htadmin_container_override: ""
+  pcap_capture_container_override: ""
+  freq_container_override: ""
+  nginx_container_override: ""
 
 auth:
   username: vagrant
@@ -44,6 +45,8 @@ auth:
   # Generated with  htpasswd -bnB <your username> <your password>
   htpass_cred: "vagrant:$2y$05$kaHZ2j2VDDQCBf9bEk1gMuJAPRs4q4rolPRbq3zXUb7j2JyGuc50a"
   arkime_password: vagrant
+  # Possible values are basic for htadmin auth, keycloak for embedded keycloak and finally keycloak_remote for remote keycloak instance.
+  mode: "basic"
 
 opensearch:
   enabled: true
@@ -104,6 +107,7 @@ siem_env:
     # Must match the patterns located inside of logstash_override.yml
     rollover_alias_zeek: malcolm_network_zeek
     rollover_alias_suricata: malcolm_network_suricata
+    search_alias: malcolm_network
   # Allows user to add a default_pipeline to malcolm_beat_template
   malcolm_beats_template_override:
     enabled: false
@@ -148,26 +152,28 @@ netbox:
   # Set this this value to your reverse proxy url or leave it blank
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
   netbox_default_site: Cyberville
-  netbox_auto_populate: false
-  netbox_cache_size: "1000"
-  netbox_cache_ttl: "30"
+  netbox_auto_populate: true
+  netbox_cache_size: "10000"
+  netbox_cache_ttl: "300"
 
-  database:
-   host: netbox-postgres
-   name: netbox
-   password: "ChangeMe!"
-   # Set true if using custom database for netbox
-   is_custom: false
-   # Create extra secrets for custom database, empty attributes will be set to password key.
-   # The password will be same for all empty attributes.
-   extra_secrets: [{}]
-    # Example
-    # - postgresql-secret:
-    #     username: netbox
-    #     password: ""
-    # - pgpool-secret:
-    #     adminUsername: netbox-pgpool
-    #     adminPassword: ""
+postgres:
+  enabled: true
+  host: postgres
+  password: "ChangeMe"
+  netbox_db_name: "netbox"
+  keycloak_db_name: "keycloak"
+  # Set true if using custom database for netbox
+  is_custom: false
+  # Create extra secrets for custom database, empty attributes will be set to password key.
+  # The password will be same for all empty attributes.
+  extra_secrets: [{}]
+  # Example
+  # - postgresql-secret:
+  #     username: netbox
+  #     password: ""
+  # - pgpool-secret:
+  #     adminUsername: netbox-pgpool
+  #     adminPassword: ""
 
 storage:
   # This helm chart requires a storage provisioner class it defaults to local-path provisioner
@@ -245,7 +251,7 @@ ingress:
 
 istio:
   # Enable this if deploying in Kuberenetes environment leveraging istio service mesh
-  # Additionally, it is recommended to turn off tls everywhere when this is set to true and let tls handle all things tls :).
+  # Additionally, it is recommended to turn off tls everywhere when this is set to true and let istio handle all things tls :).
   enabled: false
   gateway: istio-system/tenant
   virtualservicename: malcolm
@@ -549,4 +555,22 @@ kafka:
   enabled: "false"
   # This is either the bootstrap IP:PORT or a comma separated list of broker IP:PORT (s)
   brokers: "kafka.local:9091"
-  topic: "zeek"
+  topic: "zeek"  
+
+# Below keycloak settings only apply when auth.mode is set to keycloak or keycloak_remote
+keycloak:
+  keycloak_auth_realm: "master"
+  keycloak_auth_redirect_uri: "/index.html"
+  keycloak_auth_url: "http://malcolm.lan/keycloak"
+  keycloak_client_id: ""
+  keycloak_client_secret: ""
+  kc_cache: "local"
+  kc_health_enabled: "true"
+  kc_hostname: ""
+  kc_hostname_strict: "false"
+  kc_http_enabled: "true"
+  kc_http_relative_path: "/keycloak"
+  kc_metrics_enabled: "false"
+  kc_proxy_headers: "xforwarded"
+  kc_bootstrap_admin_username: "vagrant"
+  kc_bootstrap_admin_password: "vagrant"

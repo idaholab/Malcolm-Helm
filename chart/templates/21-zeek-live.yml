@@ -1,4 +1,5 @@
 {{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 
 {{- if .Values.zeek_live.enabled }}
 ---
@@ -92,9 +93,7 @@ spec:
         livenessProbe:
           exec:
             command:
-            - supervisorctl
-            - status
-            - live-zeek
+            - /usr/local/bin/container_health.sh
           initialDelaySeconds: 600
           periodSeconds: 60
           timeoutSeconds: 30
@@ -140,7 +139,7 @@ spec:
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
       {{- end }}
       - name: zeek-live-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
+        image: "{{ $dirinit_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -152,7 +151,7 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload"
+            value: "/zeek-live-logs:live/logs;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload"
         volumeMounts:
           - name: zeek-intel-volume
             mountPath: "/data/config"

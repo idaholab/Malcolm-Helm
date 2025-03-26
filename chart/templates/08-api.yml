@@ -1,3 +1,4 @@
+{{- $api_image := .Values.image.api_container_override | default (printf "%s/api:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 kind: Service
@@ -28,11 +29,10 @@ spec:
     spec:
       containers:
       - name: api-container
-        image: "{{ .Values.image.repository }}/api:{{ .Values.image.api_tag | default .Chart.AppVersion }}"
+        image: "{{ $api_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
-        # TODO fix to use 1000 user instead
         securityContext:
           runAsGroup: 0
           runAsUser: 0
@@ -67,10 +67,9 @@ spec:
           - name: ARKIME_PORT
             value: "8005"
         livenessProbe:
-          httpGet:
-            path: /mapi/ping
-            port: 5000
-            scheme: HTTP
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
           initialDelaySeconds: 60
           periodSeconds: 30
           timeoutSeconds: 15

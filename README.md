@@ -4,7 +4,7 @@ The purpose of this project is to make installing Malcolm with all of its server
 large Kubernetes cluster. Case in point, lets say you have 8 servers and 50 sensors. Some sensors will be high bandwidth 
 while others may be low bandwith. This helm chart for example can either deploy a opensearch setup or point to a 
 preconfigured external elasticsearch.  Furthermore, it will deploy live sensors for suricata and zeek as well as offline 
-deployment for uploading pcaps offline.
+deployment for uploading pcaps offline. 
 
 ## Features
 

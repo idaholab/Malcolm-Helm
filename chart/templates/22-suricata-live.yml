@@ -1,3 +1,5 @@
+{{- $suricata_image := .Values.image.suricata_container_override | default (printf "%s/suricata:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if .Values.suricata_live.enabled }}
 ---
 apiVersion: v1
@@ -65,7 +67,7 @@ spec:
 {{- end }}
       containers:
       - name: suricata-container
-        image: "{{ .Values.image.repository }}/suricata:{{ .Values.image.suricata_tag | default .Chart.AppVersion }}"
+        image: "{{ $suricata_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -100,9 +102,7 @@ spec:
         livenessProbe:
           exec:
             command:
-            - supervisorctl
-            - status
-            - live-suricata
+            - /usr/local/bin/container_health.sh
           initialDelaySeconds: 600
           periodSeconds: 60
           timeoutSeconds: 30
@@ -133,7 +133,7 @@ spec:
       {{- end }}
       initContainers:
       - name: suricata-live-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
+        image: "{{ $dirinit_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

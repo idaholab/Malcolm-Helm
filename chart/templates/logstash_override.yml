@@ -1,4 +1,3 @@
-{{- if .Values.siem_env.logstash_override.enabled }}
 ---
 apiVersion: v1
 data:
@@ -45,11 +44,10 @@ metadata:
 apiVersion: v1
 data:
   malcolm_template.json: |
-    {{- include "malcolm.ecstemplate" (dict "index_patterns" (printf "%s-*" .Values.siem_env.logstash_override.rollover_alias_zeek) "alias" .Values.siem_env.logstash_override.rollover_alias_zeek "ilm_policy" .Values.siem_env.logstash_override.ilm_policy) | indent 4 }}
+    {{- include "malcolm.ecstemplate" (dict "index_patterns" (printf "%s-*" .Values.siem_env.logstash_override.rollover_alias_zeek) "rollover_alias" .Values.siem_env.logstash_override.rollover_alias_zeek "ilm_policy" .Values.siem_env.logstash_override.ilm_policy "search_alias" .Values.siem_env.logstash_override.search_alias) | indent 4 }}
 
   malcolm_template_suricata.json: |
-    {{- include "malcolm.ecstemplate" (dict "index_patterns" (printf "%s-*" .Values.siem_env.logstash_override.rollover_alias_suricata) "alias" .Values.siem_env.logstash_override.rollover_alias_suricata "ilm_policy" .Values.siem_env.logstash_override.ilm_policy) | indent 4 }}
+    {{- include "malcolm.ecstemplate" (dict "index_patterns" (printf "%s-*" .Values.siem_env.logstash_override.rollover_alias_suricata) "rollover_alias" .Values.siem_env.logstash_override.rollover_alias_suricata "ilm_policy" .Values.siem_env.logstash_override.ilm_policy "search_alias" .Values.siem_env.logstash_override.search_alias) | indent 4 }}
 kind: ConfigMap
 metadata:
   name: malcolm-template-override
-{{- end }}
