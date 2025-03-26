@@ -28,7 +28,7 @@ image:
   dashboards_helper_container_override: ""
   file_monitor_container_override: ""
   filebeat_container_override: ""
-  logsstash_container_override: "ghcr.io/idaholab/malcolm/logstash-oss:25.01.0"
+  logsstash_container_override: ""
   keycloak_container_override: ""
   redis_container_override: ""
   postgres_container_override: ""
