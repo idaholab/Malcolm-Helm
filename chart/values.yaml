@@ -36,7 +36,7 @@ image:
   htadmin_container_override: ""
   pcap_capture_container_override: ""
   freq_container_override: ""
-  nginx_container_override: ""
+  nginx_container_override: "ghcr.io/idaholab/malcolm/nginx-proxy:25.03.0"
 
 auth:
   username: vagrant
