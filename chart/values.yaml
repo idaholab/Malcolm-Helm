@@ -152,7 +152,7 @@ netbox:
   # Set this this value to your reverse proxy url or leave it blank
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
   netbox_default_site: Cyberville
-  netbox_auto_populate: false
+  netbox_auto_populate: true
   netbox_cache_size: "10000"
   netbox_cache_ttl: "300"
 
