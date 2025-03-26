@@ -46,7 +46,7 @@ auth:
   htpass_cred: "vagrant:$2y$05$kaHZ2j2VDDQCBf9bEk1gMuJAPRs4q4rolPRbq3zXUb7j2JyGuc50a"
   arkime_password: vagrant
   # Possible values are basic for htadmin auth, keycloak for embedded keycloak and finally keycloak_remote for remote keycloak instance.
-  mode: "basic"
+  mode: "keycloak_remote"
 
 opensearch:
   enabled: true
