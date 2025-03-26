@@ -1,4 +1,6 @@
-{{- if and .Values.netbox.enabled (not .Values.netbox.database.is_custom) }}
+{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $postgres_image := .Values.image.postgres_container_override | default (printf "%s/postgresql:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- if and .Values.postgres.enabled }}
 ---
 apiVersion: v1
 kind: Service
@@ -97,14 +99,7 @@ spec:
         livenessProbe:
           exec:
             command:
-             - sh
-             - "-c"
-             - |
-               /bin/bash <<'EOF'
-
-               [[ "$NETBOX_POSTGRES_DISABLED" == 'true' ]] || pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
-
-               EOF
+            - /usr/local/bin/container_health.sh
           initialDelaySeconds: 90
           periodSeconds: 60
           timeoutSeconds: 15
@@ -117,8 +112,8 @@ spec:
             name: netbox-postgres-claim
             subPath: netbox/postgres
       initContainers:
-      - name: netbox-postgres-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
+      - name: postgres-dirinit-container
+        image: "{{ $dirinit_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true

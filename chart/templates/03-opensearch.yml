@@ -1,3 +1,5 @@
+{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $opensearch_image := .Values.image.opensearch_container_override | default (printf "%s/opensearch:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if .Values.opensearch.enabled }}
 ---
 apiVersion: v1
@@ -150,7 +152,7 @@ spec:
             subPath: "opensearch"
       initContainers:
       - name: opensearch-dirinit-container
-        image: "{{ .Values.image.repository }}/dirinit:{{ .Values.image.dirinit_tag | default .Chart.AppVersion }}"
+        image: "{{ $dirinit_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
