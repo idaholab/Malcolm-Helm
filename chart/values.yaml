@@ -32,7 +32,7 @@ image:
   keycloak_container_override: ""
   redis_container_override: ""
   postgres_container_override: ""
-  netbox_container_override: ""
+  netbox_container_override: "ghcr.io/idaholab/malcolm/netbox:25.02.0"
   htadmin_container_override: ""
   pcap_capture_container_override: ""
   freq_container_override: ""
