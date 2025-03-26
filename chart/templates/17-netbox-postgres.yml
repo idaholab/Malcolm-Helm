@@ -112,7 +112,7 @@ spec:
             name: netbox-postgres-claim
             subPath: netbox/postgres
       initContainers:
-      - name: postgres-dirinit-container
+      - name: netbox-postgres-dirinit-container
         image: "{{ $dirinit_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false

@@ -29,7 +29,7 @@ spec:
         name: netbox-redis
     spec:
       containers:
-      - name: redis-container
+      - name: netbox-redis-container
         image: "{{ $redis_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -58,7 +58,7 @@ spec:
               name: netbox-redis-env
         env:
           - name: VIRTUAL_HOST
-            value: "redis.malcolm.local"
+            value: "netbox-redis.malcolm.local"
         livenessProbe:
           exec:
             command:
@@ -70,12 +70,12 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: redis-var-local-catrust-volume
+            name: netbox-redis-var-local-catrust-volume
           - mountPath: /data
-            name: redis-volume
+            name: netbox-redis-volume
             subPath: netbox/redis
       initContainers:
-      - name: redis-dirinit-container
+      - name: netbox-redis-dirinit-container
         image: "{{ $dirinit_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -90,13 +90,13 @@ spec:
           - name: PUSER_MKDIR
             value: "/data/config:netbox/redis"
         volumeMounts:
-          - name: redis-volume
+          - name: netbox-redis-volume
             mountPath: "/data/config"
       volumes:
-        - name: redis-var-local-catrust-volume
+        - name: netbox-redis-var-local-catrust-volume
           configMap:
             name: var-local-catrust
-        - name: redis-volume
+        - name: netbox-redis-volume
           persistentVolumeClaim:
             claimName: config-claim
 {{- end }}
