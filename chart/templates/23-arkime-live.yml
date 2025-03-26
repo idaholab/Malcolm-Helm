@@ -75,6 +75,15 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 210
+          periodSeconds: 90
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
         volumeMounts:
           - mountPath: /opt/arkime/etc/config.orig.ini
             name: arkime-config-default

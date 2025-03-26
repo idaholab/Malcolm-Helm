@@ -102,9 +102,7 @@ spec:
         livenessProbe:
           exec:
             command:
-            - supervisorctl
-            - status
-            - live-suricata
+            - /usr/local/bin/container_health.sh
           initialDelaySeconds: 600
           periodSeconds: 60
           timeoutSeconds: 30

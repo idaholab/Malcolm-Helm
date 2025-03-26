@@ -48,11 +48,10 @@ spec:
         env:
           - name: VIRTUAL_HOST
             value: "dashboards.malcolm.local"
-        livenessProbe:
-          httpGet:
-            path: /dashboards/api/status
-            port: 5601
-            scheme: HTTP
+        livenessProbe:          
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
           initialDelaySeconds: 210
           periodSeconds: 30
           timeoutSeconds: 15

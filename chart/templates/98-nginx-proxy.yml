@@ -90,6 +90,10 @@ spec:
           - configMapRef:
               name: opensearch-env
           - configMapRef:
+              name: dashboards-env
+          - secretRef:
+              name: keycloak-env
+          - configMapRef:
               name: auth-common-env
           - configMapRef:
               name: nginx-env

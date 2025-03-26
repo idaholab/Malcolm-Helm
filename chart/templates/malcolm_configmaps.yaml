@@ -1,7 +1,7 @@
 ---
 apiVersion: v1
 data:
-  NGINX_BASIC_AUTH: "true"
+  NGINX_AUTH_MODE: "{{ .Values.auth.mode }}"
   NGINX_LDAP_TLS_STUNNEL: "false"
   NGINX_LDAP_TLS_STUNNEL_CHECK_HOST: ""
   NGINX_LDAP_TLS_STUNNEL_CHECK_IP: ""
@@ -131,6 +131,11 @@ data:
   #   them automatically, but they may be specified explicitly here.
   NGINX_DASHBOARDS_PREFIX: ""
   NGINX_DASHBOARDS_PROXY_PASS: ""
+  NGINX_RESOLVER_OVERRIDE: ""
+  NGINX_RESOLVER_IPV4_OFF: "false"
+  NGINX_RESOLVER_IPV6_OFF: "false"
+  NGINX_X_FORWARDED_PROTO_OVERRIDE: ""
+  NGINX_ERROR_LOG_LEVEL: ""
 kind: ConfigMap
 metadata:
   name: nginx-env

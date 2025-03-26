@@ -71,15 +71,15 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
         livenessProbe:
+          failureThreshold: 10
           httpGet:
             path: /_ns_/nstest.html
             port: 8005
             scheme: HTTP
           initialDelaySeconds: 210
           periodSeconds: 90
-          timeoutSeconds: 30
           successThreshold: 1
-          failureThreshold: 10
+          timeoutSeconds: 30
         volumeMounts:
           - mountPath: /opt/arkime/etc/config.orig.ini
             name: arkime-config-default
