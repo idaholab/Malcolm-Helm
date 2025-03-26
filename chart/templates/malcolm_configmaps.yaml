@@ -67,6 +67,8 @@ data:
 {{- else }}
   CSRF_TRUSTED_ORIGINS: {{ .Values.netbox.csrf_trusted_origins | default "http://* https://*" | quote }}
 {{- end }}
+  # TODO remove later after I get a working netbox
+  DB_NAME: "{{ .Values.postgres.netbox_db_name }}"
   EMAIL_FROM: netbox@bar.com
   EMAIL_PORT: "25"
   EMAIL_SERVER: localhost
