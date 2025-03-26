@@ -1,3 +1,4 @@
+{{- $redis_image := .Values.image.redis_container_override | default (printf "%s/redis:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if .Values.netbox.enabled }}
 ---
 apiVersion: v1
@@ -29,8 +30,8 @@ spec:
         name: redis-cache-deployment
     spec:
       containers:
-      - name: netbox-redis-cache-container
-        image: "{{ .Values.image.repository }}/redis:{{ .Values.image.redis_tag | default .Chart.AppVersion }}"
+      - name: redis-cache-container
+        image: "{{ $redis_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -58,7 +59,7 @@ spec:
               name: redis-env
         env:
           - name: VIRTUAL_HOST
-            value: "netbox-redis-cache.malcolm.local"
+            value: "redis-cache.malcolm.local"
         livenessProbe:
           exec:
             command:
@@ -70,9 +71,9 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: netbox-redis-cache-var-local-catrust-volume
+            name: redis-cache-var-local-catrust-volume
       volumes:
-        - name: netbox-redis-cache-var-local-catrust-volume
+        - name: redis-cache-var-local-catrust-volume
           configMap:
             name: var-local-catrust
 {{- end }}
