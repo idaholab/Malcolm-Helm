@@ -114,7 +114,6 @@ siem_env:
   malcolm_network_index_pattern: "arkime_sessions3-*"
   # Default time field to use for network traffic logs in Logstash and Dashboards
   malcolm_network_index_time_field: "firstPacket"
-  malcolm_network_index_alias: ""
   # Suffix used to create index to which network traffic logs are written
   #   * supports Ruby strftime strings in %{}; e.g.,
   #     - hourly: %{%y%m%dh%H}, twice daily: %{%P%y%m%d}, daily: %{%y%m%d}, weekly: %{%yw%U}, monthly: %{%ym%m})
