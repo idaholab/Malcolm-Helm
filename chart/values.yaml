@@ -108,10 +108,13 @@ siem_env:
     rollover_alias_zeek: malcolm_network_zeek
     rollover_alias_suricata: malcolm_network_suricata
     search_alias: malcolm_network
+  # Allows user to add a default_pipeline to malcolm_beat_template
+  malcolm_beats_template_override:
+    enabled: false
+    default_pipeline: ""
   malcolm_network_index_pattern: "arkime_sessions3-*"
   # Default time field to use for network traffic logs in Logstash and Dashboards
   malcolm_network_index_time_field: "firstPacket"
-  malcolm_network_index_alias: ""
   # Suffix used to create index to which network traffic logs are written
   #   * supports Ruby strftime strings in %{}; e.g.,
   #     - hourly: %{%y%m%dh%H}, twice daily: %{%P%y%m%d}, daily: %{%y%m%d}, weekly: %{%yw%U}, monthly: %{%ym%m})
