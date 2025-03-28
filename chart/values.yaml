@@ -261,6 +261,7 @@ istio:
 
 # Affects both the live and offline deployment of suricata
 suricata_env:
+  lua_path: "/opt/suricata/rules/?.lua;;"
   development:
     stream_memcap: "1gb"
     host_memcap: "32mb"

@@ -230,6 +230,7 @@ data:
   SURICATA_UPDATE_ETOPEN: "true"
   SURICATA_UPDATE_RULES: "false"
   SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net }}]'"
+  LUA_PATH: "{{ .Values.suricata_env.lua_path }}"
 {{- if .Values.is_production }}
   {{- with .Values.suricata_env.production }}
   SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
