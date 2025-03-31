@@ -91,8 +91,10 @@ spec:
               name: opensearch-env
           - configMapRef:
               name: dashboards-env
+          {{- if or (eq .Values.auth.mode "keycloak") (eq .Values.auth.mode "keycloak_remote") }}
           - secretRef:
               name: keycloak-env
+          {{- end }}
           - configMapRef:
               name: auth-common-env
           - configMapRef:
