@@ -55,7 +55,7 @@ opensearch:
   url: http://opensearch:9200
   dashboards_url: http://dashboards:5601/dashboards
   development:
-    java_memory: -Xmx4g -Xms4g -Xss256k -XX
+    java_memory: -Xmx10g -Xms10g -Xss256k -XX
   production:
     java_memory: -Xmx32g -Xms32g -Xss256k -XX
 
@@ -138,7 +138,7 @@ logstash:
   development:
     java_memory: -Xmx2500m -Xms2500m -Xss1536k -XX
     #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
-    workers: 3
+    workers: 2
     batch_delay: 50
     batch_size: 75
   production:

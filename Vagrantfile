@@ -5,7 +5,7 @@ Vagrant.require_version ">= 2.3.7"
 Vagrant.configure("2") do |config|
   script_choice = ENV['VAGRANT_SETUP_CHOICE'] || 'none'
   config.vm.box = "ubuntu/jammy64"
-  config.disksize.size = '500GB'
+  config.disksize.size = '80GB'
 
   # NIC 1: Static IP with port forwarding
   if script_choice == 'use_istio'
@@ -22,7 +22,7 @@ Vagrant.configure("2") do |config|
     vb.gui = true
     # Customize the amount of memory on the VM:
     vb.name = "Malcolm-Helm"
-    vb.memory = "16192"
+    vb.memory = "32768"
     vb.cpus = 8
   end
 
@@ -64,12 +64,27 @@ Vagrant.configure("2") do |config|
 
     kubectl apply -f /vagrant/vagrant_dependencies/sc.yaml
 
-    grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || echo 'alias k="kubectl"' >> /home/vagrant/.bashrc
+    grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
     # Load specific settings sysctl settings needed for opensearch
+    grep -qxF 'fs.file-max=2097152' /etc/sysctl.conf || echo 'fs.file-max=2097152' >> /etc/sysctl.conf
+    grep -qxF 'fs.inotify.max_queued_events=131072' /etc/sysctl.conf || echo 'fs.inotify.max_queued_events=131072' >> /etc/sysctl.conf
     grep -qxF 'fs.inotify.max_user_instances=8192' /etc/sysctl.conf || echo 'fs.inotify.max_user_instances=8192' >> /etc/sysctl.conf
-    grep -qxF 'fs.file-max=1000000' /etc/sysctl.conf || echo 'fs.file-max=1000000' >> /etc/sysctl.conf
-    grep -qxF 'vm.max_map_count=1524288' /etc/sysctl.conf || echo 'vm.max_map_count=1524288' >> /etc/sysctl.conf
+    grep -qxF 'fs.inotify.max_user_watches=131072' /etc/sysctl.conf || echo 'fs.inotify.max_user_watches=131072' >> /etc/sysctl.conf
+    grep -qxF 'vm.dirty_background_ratio=40' /etc/sysctl.conf || echo 'vm.dirty_background_ratio=40' >> /etc/sysctl.conf
+    grep -qxF 'vm.dirty_ratio=80' /etc/sysctl.conf || echo 'vm.dirty_ratio=80' >> /etc/sysctl.conf
+    grep -qxF 'vm.max_map_count=262144' /etc/sysctl.conf || echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
+    grep -qxF 'vm.swappiness=1' /etc/sysctl.conf || echo 'vm.swappiness=1' >> /etc/sysctl.conf
+    if [[ ! -f /etc/security/limits.d/limits.conf ]]; then
+      mkdir -p /etc/security/limits.d/
+      echo '* soft nofile 65535' > /etc/security/limits.d/limits.conf
+      echo '* hard nofile 65535' >> /etc/security/limits.d/limits.conf
+      echo '* soft memlock unlimited' >> /etc/security/limits.d/limits.conf
+      echo '* hard memlock unlimited' >> /etc/security/limits.d/limits.conf
+      echo '* soft nproc 262144' >> /etc/security/limits.d/limits.conf
+      echo '* hard nproc 524288' >> /etc/security/limits.d/limits.conf
+    fi
+
     sysctl -p
 
     # Add kernel modules needed for istio
