@@ -4,8 +4,14 @@
 Vagrant.require_version ">= 2.3.7"
 Vagrant.configure("2") do |config|
   script_choice = ENV['VAGRANT_SETUP_CHOICE'] || 'none'
-  config.vm.box = "ubuntu/jammy64"
-  config.disksize.size = '500GB'
+  vm_box = ENV['VAGRANT_BOX'] || 'bento/ubuntu-24.04'
+  vm_cpus = ENV['VAGRANT_CPUS'] || '8'
+  vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '500GB'
+  vm_memory = ENV['VAGRANT_MEMORY'] || '20480'
+  vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
+
+  config.vm.box = vm_box
+  config.disksize.size = vm_disk_size
 
   # NIC 1: Static IP with port forwarding
   if script_choice == 'use_istio'
@@ -20,10 +26,12 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |vb|
     vb.gui = true
-    # Customize the amount of memory on the VM:
-    vb.name = "Malcolm-Helm"
-    vb.memory = "32768"
-    vb.cpus = 8
+    vb.customize ['modifyvm', :id, '--ioapic', 'on']
+    vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
+    vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
+    vb.name = vm_name
+    vb.memory = vm_memory
+    vb.cpus = vm_cpus
   end
 
   config.vm.provision "shell", inline: <<-SHELL
@@ -31,16 +39,18 @@ Vagrant.configure("2") do |config|
 
     apt-get update
     apt-get upgrade -y
+    apt-get install -y linux-headers-$(uname -r) build-essential
+    /sbin/rcvboxadd quicksetup all
 
     # Turn off password authentication to make it easier to login
-    sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
     # Configure promisc iface
     cp /vagrant/vagrant_dependencies/set-promisc.service /etc/systemd/system/set-promisc.service
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=$RKE2_VERSION sh -
+    curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION=$RKE2_VERSION sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
 
@@ -78,6 +88,7 @@ Vagrant.configure("2") do |config|
     grep -qxF 'vm.dirty_ratio=80' /etc/sysctl.conf || echo 'vm.dirty_ratio=80' >> /etc/sysctl.conf
     grep -qxF 'vm.max_map_count=262144' /etc/sysctl.conf || echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
     grep -qxF 'vm.swappiness=1' /etc/sysctl.conf || echo 'vm.swappiness=1' >> /etc/sysctl.conf
+    sysctl -p
     if [[ ! -f /etc/security/limits.d/limits.conf ]]; then
       mkdir -p /etc/security/limits.d/
       echo '* soft nofile 65535' > /etc/security/limits.d/limits.conf
@@ -87,8 +98,8 @@ Vagrant.configure("2") do |config|
       echo '* soft nproc 262144' >> /etc/security/limits.d/limits.conf
       echo '* hard nproc 524288' >> /etc/security/limits.d/limits.conf
     fi
-
-    sysctl -p
+    sed -i 's/GRUB_CMDLINE_LINUX="[^"]*/& elevator=deadline systemd.unified_cgroup_hierarchy=1 cgroup_enable=memory swapaccount=1 cgroup.memory=nokmem random.trust_cpu=on preempt=voluntary/' /etc/default/grub
+    update-grub
 
     # Add kernel modules needed for istio
     grep -qxF 'xt_REDIRECT' /etc/modules || echo 'xt_REDIRECT' >> /etc/modules

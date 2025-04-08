@@ -55,9 +55,9 @@ opensearch:
   url: http://opensearch:9200
   dashboards_url: http://dashboards:5601/dashboards
   development:
-    java_memory: -Xmx10g -Xms10g -Xss256k -XX
+    java_memory: -Xmx10g -Xms10g -Xss256k
   production:
-    java_memory: -Xmx32g -Xms32g -Xss256k -XX
+    java_memory: -Xmx32g -Xms32g -Xss256k
 
 external_elasticsearch:
   enabled: false
@@ -136,13 +136,13 @@ siem_env:
 logstash:
   # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
   development:
-    java_memory: -Xmx2500m -Xms2500m -Xss1536k -XX
+    java_memory: -Xmx2g -Xms2g -Xss2048k
     #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
-    workers: 3
+    workers: 2
     batch_delay: 50
     batch_size: 75
   production:
-    java_memory: -Xmx16g -Xms16g -Xss1536k -XX
+    java_memory: -Xmx16g -Xms16g -Xss2048k
     workers: 18
     batch_delay: 50
     batch_size: 75
