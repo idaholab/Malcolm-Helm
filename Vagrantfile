@@ -7,7 +7,6 @@ Vagrant.configure("2") do |config|
   vm_box = ENV['VAGRANT_BOX'] || 'ubuntu/jammy64'
   vm_cpus = ENV['VAGRANT_CPUS'] || '8'
   vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '500GB'
-  vm_memory = ENV['VAGRANT_MEMORY'] || '20480'
   vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
 
   config.vm.box = vm_box
@@ -30,7 +29,7 @@ Vagrant.configure("2") do |config|
     vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
     vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
     vb.name = vm_name
-    vb.memory = vm_memory
+    vb.memory = 20480
     vb.cpus = vm_cpus
   end
 
