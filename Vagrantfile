@@ -22,7 +22,7 @@ Vagrant.configure("2") do |config|
     vb.gui = true
     # Customize the amount of memory on the VM:
     vb.name = "Malcolm-Helm"
-    vb.memory = "24576"
+    vb.memory = "32768"
     vb.cpus = 8
   end
 
