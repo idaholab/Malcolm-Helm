@@ -116,6 +116,8 @@ Vagrant.configure("2") do |config|
       # Setup metallb
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
+      echo "Sleep for one minute before installing metallb"
+      sleep 60
       helm install metallb metallb/metallb -n metallb-system --create-namespace
       echo "Sleep for three minutes for cluster to come back up"
       sleep 180
