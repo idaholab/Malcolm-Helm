@@ -406,6 +406,10 @@ zeek_env:
     extracted_file_prune_threshold_total_disk_usage_percent: 0
     extracted_file_prune_interval_seconds: 300
 
+maxmind:
+  license_key: 0
+  alternate_url: "http://uds-minio-hl.minio.svc.cluster.local:9000/maxmind-databases"
+
 # Variables apply to both offline and live version of arkime
 arkime_env:
   arkime_debug_level: "0"
