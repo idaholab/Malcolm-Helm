@@ -138,7 +138,7 @@ logstash:
   development:
     java_memory: -Xmx2500m -Xms2500m -Xss1536k -XX
     #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
-    workers: 2
+    workers: 3
     batch_delay: 50
     batch_size: 75
   production:
