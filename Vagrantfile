@@ -28,7 +28,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
     RKE2_VERSION=v1.32.3+rke2r1
-    ISTIO_VERSION=1.25.1
 
     apt-get update
     apt-get upgrade -y
@@ -113,6 +112,8 @@ Vagrant.configure("2") do |config|
 
   if script_choice == 'use_istio'
     config.vm.provision "shell", inline: <<-SHELL
+      ISTIO_VERSION=1.25.1
+
       # Setup metallb
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
