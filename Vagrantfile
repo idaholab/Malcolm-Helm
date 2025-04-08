@@ -27,6 +27,9 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provision "shell", inline: <<-SHELL
+    RKE2_VERSION=v1.32.3+rke2r1
+    ISTIO_VERSION=1.25.1
+
     apt-get update
     apt-get upgrade -y
 
@@ -38,7 +41,7 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.32.3+rke2r1 sh -
+    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=$RKE2_VERSION sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
 
@@ -127,9 +130,9 @@ Vagrant.configure("2") do |config|
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      helm install istio istio/base --version 1.25.1 -n istio-system --create-namespace
-      helm install istiod istio/istiod --version 1.25.1 -n istio-system --wait
-      helm install tenant-ingressgateway istio/gateway --version 1.25.1 -n istio-system
+      helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
+      helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
+      helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
       kubectl apply -f /vagrant/vagrant_dependencies/tenant-gateway.yaml
 
       # Create the certs
