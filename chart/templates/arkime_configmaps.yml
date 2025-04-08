@@ -105,7 +105,7 @@ metadata:
 ---
 apiVersion: v1
 data:
-  MAXMIND_GEOIP_DB_LICENSE_KEY: MA==
+  MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL: http://uds-minio-hl.minio.svc.cluster.local:9000/maxmind-databases
   ARKIME_PASSWORD_SECRET: "{{ .Values.auth.arkime_password | b64enc }}"
 kind: Secret
 metadata:
