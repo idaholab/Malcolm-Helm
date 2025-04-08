@@ -5,7 +5,7 @@ Vagrant.require_version ">= 2.3.7"
 Vagrant.configure("2") do |config|
   script_choice = ENV['VAGRANT_SETUP_CHOICE'] || 'none'
   config.vm.box = "ubuntu/jammy64"
-  config.disksize.size = '80GB'
+  config.disksize.size = '500GB'
 
   # NIC 1: Static IP with port forwarding
   if script_choice == 'use_istio'
@@ -22,7 +22,7 @@ Vagrant.configure("2") do |config|
     vb.gui = true
     # Customize the amount of memory on the VM:
     vb.name = "Malcolm-Helm"
-    vb.memory = "32768"
+    vb.memory = "24576"
     vb.cpus = 8
   end
 
@@ -38,7 +38,7 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.30.3+rke2r1 sh -
+    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.32.3+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
 
@@ -71,6 +71,7 @@ Vagrant.configure("2") do |config|
     grep -qxF 'fs.inotify.max_queued_events=131072' /etc/sysctl.conf || echo 'fs.inotify.max_queued_events=131072' >> /etc/sysctl.conf
     grep -qxF 'fs.inotify.max_user_instances=8192' /etc/sysctl.conf || echo 'fs.inotify.max_user_instances=8192' >> /etc/sysctl.conf
     grep -qxF 'fs.inotify.max_user_watches=131072' /etc/sysctl.conf || echo 'fs.inotify.max_user_watches=131072' >> /etc/sysctl.conf
+    grep -qxF 'kernel.dmesg_restrict=0' /etc/sysctl.conf || echo 'kernel.dmesg_restrict=0' >> /etc/sysctl.conf
     grep -qxF 'vm.dirty_background_ratio=40' /etc/sysctl.conf || echo 'vm.dirty_background_ratio=40' >> /etc/sysctl.conf
     grep -qxF 'vm.dirty_ratio=80' /etc/sysctl.conf || echo 'vm.dirty_ratio=80' >> /etc/sysctl.conf
     grep -qxF 'vm.max_map_count=262144' /etc/sysctl.conf || echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
@@ -113,8 +114,8 @@ Vagrant.configure("2") do |config|
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
       helm install metallb metallb/metallb -n metallb-system --create-namespace
-      echo "Sleep for two minutes for cluster to come back up"
-      sleep 120
+      echo "Sleep for three minutes for cluster to come back up"
+      sleep 180
       kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=900s --namespace metallb-system
       kubectl apply -f /vagrant/vagrant_dependencies/ipaddress-pool.yml
       kubectl apply -f /vagrant/vagrant_dependencies/l2advertisement.yaml
@@ -126,9 +127,9 @@ Vagrant.configure("2") do |config|
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      helm install istio istio/base --version 1.18.2 -n istio-system --create-namespace
-      helm install istiod istio/istiod --version 1.18.2 -n istio-system --wait
-      helm install tenant-ingressgateway istio/gateway --version 1.18.2 -n istio-system
+      helm install istio istio/base --version 1.25.1 -n istio-system --create-namespace
+      helm install istiod istio/istiod --version 1.25.1 -n istio-system --wait
+      helm install tenant-ingressgateway istio/gateway --version 1.25.1 -n istio-system
       kubectl apply -f /vagrant/vagrant_dependencies/tenant-gateway.yaml
 
       # Create the certs
@@ -156,8 +157,8 @@ Vagrant.configure("2") do |config|
     SHELL
   else
     config.vm.provision "shell", inline: <<-SHELL
-      echo "Sleep for two minutes for cluster to come back up"
-      sleep 120
+      echo "Sleep for three minutes for cluster to come back up"
+      sleep 180
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=enp0s8
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost"
       hostname -I
