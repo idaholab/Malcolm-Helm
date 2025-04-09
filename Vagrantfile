@@ -4,15 +4,15 @@
 Vagrant.require_version ">= 2.3.7"
 Vagrant.configure("2") do |config|
   script_choice = ENV['VAGRANT_SETUP_CHOICE'] || 'none'
-  vm_box = ENV['VAGRANT_BOX'] || 'ubuntu/jammy64'
+  vm_box = ENV['VAGRANT_BOX'] || 'bento/debian-12'
   vm_cpus = ENV['VAGRANT_CPUS'] || '8'
   vm_memory = ENV['VAGRANT_MEMORY'] || '24576'
-  vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '500GB'
+  vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '400GB'
   vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
   vm_gui = ENV['VAGRANT_GUI'] || 'true'
 
   config.vm.box = vm_box
-  config.disksize.size = vm_disk_size
+  config.vm.disk :disk, name: "extra", size: vm_disk_size
 
   # NIC 1: Static IP with port forwarding
   if script_choice == 'use_istio'
@@ -30,25 +30,40 @@ Vagrant.configure("2") do |config|
     vb.customize ['modifyvm', :id, '--ioapic', 'on']
     vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
     vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
+    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", "on"]
+    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", "on"]
     vb.name = vm_name
     vb.memory = vm_memory.to_i
     vb.cpus = vm_cpus
   end
 
   config.vm.provision "shell", inline: <<-SHELL
-    echo "Updating the kernel..."
-    apt-get update
-    apt-get upgrade -y
-    apt-get install -y linux-oem-22.04d
-    echo "Rebooting the VM"
+    set -euo pipefail
+
+    apt-get update -y
+    apt-get install -y build-essential linux-headers-$(uname -r) xfsprogs
+
+    ALL_DISKS=($(lsblk --nodeps --noheadings --output NAME --paths))
+    for DISK in "${ALL_DISKS[@]}"; do
+        if [[ "$(lsblk --noheadings --output MOUNTPOINT "${DISK}" | grep -vE "^$")" == "" ]] && \
+           [[ "$(lsblk --noheadings --output FSTYPE "${DISK}" | grep -vE "^$")" == "" ]]; then
+            mkfs.xfs "${DISK}"
+            MOUNT_POINT=/mnt/"$(basename "${DISK}")"
+            mkdir -p "${MOUNT_POINT}"
+            grep -qs "$MOUNT_POINT" /etc/fstab || echo -e "# Disk added by Vagrant\n${DISK} ${MOUNT_POINT} xfs defaults 0 0" >> /etc/fstab
+        fi
+    done
+    mount -a
+
+    /sbin/rcvboxadd quicksetup all
   SHELL
 
   config.vm.provision "reload"
 
   config.vm.provision "shell", inline: <<-SHELL
-    RKE2_VERSION=v1.32.3+rke2r1
-
-    /sbin/rcvboxadd quicksetup all
+    RKE2_DATA_DRIVE="$(grep -A 1 "Disk added by Vagrant" /etc/fstab | grep -v '^#' | head -n 1 | awk '{print $2}')"
+    [[ -d "${RKE2_DATA_DRIVE}" ]] && RKE2_DATA_DIR="${RKE2_DATA_DRIVE}"/rke2 || RKE2_DATA_DIR=
+    [[ -n "${RKE2_DATA_DIR}" ]] && mkdir -p "${RKE2_DATA_DIR}"
 
     # Turn off password authentication to make it easier to login
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
@@ -58,9 +73,10 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION=$RKE2_VERSION sh -
+    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.32.3+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
+    [[ -n "${RKE2_DATA_DIR}" ]] && echo "data-dir: ${RKE2_DATA_DIR}" >> /etc/rancher/rke2/config.yaml
 
     systemctl start rke2-server.service
     systemctl enable rke2-server.service
@@ -74,8 +90,12 @@ Vagrant.configure("2") do |config|
     chmod 0600 /root/.kube/config
     chown -R vagrant:vagrant /home/vagrant/.kube
 
-    ln -s /var/lib/rancher/rke2/bin/kubectl /usr/local/bin/kubectl
-    snap install helm --classic
+    if [[ -n "${RKE2_DATA_DIR}" ]]; then
+      find "${RKE2_DATA_DIR}"/data -type f -executable -name kubectl -print0 | head -z -n 1 | xargs -r -0 -I XXX ln -v -s "XXX" /usr/local/bin/kubectl
+    else
+      ln -v -s /var/lib/rancher/rke2/bin/kubectl /usr/local/bin/kubectl
+    fi
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -
     node_name=$(kubectl get nodes -o jsonpath="{.items[0].metadata.name}")
     kubectl label nodes $node_name cnaps.io/node-type=Tier-1
     kubectl label nodes $node_name cnaps.io/suricata-capture=true
@@ -131,8 +151,6 @@ Vagrant.configure("2") do |config|
 
   if script_choice == 'use_istio'
     config.vm.provision "shell", inline: <<-SHELL
-      ISTIO_VERSION=1.25.1
-
       # Setup metallb
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
@@ -152,6 +170,7 @@ Vagrant.configure("2") do |config|
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
+      ISTIO_VERSION=1.25.1
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
