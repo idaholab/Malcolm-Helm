@@ -1,19 +1,34 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+def using_provider?(name)
+  ENV["VAGRANT_DEFAULT_PROVIDER"] == name || ARGV.any? { |a| a.include?("--provider=#{name}") }
+end
+
+def parse_disk_size(size_str)
+  size_str = size_str.strip.upcase
+  if size_str =~ /^(\d+)(GB?)$/
+    return $1.to_i * 1024
+  elsif size_str =~ /^(\d+)(MB?)$/
+    return $1.to_i
+  else
+    raise "Unrecognized disk size format: #{size_str}"
+  end
+end
+
 Vagrant.require_version ">= 2.3.7"
 Vagrant.configure("2") do |config|
   script_choice = ENV['VAGRANT_SETUP_CHOICE'] || 'none'
   vm_box = ENV['VAGRANT_BOX'] || 'bento/debian-12'
   vm_cpus = ENV['VAGRANT_CPUS'] || '8'
-  vm_memory = ENV['VAGRANT_MEMORY'] || '24576'
+  vm_memory = ENV['VAGRANT_MEMORY'] || '20480'
   vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '400GB'
   vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
   vm_gui = ENV['VAGRANT_GUI'] || 'true'
   vm_ssd = ENV['VAGRANT_SSD'] || 'on'
 
+  config.vm.define vm_name
   config.vm.box = vm_box
-  config.vm.disk :disk, name: "extra", size: vm_disk_size
 
   # NIC 1: Static IP with port forwarding
   if script_choice == 'use_istio'
@@ -23,19 +38,54 @@ Vagrant.configure("2") do |config|
     config.vm.network "forwarded_port", guest: 80, host: 8080
   end
 
-  # NIC 2: Promiscuous mode
-  config.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
+  if using_provider?("virtualbox")
+    config.vm.disk :disk, name: "extra", size: vm_disk_size
 
-  config.vm.provider "virtualbox" do |vb|
-    vb.gui = (vm_gui.to_s.downcase == 'true')
-    vb.customize ['modifyvm', :id, '--ioapic', 'on']
-    vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
-    vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
-    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
-    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
-    vb.name = vm_name
-    vb.memory = vm_memory.to_i
-    vb.cpus = vm_cpus
+    # NIC 2: Promiscuous mode (TODO: can I do this for other providers?)
+    config.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
+
+    config.vm.provider "virtualbox" do |vb|
+      vb.gui = (vm_gui.to_s.downcase == 'true')
+      vb.customize ['modifyvm', :id, '--ioapic', 'on']
+      vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
+      vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
+      vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
+      vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
+      vb.name = vm_name
+      vb.memory = vm_memory.to_i
+      vb.cpus = vm_cpus
+    end
+  end
+
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.driver = "kvm"
+    libvirt.cpus = vm_cpus.to_i
+    libvirt.memory = vm_memory.to_i
+    libvirt.machine_arch = 'x86_64'
+    libvirt.machine_type = "q35"
+    libvirt.nic_model_type = "virtio"
+    libvirt.cpu_mode = 'host-model'
+    libvirt.cpu_fallback = 'forbid'
+    libvirt.channel :type  => 'unix',     :target_name => 'org.qemu.guest_agent.0', :target_type => 'virtio'
+    libvirt.random :model => 'random'
+    libvirt.disk_bus = "virtio"
+    libvirt.storage :file, :size => vm_disk_size
+  end
+
+  if using_provider?("vmware_desktop")
+    config.vm.network "private_network", type: "dhcp", auto_config: false
+    config.vm.provider "vmware_desktop" do |vm|
+      vm.vmx["displayName"] = vm_name
+      vm.vmx["memsize"] = vm_memory.to_s
+      vm.vmx["numvcpus"] = vm_cpus.to_s
+      if vm_ssd.to_s.downcase == "on" || vm_ssd.to_s.downcase == "true"
+        vm.vmx["scsi0:0.virtualSSD"] = "1"
+      end
+      # TODO: vmware doesn't support adding a second disk with the official vagrant plugin
+      #   so this just resizes the primary disk. however, we're not automatically
+      #   resizing the primary disk partition in the VM so this isn't really done yet.
+      v.vmx["disk.size"] = parse_disk_size(vm_disk_size).to_s
+    end
   end
 
   config.vm.provision "shell", inline: <<-SHELL
@@ -57,7 +107,7 @@ Vagrant.configure("2") do |config|
     done
     mount -a
 
-    /sbin/rcvboxadd quicksetup all
+    [[ -x /sbin/rcvboxadd ]] && /sbin/rcvboxadd quicksetup all || true
   SHELL
 
   config.vm.provision "reload"
