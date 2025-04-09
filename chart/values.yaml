@@ -136,7 +136,7 @@ siem_env:
 logstash:
   # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
   development:
-    java_memory: -Xmx2g -Xms2g -Xss2048k
+    java_memory: -Xmx2500m -Xms2500m -Xss2048k
     #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
     workers: 2
     batch_delay: 50

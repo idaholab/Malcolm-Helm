@@ -6,6 +6,7 @@ Vagrant.configure("2") do |config|
   script_choice = ENV['VAGRANT_SETUP_CHOICE'] || 'none'
   vm_box = ENV['VAGRANT_BOX'] || 'ubuntu/jammy64'
   vm_cpus = ENV['VAGRANT_CPUS'] || '8'
+  vm_memory = ENV['VAGRANT_MEMORY'] || '24576'
   vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '500GB'
   vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
 
@@ -29,16 +30,16 @@ Vagrant.configure("2") do |config|
     vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
     vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
     vb.name = vm_name
-    vb.memory = 20480
+    vb.memory = vm_memory.to_i
     vb.cpus = vm_cpus
   end
 
   config.vm.provision "shell", inline: <<-SHELL
-    echo "Update kernel..."
+    echo "Updating the kernel..."
     apt-get update
     apt-get upgrade -y
-    apt-get install -y linux-oem-22.04d build-essential
-    echo "Rebooting"
+    apt-get install -y linux-oem-22.04d
+    echo "Rebooting the VM"
   SHELL
 
   config.vm.provision "reload"
