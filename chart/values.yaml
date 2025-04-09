@@ -408,7 +408,7 @@ zeek_env:
 
 maxmind:
   license_key: 0
-  alternate_url: "http://uds-minio-hl.minio.svc.cluster.local:9000/maxmind-databases" 
+  alternate_url: 0
 
 # Variables apply to both offline and live version of arkime
 arkime_env:
