@@ -66,7 +66,7 @@ Vagrant.configure("2") do |config|
     libvirt.nic_model_type = "virtio"
     libvirt.cpu_mode = 'host-model'
     libvirt.cpu_fallback = 'forbid'
-    libvirt.channel :type  => 'unix',     :target_name => 'org.qemu.guest_agent.0', :target_type => 'virtio'
+    libvirt.channel :type  => 'unix', :target_name => 'org.qemu.guest_agent.0', :target_type => 'virtio'
     libvirt.random :model => 'random'
     libvirt.disk_bus = "virtio"
     libvirt.storage :file, :size => vm_disk_size
@@ -92,7 +92,7 @@ Vagrant.configure("2") do |config|
     set -euo pipefail
 
     apt-get update -y
-    apt-get install -y build-essential git linux-headers-$(uname -r)
+    apt-get install -y build-essential git linux-headers-$(uname -r) qemu-guest-agent
 
     ALL_DISKS=($(lsblk --nodeps --noheadings --output NAME --paths))
     for DISK in "${ALL_DISKS[@]}"; do
@@ -107,7 +107,8 @@ Vagrant.configure("2") do |config|
     done
     mount -a
 
-    [[ -x /sbin/rcvboxadd ]] && /sbin/rcvboxadd quicksetup all || true
+    [[ -x /sbin/rcvboxadd ]] && /sbin/rcvboxadd quicksetup all >/dev/null 2>&1 || true
+    systemctl enable qemu-guest-agent >/dev/null 2>&1 || true
   SHELL
 
   config.vm.provision "reload"
