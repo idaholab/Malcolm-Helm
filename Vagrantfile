@@ -4,8 +4,15 @@
 Vagrant.require_version ">= 2.3.7"
 Vagrant.configure("2") do |config|
   script_choice = ENV['VAGRANT_SETUP_CHOICE'] || 'none'
-  config.vm.box = "ubuntu/jammy64"
-  config.disksize.size = '500GB'
+  vm_box = ENV['VAGRANT_BOX'] || 'ubuntu/jammy64'
+  vm_cpus = ENV['VAGRANT_CPUS'] || '8'
+  vm_memory = ENV['VAGRANT_MEMORY'] || '24576'
+  vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '500GB'
+  vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
+  vm_gui = ENV['VAGRANT_GUI'] || 'true'
+
+  config.vm.box = vm_box
+  config.disksize.size = vm_disk_size
 
   # NIC 1: Static IP with port forwarding
   if script_choice == 'use_istio'
@@ -19,26 +26,39 @@ Vagrant.configure("2") do |config|
   config.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
 
   config.vm.provider "virtualbox" do |vb|
-    vb.gui = true
-    # Customize the amount of memory on the VM:
-    vb.name = "Malcolm-Helm"
-    vb.memory = "16192"
-    vb.cpus = 8
+    vb.gui = (vm_gui.to_s.downcase == 'true')
+    vb.customize ['modifyvm', :id, '--ioapic', 'on']
+    vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
+    vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
+    vb.name = vm_name
+    vb.memory = vm_memory.to_i
+    vb.cpus = vm_cpus
   end
 
   config.vm.provision "shell", inline: <<-SHELL
+    echo "Updating the kernel..."
     apt-get update
     apt-get upgrade -y
+    apt-get install -y linux-oem-22.04d
+    echo "Rebooting the VM"
+  SHELL
+
+  config.vm.provision "reload"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    RKE2_VERSION=v1.32.3+rke2r1
+
+    /sbin/rcvboxadd quicksetup all
 
     # Turn off password authentication to make it easier to login
-    sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
     # Configure promisc iface
     cp /vagrant/vagrant_dependencies/set-promisc.service /etc/systemd/system/set-promisc.service
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -sfL https://get.rke2.io | sudo INSTALL_RKE2_VERSION=v1.30.3+rke2r1 sh -
+    curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION=$RKE2_VERSION sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
 
@@ -64,13 +84,30 @@ Vagrant.configure("2") do |config|
 
     kubectl apply -f /vagrant/vagrant_dependencies/sc.yaml
 
-    grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || echo 'alias k="kubectl"' >> /home/vagrant/.bashrc
+    grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
     # Load specific settings sysctl settings needed for opensearch
+    grep -qxF 'fs.file-max=2097152' /etc/sysctl.conf || echo 'fs.file-max=2097152' >> /etc/sysctl.conf
+    grep -qxF 'fs.inotify.max_queued_events=131072' /etc/sysctl.conf || echo 'fs.inotify.max_queued_events=131072' >> /etc/sysctl.conf
     grep -qxF 'fs.inotify.max_user_instances=8192' /etc/sysctl.conf || echo 'fs.inotify.max_user_instances=8192' >> /etc/sysctl.conf
-    grep -qxF 'fs.file-max=1000000' /etc/sysctl.conf || echo 'fs.file-max=1000000' >> /etc/sysctl.conf
-    grep -qxF 'vm.max_map_count=1524288' /etc/sysctl.conf || echo 'vm.max_map_count=1524288' >> /etc/sysctl.conf
+    grep -qxF 'fs.inotify.max_user_watches=131072' /etc/sysctl.conf || echo 'fs.inotify.max_user_watches=131072' >> /etc/sysctl.conf
+    grep -qxF 'kernel.dmesg_restrict=0' /etc/sysctl.conf || echo 'kernel.dmesg_restrict=0' >> /etc/sysctl.conf
+    grep -qxF 'vm.dirty_background_ratio=40' /etc/sysctl.conf || echo 'vm.dirty_background_ratio=40' >> /etc/sysctl.conf
+    grep -qxF 'vm.dirty_ratio=80' /etc/sysctl.conf || echo 'vm.dirty_ratio=80' >> /etc/sysctl.conf
+    grep -qxF 'vm.max_map_count=262144' /etc/sysctl.conf || echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
+    grep -qxF 'vm.swappiness=0' /etc/sysctl.conf || echo 'vm.swappiness=0' >> /etc/sysctl.conf
     sysctl -p
+    if [[ ! -f /etc/security/limits.d/limits.conf ]]; then
+      mkdir -p /etc/security/limits.d/
+      echo '* soft nofile 65535' > /etc/security/limits.d/limits.conf
+      echo '* hard nofile 65535' >> /etc/security/limits.d/limits.conf
+      echo '* soft memlock unlimited' >> /etc/security/limits.d/limits.conf
+      echo '* hard memlock unlimited' >> /etc/security/limits.d/limits.conf
+      echo '* soft nproc 262144' >> /etc/security/limits.d/limits.conf
+      echo '* hard nproc 524288' >> /etc/security/limits.d/limits.conf
+    fi
+    sed -i 's/GRUB_CMDLINE_LINUX="[^"]*/& elevator=deadline systemd.unified_cgroup_hierarchy=1 cgroup_enable=memory swapaccount=1 cgroup.memory=nokmem random.trust_cpu=on preempt=voluntary/' /etc/default/grub
+    update-grub
 
     # Add kernel modules needed for istio
     grep -qxF 'xt_REDIRECT' /etc/modules || echo 'xt_REDIRECT' >> /etc/modules
@@ -94,12 +131,16 @@ Vagrant.configure("2") do |config|
 
   if script_choice == 'use_istio'
     config.vm.provision "shell", inline: <<-SHELL
+      ISTIO_VERSION=1.25.1
+
       # Setup metallb
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
+      echo "Sleep for one minute before installing metallb"
+      sleep 60
       helm install metallb metallb/metallb -n metallb-system --create-namespace
-      echo "Sleep for two minutes for cluster to come back up"
-      sleep 120
+      echo "Sleep for three minutes for cluster to come back up"
+      sleep 180
       kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=900s --namespace metallb-system
       kubectl apply -f /vagrant/vagrant_dependencies/ipaddress-pool.yml
       kubectl apply -f /vagrant/vagrant_dependencies/l2advertisement.yaml
@@ -111,9 +152,9 @@ Vagrant.configure("2") do |config|
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      helm install istio istio/base --version 1.18.2 -n istio-system --create-namespace
-      helm install istiod istio/istiod --version 1.18.2 -n istio-system --wait
-      helm install tenant-ingressgateway istio/gateway --version 1.18.2 -n istio-system
+      helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
+      helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
+      helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
       kubectl apply -f /vagrant/vagrant_dependencies/tenant-gateway.yaml
 
       # Create the certs
@@ -141,8 +182,8 @@ Vagrant.configure("2") do |config|
     SHELL
   else
     config.vm.provision "shell", inline: <<-SHELL
-      echo "Sleep for two minutes for cluster to come back up"
-      sleep 120
+      echo "Sleep for three minutes for cluster to come back up"
+      sleep 180
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=enp0s8
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost"
       hostname -I
