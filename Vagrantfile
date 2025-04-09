@@ -1,18 +1,34 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+def using_provider?(name)
+  ENV["VAGRANT_DEFAULT_PROVIDER"] == name || ARGV.any? { |a| a.include?("--provider=#{name}") }
+end
+
+def parse_disk_size(size_str)
+  size_str = size_str.strip.upcase
+  if size_str =~ /^(\d+)(GB?)$/
+    return $1.to_i * 1024
+  elsif size_str =~ /^(\d+)(MB?)$/
+    return $1.to_i
+  else
+    raise "Unrecognized disk size format: #{size_str}"
+  end
+end
+
 Vagrant.require_version ">= 2.3.7"
 Vagrant.configure("2") do |config|
   script_choice = ENV['VAGRANT_SETUP_CHOICE'] || 'none'
-  vm_box = ENV['VAGRANT_BOX'] || 'ubuntu/jammy64'
+  vm_box = ENV['VAGRANT_BOX'] || 'bento/debian-12'
   vm_cpus = ENV['VAGRANT_CPUS'] || '8'
   vm_memory = ENV['VAGRANT_MEMORY'] || '24576'
-  vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '500GB'
+  vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '400GB'
   vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
   vm_gui = ENV['VAGRANT_GUI'] || 'true'
+  vm_ssd = ENV['VAGRANT_SSD'] || 'on'
 
+  config.vm.define vm_name
   config.vm.box = vm_box
-  config.disksize.size = vm_disk_size
 
   # NIC 1: Static IP with port forwarding
   if script_choice == 'use_istio'
@@ -22,33 +38,85 @@ Vagrant.configure("2") do |config|
     config.vm.network "forwarded_port", guest: 80, host: 8080
   end
 
-  # NIC 2: Promiscuous mode
-  config.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
+  if using_provider?("virtualbox")
+    config.vm.disk :disk, name: "extra", size: vm_disk_size
 
-  config.vm.provider "virtualbox" do |vb|
-    vb.gui = (vm_gui.to_s.downcase == 'true')
-    vb.customize ['modifyvm', :id, '--ioapic', 'on']
-    vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
-    vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
-    vb.name = vm_name
-    vb.memory = vm_memory.to_i
-    vb.cpus = vm_cpus
+    # NIC 2: Promiscuous mode (TODO: can I do this for other providers?)
+    config.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
+
+    config.vm.provider "virtualbox" do |vb|
+      vb.gui = (vm_gui.to_s.downcase == 'true')
+      vb.customize ['modifyvm', :id, '--ioapic', 'on']
+      vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
+      vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
+      vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
+      vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
+      vb.name = vm_name
+      vb.memory = vm_memory.to_i
+      vb.cpus = vm_cpus
+    end
+  end
+
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.driver = "kvm"
+    libvirt.cpus = vm_cpus.to_i
+    libvirt.memory = vm_memory.to_i
+    libvirt.machine_arch = 'x86_64'
+    libvirt.machine_type = "q35"
+    libvirt.nic_model_type = "virtio"
+    libvirt.cpu_mode = 'host-model'
+    libvirt.cpu_fallback = 'forbid'
+    libvirt.channel :type  => 'unix', :target_name => 'org.qemu.guest_agent.0', :target_type => 'virtio'
+    libvirt.random :model => 'random'
+    libvirt.disk_bus = "virtio"
+    libvirt.storage :file, :size => vm_disk_size
+  end
+
+  if using_provider?("vmware_desktop")
+    config.vm.network "private_network", type: "dhcp", auto_config: false
+    config.vm.provider "vmware_desktop" do |vm|
+      vm.vmx["displayName"] = vm_name
+      vm.vmx["memsize"] = vm_memory.to_s
+      vm.vmx["numvcpus"] = vm_cpus.to_s
+      if vm_ssd.to_s.downcase == "on" || vm_ssd.to_s.downcase == "true"
+        vm.vmx["scsi0:0.virtualSSD"] = "1"
+      end
+      # TODO: vmware doesn't support adding a second disk with the official vagrant plugin
+      #   so this just resizes the primary disk. however, we're not automatically
+      #   resizing the primary disk partition in the VM so this isn't really done yet.
+      v.vmx["disk.size"] = parse_disk_size(vm_disk_size).to_s
+    end
   end
 
   config.vm.provision "shell", inline: <<-SHELL
-    echo "Updating the kernel..."
-    apt-get update
-    apt-get upgrade -y
-    apt-get install -y linux-oem-22.04d
-    echo "Rebooting the VM"
+    set -euo pipefail
+
+    apt-get update -y
+    apt-get install -y build-essential git linux-headers-$(uname -r) qemu-guest-agent
+
+    ALL_DISKS=($(lsblk --nodeps --noheadings --output NAME --paths))
+    for DISK in "${ALL_DISKS[@]}"; do
+        if [[ "$(lsblk --noheadings --output MOUNTPOINT "${DISK}" | grep -vE "^$")" == "" ]] && \
+           [[ "$(lsblk --noheadings --output FSTYPE "${DISK}" | grep -vE "^$")" == "" ]]; then
+            mkfs.ext4 "${DISK}"
+            tune2fs -o journal_data_writeback "${DISK}"
+            MOUNT_POINT=/mnt/"$(basename "${DISK}")"
+            mkdir -p "${MOUNT_POINT}"
+            grep -qs "$MOUNT_POINT" /etc/fstab || echo -e "# Disk added by Vagrant\n${DISK} ${MOUNT_POINT} ext4 defaults,relatime,errors=remount-ro 0 0" >> /etc/fstab
+        fi
+    done
+    mount -a
+
+    [[ -x /sbin/rcvboxadd ]] && /sbin/rcvboxadd quicksetup all >/dev/null 2>&1 || true
+    systemctl enable qemu-guest-agent >/dev/null 2>&1 || true
   SHELL
 
   config.vm.provision "reload"
 
   config.vm.provision "shell", inline: <<-SHELL
-    RKE2_VERSION=v1.32.3+rke2r1
-
-    /sbin/rcvboxadd quicksetup all
+    RKE2_DATA_DRIVE="$(grep -A 1 "Disk added by Vagrant" /etc/fstab | grep -v '^#' | head -n 1 | awk '{print $2}')"
+    [[ -d "${RKE2_DATA_DRIVE}" ]] && RKE2_DATA_DIR="${RKE2_DATA_DRIVE}"/rke2 || RKE2_DATA_DIR=
+    [[ -n "${RKE2_DATA_DIR}" ]] && mkdir -p "${RKE2_DATA_DIR}"
 
     # Turn off password authentication to make it easier to login
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
@@ -58,9 +126,10 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION=$RKE2_VERSION sh -
+    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.32.3+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
+    [[ -n "${RKE2_DATA_DIR}" ]] && echo "data-dir: ${RKE2_DATA_DIR}" >> /etc/rancher/rke2/config.yaml
 
     systemctl start rke2-server.service
     systemctl enable rke2-server.service
@@ -74,15 +143,25 @@ Vagrant.configure("2") do |config|
     chmod 0600 /root/.kube/config
     chown -R vagrant:vagrant /home/vagrant/.kube
 
-    ln -s /var/lib/rancher/rke2/bin/kubectl /usr/local/bin/kubectl
-    snap install helm --classic
+    if [[ -n "${RKE2_DATA_DIR}" ]]; then
+      find "${RKE2_DATA_DIR}"/data -type f -executable -name kubectl -print0 | head -z -n 1 | xargs -r -0 -I XXX ln -v -s "XXX" /usr/local/bin/kubectl
+    else
+      ln -v -s /var/lib/rancher/rke2/bin/kubectl /usr/local/bin/kubectl
+    fi
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -
     node_name=$(kubectl get nodes -o jsonpath="{.items[0].metadata.name}")
     kubectl label nodes $node_name cnaps.io/node-type=Tier-1
     kubectl label nodes $node_name cnaps.io/suricata-capture=true
     kubectl label nodes $node_name cnaps.io/zeek-capture=true
     kubectl label nodes $node_name cnaps.io/arkime-capture=true
 
-    kubectl apply -f /vagrant/vagrant_dependencies/sc.yaml
+    cp /vagrant/vagrant_dependencies/sc.yaml /tmp/sc.yaml
+    if [[ -d "${RKE2_DATA_DRIVE}" ]]; then
+      mkdir -p "${RKE2_DATA_DRIVE}"/local-path-provisioner
+      chmod 777 "${RKE2_DATA_DRIVE}"/local-path-provisioner
+      sed -i "s@/opt/local-path-provisioner@${RKE2_DATA_DRIVE}/local-path-provisioner@g" /tmp/sc.yaml
+    fi
+    kubectl apply -f /tmp/sc.yaml
 
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
@@ -131,8 +210,6 @@ Vagrant.configure("2") do |config|
 
   if script_choice == 'use_istio'
     config.vm.provision "shell", inline: <<-SHELL
-      ISTIO_VERSION=1.25.1
-
       # Setup metallb
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
@@ -152,6 +229,7 @@ Vagrant.configure("2") do |config|
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
+      ISTIO_VERSION=1.25.1
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
