@@ -9,6 +9,7 @@ Vagrant.configure("2") do |config|
   vm_memory = ENV['VAGRANT_MEMORY'] || '24576'
   vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '500GB'
   vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
+  vm_gui = ENV['VAGRANT_GUI'] || 'true'
 
   config.vm.box = vm_box
   config.disksize.size = vm_disk_size
@@ -25,7 +26,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
 
   config.vm.provider "virtualbox" do |vb|
-    vb.gui = true
+    vb.gui = (vm_gui.to_s.downcase == 'true')
     vb.customize ['modifyvm', :id, '--ioapic', 'on']
     vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
     vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
