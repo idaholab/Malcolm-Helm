@@ -10,6 +10,7 @@ Vagrant.configure("2") do |config|
   vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '400GB'
   vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
   vm_gui = ENV['VAGRANT_GUI'] || 'true'
+  vm_ssd = ENV['VAGRANT_SSD'] || 'on'
 
   config.vm.box = vm_box
   config.vm.disk :disk, name: "extra", size: vm_disk_size
@@ -30,8 +31,8 @@ Vagrant.configure("2") do |config|
     vb.customize ['modifyvm', :id, '--ioapic', 'on']
     vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
     vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
-    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", "on"]
-    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", "on"]
+    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
+    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
     vb.name = vm_name
     vb.memory = vm_memory.to_i
     vb.cpus = vm_cpus
@@ -41,16 +42,17 @@ Vagrant.configure("2") do |config|
     set -euo pipefail
 
     apt-get update -y
-    apt-get install -y build-essential linux-headers-$(uname -r) xfsprogs
+    apt-get install -y build-essential git linux-headers-$(uname -r)
 
     ALL_DISKS=($(lsblk --nodeps --noheadings --output NAME --paths))
     for DISK in "${ALL_DISKS[@]}"; do
         if [[ "$(lsblk --noheadings --output MOUNTPOINT "${DISK}" | grep -vE "^$")" == "" ]] && \
            [[ "$(lsblk --noheadings --output FSTYPE "${DISK}" | grep -vE "^$")" == "" ]]; then
-            mkfs.xfs "${DISK}"
+            mkfs.ext4 "${DISK}"
+            tune2fs -o journal_data_writeback "${DISK}"
             MOUNT_POINT=/mnt/"$(basename "${DISK}")"
             mkdir -p "${MOUNT_POINT}"
-            grep -qs "$MOUNT_POINT" /etc/fstab || echo -e "# Disk added by Vagrant\n${DISK} ${MOUNT_POINT} xfs defaults 0 0" >> /etc/fstab
+            grep -qs "$MOUNT_POINT" /etc/fstab || echo -e "# Disk added by Vagrant\n${DISK} ${MOUNT_POINT} ext4 defaults,relatime,errors=remount-ro 0 0" >> /etc/fstab
         fi
     done
     mount -a
@@ -102,7 +104,13 @@ Vagrant.configure("2") do |config|
     kubectl label nodes $node_name cnaps.io/zeek-capture=true
     kubectl label nodes $node_name cnaps.io/arkime-capture=true
 
-    kubectl apply -f /vagrant/vagrant_dependencies/sc.yaml
+    cp /vagrant/vagrant_dependencies/sc.yaml /tmp/sc.yaml
+    if [[ -n "${RKE2_DATA_DIR}" ]]; then
+      mkdir -p "${RKE2_DATA_DIR}"/local-path-provisioner
+      sed -i "s@/opt/local-path-provisioner@${RKE2_DATA_DIR}/local-path-provisioner@g" /tmp/sc.yaml
+    fi
+    kubectl apply -f /tmp/sc.yaml
+    rm -f /tmp/sc.yaml
 
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
