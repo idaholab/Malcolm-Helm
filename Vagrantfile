@@ -105,12 +105,12 @@ Vagrant.configure("2") do |config|
     kubectl label nodes $node_name cnaps.io/arkime-capture=true
 
     cp /vagrant/vagrant_dependencies/sc.yaml /tmp/sc.yaml
-    if [[ -n "${RKE2_DATA_DIR}" ]]; then
-      mkdir -p "${RKE2_DATA_DIR}"/local-path-provisioner
-      sed -i "s@/opt/local-path-provisioner@${RKE2_DATA_DIR}/local-path-provisioner@g" /tmp/sc.yaml
+    if [[ -d "${RKE2_DATA_DRIVE}" ]]; then
+      mkdir -p "${RKE2_DATA_DRIVE}"/local-path-provisioner
+      chmod 777 "${RKE2_DATA_DRIVE}"/local-path-provisioner
+      sed -i "s@/opt/local-path-provisioner@${RKE2_DATA_DRIVE}/local-path-provisioner@g" /tmp/sc.yaml
     fi
     kubectl apply -f /tmp/sc.yaml
-    rm -f /tmp/sc.yaml
 
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
