@@ -92,7 +92,7 @@ Vagrant.configure("2") do |config|
     set -euo pipefail
 
     apt-get update -y
-    apt-get install -y build-essential git linux-headers-"$(uname -m | sed 's/^x86_64$/amd64/' | sed 's/^aarch64$/-arm64/')" qemu-guest-agent
+    apt-get install -y build-essential git linux-headers-$(uname -m | sed 's/^x86_64$/amd64/') qemu-guest-agent
 
     ALL_DISKS=($(lsblk --nodeps --noheadings --output NAME --paths))
     for DISK in "${ALL_DISKS[@]}"; do
