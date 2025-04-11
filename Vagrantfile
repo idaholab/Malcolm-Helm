@@ -92,7 +92,7 @@ Vagrant.configure("2") do |config|
     set -euo pipefail
 
     apt-get update -y
-    apt-get install -y build-essential git linux-headers-$(uname -m | sed 's/^x86_64$/amd64/') qemu-guest-agent
+    apt-get install -y build-essential git iptables linux-headers-$(uname -m | sed 's/^x86_64$/amd64/') qemu-guest-agent
 
     ALL_DISKS=($(lsblk --nodeps --noheadings --output NAME --paths))
     for DISK in "${ALL_DISKS[@]}"; do
@@ -263,8 +263,10 @@ Vagrant.configure("2") do |config|
     SHELL
   else
     config.vm.provision "shell", inline: <<-SHELL
-      echo "Sleep for three minutes for cluster to come back up"
-      sleep 180
+      until kubectl get endpoints --namespace kube-system 2>/dev/null | grep -q rke2-ingress-nginx-controller-admission; do
+        echo "Waiting for rke2-ingress-nginx-controller-admission..."
+        sleep 20
+      done
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=enp0s8
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost"
       hostname -I
