@@ -46,14 +46,14 @@ Vagrant.configure("2") do |config|
 
     config.vm.provider "virtualbox" do |vb|
       vb.gui = (vm_gui.to_s.downcase == 'true')
+      vb.customize ['modifyvm', :id, '--memory', vm_memory]
+      vb.customize ['modifyvm', :id, '--cpus', vm_cpus]
       vb.customize ['modifyvm', :id, '--ioapic', 'on']
       vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
       vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
       vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
       vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
       vb.name = vm_name
-      vb.memory = vm_memory.to_i
-      vb.cpus = vm_cpus
     end
   end
 
@@ -197,7 +197,7 @@ Vagrant.configure("2") do |config|
 
     # Update coredns so that hostname will resolve to their perspective IPs by enabling the host plugin
     until kubectl get configmaps --namespace kube-system 2>/dev/null | grep -q rke2-coredns-rke2-coredns; do
-      echo "Waiting for rke2-coredns-rke2-coredns..."
+      echo "Waiting for rke2-coredns-rke2-coredns..." >&2
       sleep 20
     done
     myip_string=$(hostname -I)
@@ -206,7 +206,7 @@ Vagrant.configure("2") do |config|
     sed -i "s/###NODE_IP_ADDRESS###/${my_hostips[0]}/g" /tmp/Corefile.yaml
     kubectl replace -f /tmp/Corefile.yaml
     sleep 5
-    echo "Rebooting the VM"
+    echo "Rebooting..." >&2
   SHELL
 
   config.vm.provision "reload"
@@ -216,11 +216,11 @@ Vagrant.configure("2") do |config|
       # Setup metallb
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
-      echo "Sleep for one minute before installing metallb"
-      sleep 60
       helm install metallb metallb/metallb -n metallb-system --create-namespace
-      echo "Sleep for three minutes for cluster to come back up"
-      sleep 180
+      echo "Wait for metallb-system controller to become ready..." >&2
+      until kubectl get namespaces 2>/dev/null | grep -q metallb-system; do
+        sleep 20
+      done
       kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=900s --namespace metallb-system
       kubectl apply -f /vagrant/vagrant_dependencies/ipaddress-pool.yml
       kubectl apply -f /vagrant/vagrant_dependencies/l2advertisement.yaml
@@ -258,17 +258,18 @@ Vagrant.configure("2") do |config|
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=enp0s8
       # kubectl apply -f /vagrant/vagrant_dependencies/test-gateway.yml
       grep -qxF '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' /etc/hosts || echo '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' >> /etc/hosts
-      echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost"
+      echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
       hostname -I
     SHELL
   else
     config.vm.provision "shell", inline: <<-SHELL
-      until kubectl get endpoints --namespace kube-system 2>/dev/null | grep -q rke2-ingress-nginx-controller-admission; do
-        echo "Waiting for rke2-ingress-nginx-controller-admission..."
+      until kubectl get endpoints --namespace kube-system 2>/dev/null | grep -Pq "rke2-ingress-nginx-controller-admission\s+.+:\d+"; do
+        echo "Waiting for rke2-ingress-nginx-controller-admission..." >&2
         sleep 20
       done
+      sleep 5
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=enp0s8
-      echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost"
+      echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
       hostname -I
     SHELL
   end
