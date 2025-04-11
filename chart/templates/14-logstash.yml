@@ -16,16 +16,14 @@ data:
   LOGSTASH_SEVERITY_SCORING: "true"
   {{- if .Values.is_production }}
     {{- with .Values.logstash.production }}
-  LS_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom
-    -Dlog4j.formatMsgNoLookups=true
+  LS_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true -Dlogstash.pipelinebus.implementation=v1
   pipeline.batch.delay: "{{ .batch_delay }}"
   pipeline.batch.size: "{{ .batch_size }}"
   pipeline.workers: "{{ .workers }}"
     {{- end }}
   {{- else }}
     {{- with .Values.logstash.development }}
-  LS_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom
-    -Dlog4j.formatMsgNoLookups=true
+  LS_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true -Dlogstash.pipelinebus.implementation=v1
   # Parameters for tuning Logstash pipelines (see
   #   https://www.elastic.co/guide/en/logstash/current/logstash-settings-file.html)
   pipeline.batch.delay: "{{ .batch_delay }}"

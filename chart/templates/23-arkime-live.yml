@@ -86,7 +86,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /opt/arkime/etc/config.orig.ini
-            name: arkime-config-default
+            name: arkime-live-config-default
             subPath: config.ini
           - name: arkime-live-shell-override-volume
             mountPath: /opt/command_override.sh
@@ -125,7 +125,7 @@ spec:
           - name: arkime-live-pcap-volume
             mountPath: "/data/pcap"
       volumes:
-        - name: arkime-config-default
+        - name: arkime-live-config-default
           configMap:
             name: arkime-config
         - name: arkime-live-var-local-catrust-volume

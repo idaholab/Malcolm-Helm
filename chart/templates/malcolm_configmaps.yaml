@@ -139,13 +139,11 @@ data:
   OPENSEARCH_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.primary.curlrc
 {{- if .Values.is_production }}
   {{- with .Values.opensearch.production }}
-  OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError
-    -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
+  OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
   {{- end }}
 {{- else }}
   {{- with .Values.opensearch.development }}
-  OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }}:-HeapDumpOnOutOfMemoryError
-    -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
+  OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
   {{- end }}
 {{- end }}
   OPENSEARCH_PRIMARY: "{{ include "malcolm.opensearchprimary" . }}"
