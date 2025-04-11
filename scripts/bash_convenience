@@ -1,0 +1,37 @@
+
+alias k="kubectl"
+
+export KUBESPACE=malcolm
+
+function kpods () {
+    local NAMESPACE="${1:-$KUBESPACE}"
+    kubectl --kubeconfig "${KUBECONFIG}" get pods --no-headers --namespace "${NAMESPACE}"
+}
+
+function kshell () {
+    local SERVICE="${1:-nginx-proxy}"
+    local NAMESPACE="${2:-$KUBESPACE}"
+    local SHELL="${3:-/bin/bash}"
+    local POD="$(kubectl --kubeconfig "${KUBECONFIG}" get pods --no-headers --namespace "${NAMESPACE}" | grep "^${SERVICE}" | awk '{print $1}' | sort | head -n 1)"
+    if [[ -n "${POD}" ]]; then
+        kubectl --kubeconfig "${KUBECONFIG}" exec --stdin --tty --namespace "${NAMESPACE}" "${POD}" -- "${SHELL}"
+    else
+        echo "Unable to identify pod for ${SERVICE} in ${NAMESPACE}" >&2
+    fi
+}
+
+function klogs () {
+    local SERVICE="${1:-nginx-proxy}"
+    local NAMESPACE="${2:-$KUBESPACE}"
+    local SHELL="${3:-/bin/bash}"
+    local POD="$(kubectl --kubeconfig "${KUBECONFIG}" get pods --no-headers --namespace "${NAMESPACE}" | grep "^${SERVICE}" | awk '{print $1}' | sort | head -n 1)"
+    if [[ -n "${POD}" ]]; then
+        if command -v stern >/dev/null 2>&1; then
+            stern --kubeconfig "${KUBECONFIG}" --namespace "${NAMESPACE}" --container '.*' --container-state all "${POD}"
+        else
+            kubectl --kubeconfig "${KUBECONFIG}" logs --namespace "${NAMESPACE}" --follow=true --all-containers "${POD}"
+        fi
+    else
+        echo "Unable to identify pod for ${SERVICE} in ${NAMESPACE}" >&2
+    fi
+}
