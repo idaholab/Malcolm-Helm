@@ -213,6 +213,10 @@ Vagrant.configure("2") do |config|
 
   if script_choice == 'use_istio'
     config.vm.provision "shell", inline: <<-SHELL
+      echo "Wait for cluster to become ready..." >&2
+      until kubectl wait --for=condition=Ready nodes --all --timeout=19 >/dev/null 2>&1; do
+        sleep 1
+      done
       # Setup metallb
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
