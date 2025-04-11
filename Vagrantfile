@@ -196,6 +196,10 @@ Vagrant.configure("2") do |config|
     grep -qxF 'iptable_mangle' /etc/modules || echo 'iptable_mangle' >> /etc/modules
 
     # Update coredns so that hostname will resolve to their perspective IPs by enabling the host plugin
+    until kubectl get configmaps --namespace kube-system 2>/dev/null | grep -q rke2-coredns-rke2-coredns; do
+      echo "Waiting for rke2-coredns-rke2-coredns..."
+      sleep 20
+    done
     myip_string=$(hostname -I)
     read -ra my_hostips <<< $myip_string
     cp /vagrant/vagrant_dependencies/Corefile.yaml /tmp/Corefile.yaml
@@ -203,7 +207,6 @@ Vagrant.configure("2") do |config|
     kubectl replace -f /tmp/Corefile.yaml
     sleep 5
     echo "Rebooting the VM"
-
   SHELL
 
   config.vm.provision "reload"
