@@ -38,68 +38,6 @@ kind: ConfigMap
 metadata:
   name: dashboards-env
 
-{{- if .Values.siem_env.malcolm_beats_template_override.enabled }}
----
-apiVersion: v1
-data:
-  malcolm_beats_template.json: |
-    {
-      "index_patterns": [
-        "MALCOLM_OTHER_INDEX_PATTERN_REPLACER"
-      ],
-      "composed_of": [
-        "ecs_base",
-        "ecs_ecs",
-        "ecs_event",
-        "ecs_agent",
-        "ecs_client",
-        "ecs_destination",
-        "ecs_error",
-        "ecs_file",
-        "ecs_host",
-        "ecs_http",
-        "ecs_log",
-        "ecs_network",
-        "ecs_process",
-        "ecs_related",
-        "ecs_server",
-        "ecs_source",
-        "ecs_threat",
-        "ecs_url",
-        "ecs_user",
-        "ecs_user_agent",
-        "custom_miscbeat",
-        "custom_suricata_stats",
-        "custom_zeek_diagnostic"
-      ],
-      "template": {
-        "settings": {
-          "index": {
-            "default_pipeline": "{{ .Values.siem_env.malcolm_beats_template_override.default_pipeline }}",
-            "mapping.total_fields.limit": "6000",
-            "mapping.nested_fields.limit": "250"
-          }
-        },
-        "mappings": {
-          "properties": {
-            "timestamp": {
-              "type": "date"
-            },
-            "node": {
-              "type": "keyword"
-            },
-            "event.result": {
-              "type": "keyword"
-            }
-          }
-        }
-      }
-    }
-kind: ConfigMap
-metadata:
-  name: malcolm-beats-template-override
-{{- end }}
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -165,11 +103,6 @@ spec:
             name: malcolm-template-override
             subPath: malcolm_template_suricata.json
 {{- end }}
-{{- if .Values.siem_env.malcolm_beats_template_override.enabled }}
-          - mountPath: /opt/templates/malcolm_beats_template.json
-            name: malcolm-beats-template-override
-            subPath: malcolm_beats_template.json
-{{- end }}
       volumes:
         - name: dashboards-helper-var-local-catrust-volume
           configMap:
@@ -181,9 +114,4 @@ spec:
         - name: malcolm-template-override
           configMap:
             name: malcolm-template-override
-{{- end }}
-{{- if .Values.siem_env.malcolm_beats_template_override.enabled }}
-        - name: malcolm-beats-template-override
-          configMap:
-            name: malcolm-beats-template-override
 {{- end }}

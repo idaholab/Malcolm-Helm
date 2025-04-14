@@ -173,11 +173,12 @@ data:
   discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
   MALCOLM_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_network_index_pattern }}"
   MALCOLM_NETWORK_INDEX_ALIAS: "{{ .Values.siem_env.logstash_override.search_alias }}"
-  # COMMMENTED out DO NOT add these back in
-  # MALCOLM_OTHER_INDEX_ALIAS:
+  MALCOLM_NETWORK_INDEX_DEFAULT_PIPELINE: "{{ .Values.siem_env.malcolm_template_default_pipeline }}"
   MALCOLM_NETWORK_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_network_index_time_field }}"
   MALCOLM_NETWORK_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_network_index_suffix }}"
   MALCOLM_OTHER_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_other_index_pattern }}"
+  MALCOLM_OTHER_INDEX_ALIAS: "{{ .Values.siem_env.logstash_override.other_search_alias }}"
+  MALCOLM_OTHER_INDEX_DEFAULT_PIPELINE: "{{ .Values.siem_env.malcolm_beats_template_default_pipeline }}"
   MALCOLM_OTHER_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_other_index_time_field }}"
   MALCOLM_OTHER_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_other_index_suffix }}"
   ARKIME_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.arkime_network_index_pattern }}"

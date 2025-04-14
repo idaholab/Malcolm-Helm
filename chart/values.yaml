@@ -28,7 +28,7 @@ image:
   dashboards_helper_container_override: ""
   file_monitor_container_override: ""
   filebeat_container_override: ""
-  logsstash_container_override: ""
+  logstash_container_override: ""
   keycloak_container_override: ""
   redis_container_override: ""
   postgres_container_override: ""
@@ -108,10 +108,10 @@ siem_env:
     rollover_alias_zeek: malcolm_network_zeek
     rollover_alias_suricata: malcolm_network_suricata
     search_alias: malcolm_network
-  # Allows user to add a default_pipeline to malcolm_beat_template
-  malcolm_beats_template_override:
-    enabled: false
-    default_pipeline: ""
+    other_search_alias: ""
+  # Allows user to add a default_pipeline to malcolm_template or malcolm_beat_template
+  malcolm_template_default_pipeline: ""
+  malcolm_beats_template_default_pipeline: ""
   malcolm_network_index_pattern: "arkime_sessions3-*"
   # Default time field to use for network traffic logs in Logstash and Dashboards
   malcolm_network_index_time_field: "firstPacket"
