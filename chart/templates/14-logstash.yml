@@ -136,8 +136,6 @@ spec:
             name: logstash-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: logstash-opensearch-curlrc-secret-volume
-          - mountPath: /certs/secretmap
-            name: logstash-certs-secret-volume
           - name: logstash-config-persist-volume
             mountPath: /usr/share/logstash/config/persist
             subPath: "logstash"
@@ -171,9 +169,6 @@ spec:
         - name: logstash-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
-        - name: logstash-certs-secret-volume
-          secret:
-            secretName: logstash-certs
         - name: logstash-config-persist-volume
           persistentVolumeClaim:
             claimName: config-claim
