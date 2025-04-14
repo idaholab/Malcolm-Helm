@@ -2,7 +2,7 @@
 apiVersion: v1
 data:
   nginx.conf: |
-    # Copyright (c) 2023 Battelle Energy Alliance, LLC.  All rights reserved.
+    # Copyright (c) 2025 Battelle Energy Alliance, LLC.  All rights reserved.
 
     daemon off;
 
@@ -15,6 +15,9 @@ data:
     env KEYCLOAK_CLIENT_ID;
     env KEYCLOAK_CLIENT_SECRET;
     env KEYCLOAK_AUTH_REDIRECT_URI;
+    env NGINX_REQUIRE_GROUP;
+    env NGINX_REQUIRE_ROLE;
+    env ARKIME_SSL;
 
     events { worker_connections 1024; }
 
@@ -40,7 +43,6 @@ data:
       fastcgi_busy_buffers_size 384k;
       fastcgi_request_buffering off;
 
-      # Needed so istio side car containers work with nginx appropriatley
       proxy_http_version 1.1;
       proxy_connect_timeout 180s;
       proxy_read_timeout 300s;
@@ -81,12 +83,6 @@ data:
         server logstash:9600;
       }
 
-      {{- if .Values.netbox.enabled }}
-      upstream netbox {
-        server netbox:8080;
-      }
-      {{- end }}
-
       upstream extracted-file-http-server {
         server file-monitor:8440;
       }
@@ -97,6 +93,10 @@ data:
 
       {{- if eq .Values.auth.mode "keycloak" }}
       include /etc/nginx/nginx_keycloak_upstream_rt.conf;
+      {{- end }}
+
+      {{- if .Values.netbox.enabled }}
+      include /etc/nginx/nginx_netbox_upstream_rt.conf;
       {{- end }}
 
       map $http_x_forwarded_proto $proxy_x_forwarded_proto {
@@ -138,6 +138,11 @@ data:
         include /etc/nginx/nginx_keycloak_location_rt.conf;
         {{- end }}
 
+        {{- if .Values.netbox.enabled }}
+        # the /netbox endpoint for NetBox if enabled
+        include /etc/nginx/nginx_netbox_location_rt.conf;
+        {{- end }}
+
         # Malcolm file upload
         location /upload {
           include /etc/nginx/nginx_auth_rt.conf;
@@ -162,28 +167,6 @@ data:
           client_max_body_size 50G;
           include /etc/nginx/nginx_proxy_forward_headers.conf;
         }
-
-        # netbox
-        {{- if .Values.netbox.enabled }}
-        location /netbox {
-          include /etc/nginx/nginx_auth_rt.conf;
-          proxy_pass http://netbox;
-          proxy_redirect off;
-          include /etc/nginx/nginx_proxy_forward_headers.conf;
-        }
-
-        # netbox from dashboards pivot link (because Dashboards is prepending its own prefix, we have to handle it)
-        location ~* ^/dashboards/app/netbox/(.*) {
-          set $forwarded_scheme $scheme;
-          if ($http_x_forwarded_proto = 'https') {
-              set $forwarded_scheme https;
-          }
-          rewrite ^/dashboards/app/netbox/(.*) $forwarded_scheme://$host/netbox/$1 redirect;
-          proxy_pass http://netbox;
-          proxy_redirect off;
-          include /etc/nginx/nginx_proxy_forward_headers.conf;
-        }
-        {{- end }}
 
         # extracted file download
         location ~* ^/extracted-files\b(.*) {
@@ -213,7 +196,7 @@ data:
           set $upstream $2:8006;
           set $filereq $3;
           rewrite ^/(dashboards/app/)?hh-extracted-files/([a-zA-Z0-9-\.]+)(.*)$ $filereq break;
-          proxy_pass http://$upstream;
+          proxy_pass https://$upstream;
           proxy_ssl_verify off;
           proxy_set_header Host $2;
           proxy_set_header X-Malcolm-Forward "/hh-extracted-files/$2";
@@ -251,7 +234,7 @@ data:
               set $forwarded_scheme https;
           }
           rewrite ^.*/iddash2ark/(.*) $forwarded_scheme://$host/arkime/sessions?expression=($1) redirect;
-          proxy_pass http://arkime;
+          proxy_pass $arkime_protocol://arkime;
           proxy_ssl_verify off;
           proxy_redirect off;
           include /etc/nginx/nginx_proxy_forward_headers.conf;
@@ -279,7 +262,7 @@ data:
           add_header Content-Type "application/javascript";
           default_type application/javascript;
           add_header X-Content-Type-Options 'nosniff';
-          proxy_pass http://arkime/cyberchef/$1;
+          proxy_pass $arkime_protocol://arkime/cyberchef/$1;
           proxy_ssl_verify off;
           proxy_redirect off;
           proxy_set_header Authorization "";
@@ -297,16 +280,6 @@ data:
         # passthrough OpenSearch from the Malcolm API
         include /etc/nginx/nginx_opensearch_mapi_rt.conf;
 
-        {{- if .Values.netbox.enabled }}
-        # passthrough NetBox from the Malcolm API
-        location /mapi/netbox/ {
-          include /etc/nginx/nginx_auth_rt.conf;
-          proxy_pass http://netbox/netbox/api/;
-          proxy_redirect off;
-          include /etc/nginx/nginx_proxy_forward_headers.conf;
-        }
-        {{- end }}
-
         # Malcolm API
         location /mapi {
           include /etc/nginx/nginx_auth_rt.conf;
@@ -318,7 +291,7 @@ data:
         # Arkime
         location /arkime {
           include /etc/nginx/nginx_auth_rt.conf;
-          proxy_pass http://arkime;
+          proxy_pass $arkime_protocol://arkime;
           proxy_redirect off;
           proxy_set_header Authorization "";
           include /etc/nginx/nginx_proxy_forward_headers.conf;
