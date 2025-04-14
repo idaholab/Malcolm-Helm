@@ -6,6 +6,8 @@ data:
   NGINX_LDAP_TLS_STUNNEL_CHECK_HOST: ""
   NGINX_LDAP_TLS_STUNNEL_CHECK_IP: ""
   NGINX_LDAP_TLS_STUNNEL_VERIFY_LEVEL: "2"
+  NGINX_REQUIRE_GROUP: ""
+  NGINX_REQUIRE_ROLE: ""
 kind: ConfigMap
 metadata:
   name: auth-common-env

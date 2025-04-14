@@ -200,6 +200,7 @@ Vagrant.configure("2") do |config|
       echo "Waiting for rke2-coredns-rke2-coredns..." >&2
       sleep 20
     done
+    echo "rke2-coredns-rke2-coredns is present" >&2
     myip_string=$(hostname -I)
     read -ra my_hostips <<< $myip_string
     cp /vagrant/vagrant_dependencies/Corefile.yaml /tmp/Corefile.yaml
@@ -217,15 +218,20 @@ Vagrant.configure("2") do |config|
       until kubectl wait --for=condition=Ready nodes --all --timeout=19s >/dev/null 2>&1; do
         sleep 1
       done
+      echo "Cluster nodes are ready" >&2
       # Setup metallb
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
       helm install metallb metallb/metallb -n metallb-system --create-namespace
-      echo "Wait for metallb-system controller to become ready..." >&2
+      echo "Wait for metallb-system namespace..." >&2
       until kubectl get namespaces 2>/dev/null | grep -q metallb-system; do
         sleep 20
       done
+      sleep 5
+      echo "metallb-system namespace exists" >&2
+      echo "Wait for metallb-system controller to become ready..." >&2
       kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=900s --namespace metallb-system
+      echo "metallb-system controller pod exists" >&2
       kubectl apply -f /vagrant/vagrant_dependencies/ipaddress-pool.yml
       kubectl apply -f /vagrant/vagrant_dependencies/l2advertisement.yaml
 
@@ -267,10 +273,11 @@ Vagrant.configure("2") do |config|
     SHELL
   else
     config.vm.provision "shell", inline: <<-SHELL
+      echo "Waiting for rke2-ingress-nginx-controller-admission..." >&2
       until kubectl get endpoints --namespace kube-system 2>/dev/null | grep -Pq "rke2-ingress-nginx-controller-admission\s+.+:\d+"; do
-        echo "Waiting for rke2-ingress-nginx-controller-admission..." >&2
         sleep 20
       done
+      echo "rke2-ingress-nginx-controller-admission is present" >&2
       sleep 5
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=enp0s8
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2

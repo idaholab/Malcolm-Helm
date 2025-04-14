@@ -110,7 +110,7 @@ spec:
     spec:
       containers:
       - name: opensearch-container
-        image: "{{ .Values.image.repository }}/opensearch:{{ .Values.image.opensearch_tag | default .Chart.AppVersion }}"
+        image: "{{ $opensearch_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
