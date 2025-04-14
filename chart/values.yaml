@@ -412,7 +412,6 @@ maxmind:
 
 # Variables apply to both offline and live version of arkime
 arkime_env:
-  arkime_ssl: "false"
   arkime_debug_level: "0"
   development:
     free_space_g: "10%"

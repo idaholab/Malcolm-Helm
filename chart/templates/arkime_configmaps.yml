@@ -67,7 +67,7 @@ metadata:
 ---
 apiVersion: v1
 data:
-  ARKIME_SSL: "{{ .Values.arkime_env.arkime_ssl }}"
+  ARKIME_SSL: "false"
   ARKIME_VIEWER_PORT: "8005"
   # Whether or not Arkime is allowed to delete uploaded/captured PCAP
   #   https://arkime.com/faq#pcap-deletion
