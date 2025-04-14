@@ -1,4 +1,4 @@
-{{- $logstash_image := .Values.image.logsstash_container_override | default (printf "%s/logstash-oss:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $logstash_image := .Values.image.logstash_container_override | default (printf "%s/logstash-oss:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
