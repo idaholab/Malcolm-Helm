@@ -82,9 +82,6 @@ spec:
           successThreshold: 1
           failureThreshold: 10
         volumeMounts:
-          - mountPath: /opt/arkime/etc/config.orig.ini
-            name: arkime-live-config-default
-            subPath: config.ini
           - mountPath: "/opt/arkime/lua/configmap"
             name: arkime-live-lua-volume
           - mountPath: /var/local/ca-trust/configmap
@@ -119,9 +116,6 @@ spec:
           - name: arkime-live-pcap-volume
             mountPath: "/data/pcap"
       volumes:
-        - name: arkime-live-config-default
-          configMap:
-            name: arkime-config
         - name: arkime-live-var-local-catrust-volume
           configMap:
             name: var-local-catrust

@@ -81,9 +81,6 @@ spec:
           successThreshold: 1
           timeoutSeconds: 30
         volumeMounts:
-          - mountPath: /opt/arkime/etc/config.orig.ini
-            name: arkime-config-default
-            subPath: config.ini
           - mountPath: /var/local/ca-trust/configmap
             name: arkime-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
@@ -118,9 +115,6 @@ spec:
           - name: arkime-pcap-volume
             mountPath: "/data/pcap"
       volumes:
-        - name: arkime-config-default
-          configMap:
-            name: arkime-config
         - name: arkime-var-local-catrust-volume
           configMap:
             name: var-local-catrust

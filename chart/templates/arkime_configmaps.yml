@@ -55,6 +55,8 @@ data:
   #   Arkime will see duplicate traffic.
   ARKIME_ROTATED_PCAP: "true"
   ARKIME_PCAP_PROCESSOR: "true"
+  # The number of Arkime processes for analyzing uploaded PCAP files allowed
+  #   to run concurrently
   ARKIME_AUTO_ANALYZE_PCAP_THREADS: "1"
   VIEWER: "on"
   WISE: "on"
@@ -65,23 +67,48 @@ metadata:
 ---
 apiVersion: v1
 data:
+  ARKIME_SSL: "{{ .Values.arkime_env.arkime_ssl }}"
   ARKIME_VIEWER_PORT: "8005"
   # Whether or not Arkime is allowed to delete uploaded/captured PCAP
   #   https://arkime.com/faq#pcap-deletion
   MANAGE_PCAP_FILES: "true"
   OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
+  # debug flag for config.ini (https://arkime.com/settings#debug)
   ARKIME_DEBUG_LEVEL: "{{ .Values.arkime_env.arkime_debug_level }}"
+{{- if ne .Values.siem_env.malcolm_network_index_pattern "arkime_sessions3-*" }}
+  # Always query all indices instead of trying to calculate which ones
+  #   https://arkime.com/settings#queryAllIndices
+  ARKIME_QUERY_ALL_INDICES: "true"
+{{- else }}
+  ARKIME_QUERY_ALL_INDICES: "false"
+{{- end }}
+{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
+  ARKIME_CERTFILE: "/usr/local/share/ca-certificates/elastic_ca.crt"
+{{- end }}
 {{- if .Values.is_production }}
   {{- with .Values.arkime_env.production }}
   ARKIME_FREESPACEG: "{{ .free_space_g }}"
+  # How often to create a new index in OpenSearch/Elasticsearch
+  #   https://arkime.com/settings#rotateIndex
   ARKIME_ROTATE_INDEX: "{{ .rotate_index }}"
+  # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
+  # Whether or not Arkime should perform index management
   INDEX_MANAGEMENT_ENABLED: "{{ .index_management_enabled }}"
+  # Time in hours/days before moving to warm and force merge (number followed by h or d)
   INDEX_MANAGEMENT_OPTIMIZATION_PERIOD: "{{ .index_management_optimization_period }}"
+  # Time in hours/days before deleting index (number followed by h or d)
   INDEX_MANAGEMENT_RETENTION_TIME: "{{ .index_management_retention_time }}"
+  # Number of replicas for older sessions indices
   INDEX_MANAGEMENT_OLDER_SESSION_REPLICAS: "{{ .index_management_older_session_replicas }}"
+  # Number of weeks of history to retain
   INDEX_MANAGEMENT_HISTORY_RETENTION_WEEKS: "{{ .index_management_history_retention_weeks }}"
+  # Number of segments to optimize sessions for
   INDEX_MANAGEMENT_SEGMENTS: "{{ .index_management_segments }}"
+  # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
   INDEX_MANAGEMENT_HOT_WARM_ENABLED: "{{ .index_management_hot_warm_enabled }}"
+  # Specify the max number of indices for querying SPI data, or set to -1 to disable any max.
+  #   The Arkime documentation warns "OpenSearch/Elasticsearch MAY blow up if we ... search too many indices."
+  #   https://arkime.com/settings#spiDataMaxIndices
   ARKIME_SPI_DATA_MAX_INDICES: "{{ .spi_data_max_indices }}"
   {{- end }}
 {{- else }}
@@ -105,8 +132,11 @@ metadata:
 ---
 apiVersion: v1
 stringData:
+  # MaxMind GeoIP database update API key
   MAXMIND_GEOIP_DB_LICENSE_KEY: "{{ .Values.maxmind.license_key }}"
+  # Alternate download URL for MaxMind MMDB tarballs
   MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL: "{{ .Values.maxmind.alternate_url }}"
+  # Password hash secret for Arkime viewer cluster (see https://arkime.com/settings)
   ARKIME_PASSWORD_SECRET: "{{ .Values.auth.arkime_password }}"
 kind: Secret
 metadata:
@@ -120,7 +150,6 @@ data:
   #   interface (PCAP_IFACE in pcap-capture.env specifies interface)
   ARKIME_LIVE_CAPTURE: "true"
   ARKIME_MAGIC_MODE: basic
-  #How many packets per packet thread that can be waiting to be processed. Arkime will start dropping packets if the queue fills up.
   ARKIME_PCAP_WRITE_METHOD: "simple"
   ARKIME_PCAP_READ_METHOD: tpacketv3
   ARKIME_PCAP_PROCESSOR: "false"
