@@ -196,8 +196,8 @@ Vagrant.configure("2") do |config|
     grep -qxF 'iptable_mangle' /etc/modules || echo 'iptable_mangle' >> /etc/modules
 
     # Update coredns so that hostname will resolve to their perspective IPs by enabling the host plugin
+    echo "Waiting for rke2-coredns-rke2-coredns..." >&2
     until kubectl get configmaps --namespace kube-system 2>/dev/null | grep -q rke2-coredns-rke2-coredns; do
-      echo "Waiting for rke2-coredns-rke2-coredns..." >&2
       sleep 20
     done
     echo "rke2-coredns-rke2-coredns is present" >&2
