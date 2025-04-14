@@ -227,10 +227,11 @@ Vagrant.configure("2") do |config|
       until kubectl get namespaces 2>/dev/null | grep -q metallb-system; do
         sleep 20
       done
-      sleep 5
+      sleep 10
       echo "metallb-system namespace exists" >&2
       echo "Wait for metallb-system controller to become ready..." >&2
       kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=900s --namespace metallb-system
+      sleep 10
       echo "metallb-system controller pod exists" >&2
       kubectl apply -f /vagrant/vagrant_dependencies/ipaddress-pool.yml
       kubectl apply -f /vagrant/vagrant_dependencies/l2advertisement.yaml
