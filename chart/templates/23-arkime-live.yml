@@ -31,9 +31,6 @@ spec:
         imagePullPolicy: Always
         stdin: false
         tty: true
-        command:
-        - "/bin/bash"
-        - "/opt/command_override.sh"
         securityContext:
           # TODO we should not be using root here
           runAsGroup: 0
@@ -88,9 +85,6 @@ spec:
           - mountPath: /opt/arkime/etc/config.orig.ini
             name: arkime-live-config-default
             subPath: config.ini
-          - name: arkime-live-shell-override-volume
-            mountPath: /opt/command_override.sh
-            subPath: command_override.sh
           - mountPath: "/opt/arkime/lua/configmap"
             name: arkime-live-lua-volume
           - mountPath: /var/local/ca-trust/configmap
@@ -140,9 +134,6 @@ spec:
         - name: arkime-live-rules-volume
           configMap:
             name: arkime-rules
-        - name: arkime-live-shell-override-volume
-          configMap:
-            name: arkime-live-shell-override
         - name: arkime-live-pcap-volume
           hostPath:
             path: "{{ .Values.arkime_live.pcap_hostpath }}"

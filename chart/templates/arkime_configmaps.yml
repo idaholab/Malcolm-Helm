@@ -166,20 +166,6 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: arkime-live-shell-override
-data:
-  command_override.sh: |
-    #!/bin/bash
-    sed -i 's/NODE_NAME=${PCAP_NODE_NAME:-"malcolm"}-live/NODE_NAME=${PCAP_NODE_NAME}/' /usr/local/bin/live_capture.sh
-    sed -i 's/NODE_HOST=${ARKIME_LIVE_NODE_HOST:-""}/NODE_HOST=${NODE_NAME}/' /usr/local/bin/live_capture.sh
-    /usr/bin/tini -s -- /usr/local/bin/docker-uid-gid-setup.sh \
-      /usr/local/bin/service_check_passthrough.sh -s arkime \
-      /usr/local/bin/docker_entrypoint.sh \
-      /usr/bin/supervisord -c /etc/supervisord.conf -n
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: arkime-lua
 ---
 apiVersion: v1
