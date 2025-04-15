@@ -112,6 +112,7 @@ data:
   SKIP_SUPERUSER: "false"
   SUPERUSER_EMAIL: admin@example.com
   WEBHOOKS_ENABLED: "true"
+  OPENSSL_FORCE_FIPS_MODE: "0"
 kind: ConfigMap
 metadata:
   name: netbox-env
