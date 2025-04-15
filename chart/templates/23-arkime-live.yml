@@ -125,9 +125,6 @@ spec:
         - name: arkime-live-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
-        - name: arkime-live-rules-volume
-          configMap:
-            name: arkime-rules
         - name: arkime-live-pcap-volume
           hostPath:
             path: "{{ .Values.arkime_live.pcap_hostpath }}"

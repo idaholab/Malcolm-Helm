@@ -1,52 +1,6 @@
 ---
 apiVersion: v1
 data:
-  .gitignore: |+
-    *
-    !.gitignore
-
-  single_session_no_spi.yml: |
-    ---
-    version: 1
-    rules:
-      - name: "Dont save SPI sessions with only 1 source packet"
-        when: "beforeFinalSave"
-        fields:
-          packets.src: 1
-          packets.dst: 0
-          tcpflags.syn: 1
-        ops:
-          _dontSaveSPI: 1
-  ssh_trunate.yml: |
-    ---
-    version: 1
-    rules:
-      - name: "Only save first n packets of SSH"
-        when: "fieldSet"
-        fields:
-          protocols:
-          - ssh
-        ops:
-          _maxPacketsToSave: 20
-  tls_trunate.yml: |
-    ---
-    version: 1
-    rules:
-      - name: "Only save first n packets of TLS"
-        when: "fieldSet"
-        fields:
-          protocols:
-          - tls
-        ops:
-          _maxPacketsToSave: 15
-kind: ConfigMap
-metadata:
-  name: arkime-rules
-  namespace: malcolm
-
----
-apiVersion: v1
-data:
   # Whether or not Arkime should analyze uploaded PCAP files
   ARKIME_AUTO_ANALYZE_PCAP_FILES: "true"
   # Whether or not Arkime should analyze captured PCAP files captured
