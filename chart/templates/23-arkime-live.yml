@@ -88,8 +88,6 @@ spec:
             name: arkime-live-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: arkime-live-opensearch-curlrc-secret-volume
-          - mountPath: /opt/arkime/rules/configmap
-            name: arkime-live-rules-volume
           - mountPath: "/data/pcap"
             name: arkime-live-pcap-volume
 {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
