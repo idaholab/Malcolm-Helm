@@ -131,9 +131,6 @@ spec:
             name: zeek-intel-volume
             subPath: "zeek/intel"
           {{- end }}
-      {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
-      {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
-      {{- end }}
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
