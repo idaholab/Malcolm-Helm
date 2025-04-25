@@ -101,8 +101,6 @@ spec:
           successThreshold: 1
           failureThreshold: 10
         volumeMounts:
-        - name: nginx-etc-nginx-volume
-          mountPath: /etc/nginx/configmap
         - name: nginx-etc-nginx-secret-volume
           mountPath: /etc/nginx/secretmap
         - name: nginx-var-local-catrust-volume
@@ -138,9 +136,6 @@ spec:
           - name: nginx-runtime-logs-volume
             mountPath: "/data/runtime-logs"
       volumes:
-      - name: nginx-etc-nginx-volume
-        configMap:
-          name: etc-nginx
       - name: nginx-etc-nginx-secret-volume
         secret:
           secretName: etc-nginx

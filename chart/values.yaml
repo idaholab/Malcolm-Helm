@@ -12,31 +12,31 @@ node_count_label:
   value: Tier-1
 
 image:
-  repository: ghcr.io/idaholab/malcolm
+  repository: ghcr.io/mmguero-dev/malcolm
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion found in Chart.yml.
   # Should only need to override these if something is awry with version supplied in Chart.yaml file.
-  dirinit_container_override: ""
-  dashboards_container_override: ""
-  opensearch_container_override: ""
-  upload_container_override: ""
-  pcap_monitor_container_override: ""
-  arkime_container_override: ""
-  api_container_override: ""
-  zeek_container_override: ""
-  suricata_container_override: ""
-  dashboards_helper_container_override: ""
-  file_monitor_container_override: ""
-  filebeat_container_override: ""
-  logstash_container_override: ""
-  keycloak_container_override: ""
-  redis_container_override: ""
-  postgres_container_override: ""
-  netbox_container_override: ""
-  htadmin_container_override: ""
-  pcap_capture_container_override: ""
-  freq_container_override: ""
-  nginx_container_override: ""
+  dirinit_container_override: "ghcr.io/mmguero-dev/malcolm/dirinit:main"
+  dashboards_container_override: "ghcr.io/mmguero-dev/malcolm/dashboards:main"
+  opensearch_container_override: "ghcr.io/mmguero-dev/malcolm/opensearch:main"
+  upload_container_override: "ghcr.io/mmguero-dev/malcolm/file-upload:main"
+  pcap_monitor_container_override: "ghcr.io/mmguero-dev/malcolm/pcap-monitor:main"
+  arkime_container_override: "ghcr.io/mmguero-dev/malcolm/arkime:main"
+  api_container_override: "ghcr.io/mmguero-dev/malcolm/api:main"
+  zeek_container_override: "ghcr.io/mmguero-dev/malcolm/zeek:main"
+  suricata_container_override: "ghcr.io/mmguero-dev/malcolm/suricata:main"
+  dashboards_helper_container_override: "ghcr.io/mmguero-dev/malcolm/dashboards-helper:main"
+  file_monitor_container_override: "ghcr.io/mmguero-dev/malcolm/file-monitor:main"
+  filebeat_container_override: "ghcr.io/mmguero-dev/malcolm/filebeat-oss:main"
+  logstash_container_override: "ghcr.io/mmguero-dev/malcolm/logstash-oss:main"
+  keycloak_container_override: "ghcr.io/mmguero-dev/malcolm/keycloak:main"
+  redis_container_override: "ghcr.io/mmguero-dev/malcolm/redis:main"
+  postgres_container_override: "ghcr.io/mmguero-dev/malcolm/postgresql:main"
+  netbox_container_override: "ghcr.io/mmguero-dev/malcolm/netbox:main"
+  htadmin_container_override: "ghcr.io/mmguero-dev/malcolm/htadmin:main"
+  pcap_capture_container_override: "ghcr.io/mmguero-dev/malcolm/pcap-capture:main"
+  freq_container_override: "ghcr.io/mmguero-dev/malcolm/freq:main"
+  nginx_container_override: "ghcr.io/mmguero-dev/malcolm/nginx-proxy:main"
 
 auth:
   username: vagrant
