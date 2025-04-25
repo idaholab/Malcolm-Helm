@@ -211,7 +211,7 @@ storage:
     opensearch_backup_claim:
       size: 25Gi
       className: local-path
-    netbox_postgres_claim:
+    postgres_claim:
       size: 15Gi
       className: local-path
   production:
@@ -236,7 +236,7 @@ storage:
     opensearch_backup_claim:
       size: 25Gi
       className: local-path
-    netbox_postgres_claim:
+    postgres_claim:
       size: 15Gi
       className: local-path
 

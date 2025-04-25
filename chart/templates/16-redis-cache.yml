@@ -1,5 +1,4 @@
 {{- $redis_image := .Values.image.redis_container_override | default (printf "%s/redis:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- if .Values.netbox.enabled }}
 ---
 apiVersion: v1
 kind: Service
@@ -40,7 +39,7 @@ spec:
                "/usr/local/bin/docker-uid-gid-setup.sh",
                "/usr/local/bin/service_check_passthrough.sh",
                "-s",
-               "netbox",
+               "redis",
                "sh",
                "-c",
                "redis-server --requirepass $(REDIS_PASSWORD)"]
@@ -76,4 +75,3 @@ spec:
         - name: redis-cache-var-local-catrust-volume
           configMap:
             name: var-local-catrust
-{{- end }}

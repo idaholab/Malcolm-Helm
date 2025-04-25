@@ -67,7 +67,7 @@ function klogs () {
         if command -v stern >/dev/null 2>&1; then
             kstern "${NAMESPACE_ARGS[@]}" --container '.*' --container-state all "${POD}"
         else
-            kctl logs --follow=true --all-containers "${POD}"
+            kctl logs --follow=true --all-containers "${POD}" "${NAMESPACE_ARGS[@]}"
         fi
     else
         echo "Unable to identify pod for ${SERVICE}" >&2
