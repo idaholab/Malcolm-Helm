@@ -47,6 +47,9 @@ auth:
   arkime_password: vagrant
   # Possible values are basic for htadmin auth, keycloak for embedded keycloak and finally keycloak_remote for remote keycloak instance.
   mode: "basic"
+  # for Keycloak
+  require_group: ""
+  require_role: ""
 
 opensearch:
   enabled: true
@@ -148,13 +151,18 @@ logstash:
     batch_size: 75
 
 netbox:
-  enabled: true
+  mode: "local"
+  enrichment: true
+  # Set these value for remote netbox instance only if mode is "remote", otherwise leave it blank
+  url: ""
+  netbox_remote_token: ""
   # Set this this value to your reverse proxy url or leave it blank
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
   netbox_default_site: Cyberville
   netbox_auto_populate: true
   netbox_cache_size: "10000"
   netbox_cache_ttl: "300"
+
 
 postgres:
   enabled: true
@@ -369,6 +377,7 @@ zeek_env:
   extract_mode: interesting
   extracted_file_enable_capa: true
   extracted_file_enable_clamav: true
+  extracted_file_enable_vtot: false
   extracted_file_enable_yara: true
   extracted_file_http_server_enable: true
   extracted_file_http_server_recursive: true
