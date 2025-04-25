@@ -86,10 +86,13 @@ function kresources () {
     fi
     for RESOURCE in $(kubectl api-resources --verbs=list --namespaced -o name); do
       if [[ ! "$RESOURCE" =~ ^events.* ]]; then
-        echo "============================="
-        echo $RESOURCE
-        echo "-----------------------------"
-        kctl get --show-kind --ignore-not-found "${NAMESPACE_ARGS[@]}" "$RESOURCE"
+        readarray -t KCTL_OUTPUT < <(kctl get --ignore-not-found "${NAMESPACE_ARGS[@]}" "$RESOURCE")
+        if [[ ${#KCTL_OUTPUT[@]} -gt 0 ]]; then
+          echo "============================="
+          echo "${RESOURCE}"
+          echo "-----------------------------"
+          printf '%s\n' "${KCTL_OUTPUT[@]}"
+        fi
       fi
     done
 }
