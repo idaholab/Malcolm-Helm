@@ -1,4 +1,5 @@
 {{- $redis_image := .Values.image.redis_container_override | default (printf "%s/redis:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- if eq .Values.netbox.mode "local" }}
 ---
 apiVersion: v1
 kind: Service
@@ -75,3 +76,4 @@ spec:
         - name: redis-cache-var-local-catrust-volume
           configMap:
             name: var-local-catrust
+{{- end }}
