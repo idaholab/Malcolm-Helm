@@ -52,28 +52,27 @@ function kshell () {
 }
 
 function klogs () {
-  SERVICE="${1}"
-  if [[ -n "${SERVICE}" ]]; then
-    NAMESPACE="${2:-$KUBESPACE}"
-    if [[ -n "$NAMESPACE" ]]; then
-      NAMESPACE_ARGS=( --namespace "${NAMESPACE}" )
-      AWK_ARGS=( '{print $1}' )
-    else
-      NAMESPACE_ARGS=( --all-namespaces )
-      AWK_ARGS=( '{print $2}' )
-    fi
-    POD="$(kctl get pods --no-headers "${NAMESPACE_ARGS[@]}" | grep -P "\b${SERVICE}\b" | awk "${AWK_ARGS[@]}" | sort | head -n 1)"
-    if [[ -n "${POD}" ]]; then
-        if command -v stern >/dev/null 2>&1; then
-            kstern "${NAMESPACE_ARGS[@]}" --container '.*' --container-state all "${POD}"
-        else
-            kctl logs --follow=true --all-containers "${POD}" "${NAMESPACE_ARGS[@]}"
-        fi
-    else
-        echo "Unable to identify pod for ${SERVICE}" >&2
-    fi
+  SERVICE="${1:-}"
+
+  NAMESPACE="${2:-$KUBESPACE}"
+  if [[ -n "$NAMESPACE" ]]; then
+    NAMESPACE_ARGS=( --namespace "${NAMESPACE}" )
+    AWK_ARGS=( '{print $1}' )
   else
-    echo "No service specified" >&2
+    NAMESPACE_ARGS=( --all-namespaces )
+    AWK_ARGS=( '{print $2}' )
+  fi
+
+  [[ -n "${SERVICE}" ]] && \
+    POD="$(kctl get pods --no-headers "${NAMESPACE_ARGS[@]}" | grep -P "\b${SERVICE}\b" | awk "${AWK_ARGS[@]}" | sort | head -n 1)" || \
+    POD=
+
+  if command -v stern >/dev/null 2>&1; then
+      kstern "${POD:-.*}" "${NAMESPACE_ARGS[@]}" --container '.*' --container-state all
+  else
+    [[ -n "${POD}" ]] && \
+      kctl logs --follow=true --all-containers "${POD}" "${NAMESPACE_ARGS[@]}" ||
+      echo "Unable to identify ${SERVICE} pod " >&2
   fi
 }
 
