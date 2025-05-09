@@ -153,6 +153,17 @@ Vagrant.configure("2") do |config|
     fi
     kubectl apply -f /tmp/sc.yaml
 
+    STERN_VERSION=1.32.0
+    LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+    STERN_URL="https://github.com/stern/stern/releases/download/v${STERN_VERSION}/stern_${STERN_VERSION}_linux_${LINUX_CPU}.tar.gz"
+    cd /tmp
+    mkdir -p ./stern
+    curl -L "${STERN_URL}" | tar xzf - -C ./stern
+    mv ./stern/stern /usr/local/bin/stern
+    chmod 755 /usr/local/bin/stern
+    chown root:root /usr/local/bin/stern
+    rm -rf /tmp/stern*
+
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
     # Load specific settings sysctl settings needed for opensearch
