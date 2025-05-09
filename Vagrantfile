@@ -1,16 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-def get_provider
-  ENV["VAGRANT_DEFAULT_PROVIDER"] ||
-    ARGV.find { |a| a.start_with?("--provider=") }&.split("=")&.last ||
-    "virtualbox"
-end
-
-def using_provider?(name)
-  get_provider == name
-end
-
 def parse_disk_size(size_str)
   size_str = size_str.strip.upcase
   if size_str =~ /^(\d+)(GB?)$/
@@ -44,58 +34,48 @@ Vagrant.configure("2") do |config|
     config.vm.network "forwarded_port", guest: 80, host: 8080
   end
 
-  puts "Using provider: #{get_provider}"
+  config.vm.provider "virtualbox" do |vb, override|
+    override.vm.disk :disk, name: "extra", size: vm_disk_size
+    override.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
 
-  if using_provider?("virtualbox")
-    config.vm.disk :disk, name: "extra", size: vm_disk_size
-
-    # NIC 2: Promiscuous mode (TODO: can I do this for other providers?)
-    config.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
-
-    config.vm.provider "virtualbox" do |vb|
-      vb.gui = (vm_gui.to_s.downcase == 'true')
-      vb.customize ['modifyvm', :id, '--memory', vm_memory]
-      vb.customize ['modifyvm', :id, '--cpus', vm_cpus]
-      vb.customize ['modifyvm', :id, '--ioapic', 'on']
-      vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
-      vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
-      vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
-      vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
-      vb.name = vm_name
-    end
+    vb.gui = (vm_gui.to_s.downcase == 'true')
+    vb.customize ['modifyvm', :id, '--memory', vm_memory]
+    vb.customize ['modifyvm', :id, '--cpus', vm_cpus]
+    vb.customize ['modifyvm', :id, '--ioapic', 'on']
+    vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
+    vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
+    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
+    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
+    vb.name = vm_name
   end
 
-  if using_provider?("libvirt")
-    config.vm.provider :libvirt do |libvirt|
-      libvirt.driver = "kvm"
-      libvirt.cpus = vm_cpus.to_i
-      libvirt.memory = vm_memory.to_i
-      libvirt.machine_arch = 'x86_64'
-      libvirt.machine_type = "q35"
-      libvirt.nic_model_type = "virtio"
-      libvirt.cpu_mode = 'host-model'
-      libvirt.cpu_fallback = 'forbid'
-      libvirt.channel :type  => 'unix', :target_name => 'org.qemu.guest_agent.0', :target_type => 'virtio'
-      libvirt.random :model => 'random'
-      libvirt.disk_bus = "virtio"
-      libvirt.storage :file, :size => vm_disk_size
-    end
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.driver = "kvm"
+    libvirt.cpus = vm_cpus.to_i
+    libvirt.memory = vm_memory.to_i
+    libvirt.machine_arch = 'x86_64'
+    libvirt.machine_type = "q35"
+    libvirt.nic_model_type = "virtio"
+    libvirt.cpu_mode = 'host-model'
+    libvirt.cpu_fallback = 'forbid'
+    libvirt.channel :type  => 'unix', :target_name => 'org.qemu.guest_agent.0', :target_type => 'virtio'
+    libvirt.random :model => 'random'
+    libvirt.disk_bus = "virtio"
+    libvirt.storage :file, :size => vm_disk_size
   end
 
-  if using_provider?("vmware_desktop")
-    config.vm.network "private_network", type: "dhcp", auto_config: false
-    config.vm.provider "vmware_desktop" do |vm|
-      vm.vmx["displayName"] = vm_name
-      vm.vmx["memsize"] = vm_memory.to_s
-      vm.vmx["numvcpus"] = vm_cpus.to_s
-      if vm_ssd.to_s.downcase == "on" || vm_ssd.to_s.downcase == "true"
-        vm.vmx["scsi0:0.virtualSSD"] = "1"
-      end
-      # TODO: vmware doesn't support adding a second disk with the official vagrant plugin
-      #   so this just resizes the primary disk. however, we're not automatically
-      #   resizing the primary disk partition in the VM so this isn't really done yet.
-      v.vmx["disk.size"] = parse_disk_size(vm_disk_size).to_s
+  config.vm.provider "vmware_desktop" do |vm, override|
+    override.vm.network "private_network", type: "dhcp", auto_config: false
+    vm.vmx["displayName"] = vm_name
+    vm.vmx["memsize"] = vm_memory.to_s
+    vm.vmx["numvcpus"] = vm_cpus.to_s
+    if vm_ssd.to_s.downcase == "on" || vm_ssd.to_s.downcase == "true"
+      vm.vmx["scsi0:0.virtualSSD"] = "1"
     end
+    # TODO: vmware doesn't support adding a second disk with the official vagrant plugin
+    #   so this just resizes the primary disk. however, we're not automatically
+    #   resizing the primary disk partition in the VM so this isn't really done yet.
+    vm.vmx["disk.size"] = parse_disk_size(vm_disk_size).to_s
   end
 
   config.vm.provision "shell", inline: <<-SHELL
