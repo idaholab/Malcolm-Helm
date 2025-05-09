@@ -101,7 +101,6 @@ external_elasticsearch:
 # Shared environment varibles for both Elasticsearch and Opensearch
 siem_env:
   # OpenSearch index patterns and timestamp fields
-  # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
   logstash_override:
     # When enabled the elasticsearch / opensearch logstash output plugin is modified to point to an ilm rollover alias
     # ILM policy and rollover_alias will need to be defined outside of this deployment for this to work as expected.
@@ -112,9 +111,7 @@ siem_env:
     rollover_alias_suricata: malcolm_network_suricata
     search_alias: malcolm_network
     other_search_alias: ""
-  # Allows user to add a default_pipeline to malcolm_template or malcolm_beat_template
-  malcolm_template_default_pipeline: ""
-  malcolm_beats_template_default_pipeline: ""
+  # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
   malcolm_network_index_pattern: "arkime_sessions3-*"
   # Default time field to use for network traffic logs in Logstash and Dashboards
   malcolm_network_index_time_field: "firstPacket"
@@ -134,7 +131,14 @@ siem_env:
   arkime_network_index_pattern: "arkime_sessions3-*"
   # Default time field used by for sessions in Arkime viewer
   arkime_network_index_time_field: "firstPacket"
-
+  # Allows user to add a default_pipeline to malcolm_template or malcolm_beat_template
+  malcolm_template_default_pipeline: ""
+  malcolm_beats_template_default_pipeline: ""
+  # Allow user to specify lifecycle parameters to malcolm_template or malcolm_beat_template
+  malcolm_template_lifecycle_name: ""
+  malcolm_template_lifecycle_rollover_alias: ""
+  malcolm_beats_template_lifecycle_name: ""
+  malcolm_beats_template_lifecycle_rollover_alias: ""
 
 logstash:
   # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
