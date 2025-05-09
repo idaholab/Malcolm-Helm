@@ -1,8 +1,14 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+def get_provider
+  ENV["VAGRANT_DEFAULT_PROVIDER"] ||
+    ARGV.find { |a| a.start_with?("--provider=") }&.split("=")&.last ||
+    "virtualbox"
+end
+
 def using_provider?(name)
-  ENV["VAGRANT_DEFAULT_PROVIDER"] == name || ARGV.any? { |a| a.include?("--provider=#{name}") }
+  get_provider == name
 end
 
 def parse_disk_size(size_str)
@@ -38,6 +44,8 @@ Vagrant.configure("2") do |config|
     config.vm.network "forwarded_port", guest: 80, host: 8080
   end
 
+  puts "Using provider: #{get_provider}"
+
   if using_provider?("virtualbox")
     config.vm.disk :disk, name: "extra", size: vm_disk_size
 
@@ -57,19 +65,21 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.provider :libvirt do |libvirt|
-    libvirt.driver = "kvm"
-    libvirt.cpus = vm_cpus.to_i
-    libvirt.memory = vm_memory.to_i
-    libvirt.machine_arch = 'x86_64'
-    libvirt.machine_type = "q35"
-    libvirt.nic_model_type = "virtio"
-    libvirt.cpu_mode = 'host-model'
-    libvirt.cpu_fallback = 'forbid'
-    libvirt.channel :type  => 'unix', :target_name => 'org.qemu.guest_agent.0', :target_type => 'virtio'
-    libvirt.random :model => 'random'
-    libvirt.disk_bus = "virtio"
-    libvirt.storage :file, :size => vm_disk_size
+  if using_provider?("libvirt")
+    config.vm.provider :libvirt do |libvirt|
+      libvirt.driver = "kvm"
+      libvirt.cpus = vm_cpus.to_i
+      libvirt.memory = vm_memory.to_i
+      libvirt.machine_arch = 'x86_64'
+      libvirt.machine_type = "q35"
+      libvirt.nic_model_type = "virtio"
+      libvirt.cpu_mode = 'host-model'
+      libvirt.cpu_fallback = 'forbid'
+      libvirt.channel :type  => 'unix', :target_name => 'org.qemu.guest_agent.0', :target_type => 'virtio'
+      libvirt.random :model => 'random'
+      libvirt.disk_bus = "virtio"
+      libvirt.storage :file, :size => vm_disk_size
+    end
   end
 
   if using_provider?("vmware_desktop")
