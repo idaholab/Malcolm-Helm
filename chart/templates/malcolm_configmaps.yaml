@@ -8,6 +8,7 @@ data:
   NGINX_LDAP_TLS_STUNNEL_VERIFY_LEVEL: "2"
   NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group }}"
   NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role }}"
+  HTADMIN_DISABLED: "{{ .Values.auth.htadmin_disabled }}"
 kind: ConfigMap
 metadata:
   name: auth-common-env

@@ -50,6 +50,7 @@ auth:
   # for Keycloak
   require_group: ""
   require_role: ""
+  htadmin_disabled: true
 
 opensearch:
   enabled: true
