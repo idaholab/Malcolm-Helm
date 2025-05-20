@@ -1,10 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-def using_provider?(name)
-  ENV["VAGRANT_DEFAULT_PROVIDER"] == name || ARGV.any? { |a| a.include?("--provider=#{name}") }
-end
-
 def parse_disk_size(size_str)
   size_str = size_str.strip.upcase
   if size_str =~ /^(\d+)(GB?)$/
@@ -38,23 +34,19 @@ Vagrant.configure("2") do |config|
     config.vm.network "forwarded_port", guest: 80, host: 8080
   end
 
-  if using_provider?("virtualbox")
-    config.vm.disk :disk, name: "extra", size: vm_disk_size
+  config.vm.provider "virtualbox" do |vb, override|
+    override.vm.disk :disk, name: "extra", size: vm_disk_size
+    override.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
 
-    # NIC 2: Promiscuous mode (TODO: can I do this for other providers?)
-    config.vm.network "private_network", type: "dhcp", virtualbox__intnet: "promiscuous", auto_config: false
-
-    config.vm.provider "virtualbox" do |vb|
-      vb.gui = (vm_gui.to_s.downcase == 'true')
-      vb.customize ['modifyvm', :id, '--memory', vm_memory]
-      vb.customize ['modifyvm', :id, '--cpus', vm_cpus]
-      vb.customize ['modifyvm', :id, '--ioapic', 'on']
-      vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
-      vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
-      vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
-      vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
-      vb.name = vm_name
-    end
+    vb.gui = (vm_gui.to_s.downcase == 'true')
+    vb.customize ['modifyvm', :id, '--memory', vm_memory]
+    vb.customize ['modifyvm', :id, '--cpus', vm_cpus]
+    vb.customize ['modifyvm', :id, '--ioapic', 'on']
+    vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
+    vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
+    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
+    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
+    vb.name = vm_name
   end
 
   config.vm.provider :libvirt do |libvirt|
@@ -72,20 +64,18 @@ Vagrant.configure("2") do |config|
     libvirt.storage :file, :size => vm_disk_size
   end
 
-  if using_provider?("vmware_desktop")
-    config.vm.network "private_network", type: "dhcp", auto_config: false
-    config.vm.provider "vmware_desktop" do |vm|
-      vm.vmx["displayName"] = vm_name
-      vm.vmx["memsize"] = vm_memory.to_s
-      vm.vmx["numvcpus"] = vm_cpus.to_s
-      if vm_ssd.to_s.downcase == "on" || vm_ssd.to_s.downcase == "true"
-        vm.vmx["scsi0:0.virtualSSD"] = "1"
-      end
-      # TODO: vmware doesn't support adding a second disk with the official vagrant plugin
-      #   so this just resizes the primary disk. however, we're not automatically
-      #   resizing the primary disk partition in the VM so this isn't really done yet.
-      v.vmx["disk.size"] = parse_disk_size(vm_disk_size).to_s
+  config.vm.provider "vmware_desktop" do |vm, override|
+    override.vm.network "private_network", type: "dhcp", auto_config: false
+    vm.vmx["displayName"] = vm_name
+    vm.vmx["memsize"] = vm_memory.to_s
+    vm.vmx["numvcpus"] = vm_cpus.to_s
+    if vm_ssd.to_s.downcase == "on" || vm_ssd.to_s.downcase == "true"
+      vm.vmx["scsi0:0.virtualSSD"] = "1"
     end
+    # TODO: vmware doesn't support adding a second disk with the official vagrant plugin
+    #   so this just resizes the primary disk. however, we're not automatically
+    #   resizing the primary disk partition in the VM so this isn't really done yet.
+    vm.vmx["disk.size"] = parse_disk_size(vm_disk_size).to_s
   end
 
   config.vm.provision "shell", inline: <<-SHELL
@@ -163,6 +153,17 @@ Vagrant.configure("2") do |config|
     fi
     kubectl apply -f /tmp/sc.yaml
 
+    STERN_VERSION=1.32.0
+    LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+    STERN_URL="https://github.com/stern/stern/releases/download/v${STERN_VERSION}/stern_${STERN_VERSION}_linux_${LINUX_CPU}.tar.gz"
+    cd /tmp
+    mkdir -p ./stern
+    curl -L "${STERN_URL}" | tar xzf - -C ./stern
+    mv ./stern/stern /usr/local/bin/stern
+    chmod 755 /usr/local/bin/stern
+    chown root:root /usr/local/bin/stern
+    rm -rf /tmp/stern*
+
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
     # Load specific settings sysctl settings needed for opensearch
@@ -196,10 +197,11 @@ Vagrant.configure("2") do |config|
     grep -qxF 'iptable_mangle' /etc/modules || echo 'iptable_mangle' >> /etc/modules
 
     # Update coredns so that hostname will resolve to their perspective IPs by enabling the host plugin
+    echo "Waiting for rke2-coredns-rke2-coredns..." >&2
     until kubectl get configmaps --namespace kube-system 2>/dev/null | grep -q rke2-coredns-rke2-coredns; do
-      echo "Waiting for rke2-coredns-rke2-coredns..." >&2
       sleep 20
     done
+    echo "rke2-coredns-rke2-coredns is present" >&2
     myip_string=$(hostname -I)
     read -ra my_hostips <<< $myip_string
     cp /vagrant/vagrant_dependencies/Corefile.yaml /tmp/Corefile.yaml
@@ -217,15 +219,21 @@ Vagrant.configure("2") do |config|
       until kubectl wait --for=condition=Ready nodes --all --timeout=19s >/dev/null 2>&1; do
         sleep 1
       done
+      echo "Cluster nodes are ready" >&2
       # Setup metallb
       helm repo add metallb https://metallb.github.io/metallb
       helm repo update metallb
       helm install metallb metallb/metallb -n metallb-system --create-namespace
-      echo "Wait for metallb-system controller to become ready..." >&2
+      echo "Wait for metallb-system namespace..." >&2
       until kubectl get namespaces 2>/dev/null | grep -q metallb-system; do
         sleep 20
       done
+      sleep 10
+      echo "metallb-system namespace exists" >&2
+      echo "Wait for metallb-system controller to become ready..." >&2
       kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=controller --timeout=900s --namespace metallb-system
+      sleep 10
+      echo "metallb-system controller pod exists" >&2
       kubectl apply -f /vagrant/vagrant_dependencies/ipaddress-pool.yml
       kubectl apply -f /vagrant/vagrant_dependencies/l2advertisement.yaml
 
@@ -267,10 +275,11 @@ Vagrant.configure("2") do |config|
     SHELL
   else
     config.vm.provision "shell", inline: <<-SHELL
+      echo "Waiting for rke2-ingress-nginx-controller-admission..." >&2
       until kubectl get endpoints --namespace kube-system 2>/dev/null | grep -Pq "rke2-ingress-nginx-controller-admission\s+.+:\d+"; do
-        echo "Waiting for rke2-ingress-nginx-controller-admission..." >&2
         sleep 20
       done
+      echo "rke2-ingress-nginx-controller-admission is present" >&2
       sleep 5
       helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=enp0s8
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2

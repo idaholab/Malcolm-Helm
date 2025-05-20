@@ -3,22 +3,6 @@
 ---
 apiVersion: v1
 data:
-  dhparam.pem: |
-    -----BEGIN DH PARAMETERS-----
-    MIIBCAKCAQEA7yG//9Ksp/vkheJ4yo1WConrUWtcN0qrn3/SbgDmzRr09ycdb1h4
-    yS0h9GZLk4MvzNC9Fk7AYwi1bNierxdrp31qgS+mwrtTM0p0gHrd4ullkOekUEBO
-    aECziTbjfh0aMzirjb8j6NAvqCy6qCdPYpm+HpwNumK0c4JYGT4Ek0coCw4A30yw
-    ch3CX5IQMd+O8FW+0SNurnZ+0TQmlO7xJr+ARbYngzQHBgMIQgSOLiSgCi/dgUh4
-    +6vUETo4Q0ytGoRZQlWXOfRtrEOFRlYCcz5ZI9TXovGcQs0736QXJnY4Gr0YlvGi
-    Vyoi3N+QwxlHRX9nGWlEVefrGVEN7WKBLwIBAg==
-    -----END DH PARAMETERS-----
-kind: ConfigMap
-metadata:
-  name: etc-nginx-certs-pem
-
----
-apiVersion: v1
-data:
   htpasswd: {{ .Values.auth.htpass_cred | b64enc }}
 kind: Secret
 metadata:
@@ -90,7 +74,13 @@ spec:
           - configMapRef:
               name: opensearch-env
           - configMapRef:
+              name: arkime-env
+          - configMapRef:
               name: dashboards-env
+          - configMapRef:
+              name: netbox-common-env
+          - configMapRef:
+              name: arkime-env
           {{- if or (eq .Values.auth.mode "keycloak") (eq .Values.auth.mode "keycloak_remote") }}
           - secretRef:
               name: keycloak-env
@@ -115,16 +105,10 @@ spec:
           successThreshold: 1
           failureThreshold: 10
         volumeMounts:
-        - name: nginx-etc-nginx-volume
-          mountPath: /etc/nginx/configmap
         - name: nginx-etc-nginx-secret-volume
           mountPath: /etc/nginx/secretmap
         - name: nginx-var-local-catrust-volume
           mountPath: /var/local/ca-trust/configmap
-        - name: nginx-etc-nginx-certs-secret-volume
-          mountPath: /etc/nginx/certs/secretmap
-        - name: nginx-etc-nginx-certs-pem-volume
-          mountPath: /etc/nginx/dhparam/configmap
         - name: nginx-opensearch-curlrc-secret-volume
           mountPath: /var/local/curlrc/secretmap
         - name: nginx-etc-auth-volume
@@ -156,21 +140,12 @@ spec:
           - name: nginx-runtime-logs-volume
             mountPath: "/data/runtime-logs"
       volumes:
-      - name: nginx-etc-nginx-volume
-        configMap:
-          name: etc-nginx
       - name: nginx-etc-nginx-secret-volume
         secret:
           secretName: etc-nginx
       - name: nginx-var-local-catrust-volume
         configMap:
           name: var-local-catrust
-      - name: nginx-etc-nginx-certs-secret-volume
-        secret:
-          secretName: etc-nginx-certs
-      - name: nginx-etc-nginx-certs-pem-volume
-        configMap:
-          name: etc-nginx-certs-pem
       - name: nginx-opensearch-curlrc-secret-volume
         secret:
           secretName: opensearch-curlrc

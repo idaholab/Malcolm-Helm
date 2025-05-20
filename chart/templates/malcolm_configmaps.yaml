@@ -6,6 +6,9 @@ data:
   NGINX_LDAP_TLS_STUNNEL_CHECK_HOST: ""
   NGINX_LDAP_TLS_STUNNEL_CHECK_IP: ""
   NGINX_LDAP_TLS_STUNNEL_VERIFY_LEVEL: "2"
+  NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group }}"
+  NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role }}"
+  HTADMIN_DISABLED: "{{ .Values.auth.htadmin_disabled }}"
 kind: ConfigMap
 metadata:
   name: auth-common-env
@@ -39,10 +42,15 @@ data:
   # Customize manufacturer matching/creation with LOGSTASH_NETBOX_AUTO_POPULATE (see logstash.env)
   NETBOX_DEFAULT_AUTOCREATE_MANUFACTURER: "true"
   NETBOX_DEFAULT_FUZZY_THRESHOLD: "0.95"
-  NETBOX_DISABLED: "{{ not .Values.netbox.enabled }}"
+  NETBOX_MODE: "{{ .Values.netbox.mode }}"
+  {{- if eq .Values.netbox.mode "remote" }}
+  NETBOX_URL: "{{ .Values.netbox.url }}"
+  {{- else }}
+  NETBOX_URL: ""
+  {{- end }}
 
   # Whether or not Logstash will enrich network traffic metadata via NetBox API calls
-  NETBOX_ENRICHMENT: "{{ .Values.netbox.enabled }}"
+  NETBOX_ENRICHMENT: "{{ .Values.netbox.enrichment }}"
   # Whether or not unobserved network entities in Logstash data will be used to populate NetBox
   NETBOX_AUTO_POPULATE: "{{ .Values.netbox.netbox_auto_populate }}"
   # Whether or not unobserved network subnets in Logstash data will be created automatically in NetBox
@@ -76,6 +84,9 @@ data:
   EMAIL_USE_SSL: "false"
   EMAIL_USE_TLS: "false"
   EXEMPT_VIEW_PERMISSIONS: '*'
+  LOGIN_REQUIRED : "True"
+  LOGIN_PERSISTENCE : "True"
+  ISOLATED_DEPLOYMENT : "True"
   GRAPHQL_ENABLED: "true"
   HOUSEKEEPING_INTERVAL: "86400"
   MAX_PAGE_SIZE: "1000"
@@ -172,11 +183,16 @@ data:
   discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
   MALCOLM_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_network_index_pattern }}"
   MALCOLM_NETWORK_INDEX_ALIAS: "{{ .Values.siem_env.logstash_override.search_alias }}"
-  # COMMMENTED out DO NOT add these back in
-  # MALCOLM_OTHER_INDEX_ALIAS:
+  MALCOLM_NETWORK_INDEX_DEFAULT_PIPELINE: "{{ .Values.siem_env.malcolm_template_default_pipeline }}"
+  MALCOLM_NETWORK_INDEX_LIFECYCLE_NAME: "{{ .Values.siem_env.malcolm_template_lifecycle_name }}"
+  MALCOLM_NETWORK_INDEX_LIFECYCLE_ROLLOVER_ALIAS: "{{ .Values.siem_env.malcolm_template_lifecycle_rollover_alias }}"
   MALCOLM_NETWORK_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_network_index_time_field }}"
   MALCOLM_NETWORK_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_network_index_suffix }}"
   MALCOLM_OTHER_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_other_index_pattern }}"
+  MALCOLM_OTHER_INDEX_ALIAS: "{{ .Values.siem_env.logstash_override.other_search_alias }}"
+  MALCOLM_OTHER_INDEX_DEFAULT_PIPELINE: "{{ .Values.siem_env.malcolm_beats_template_default_pipeline }}"
+  MALCOLM_OTHER_INDEX_LIFECYCLE_NAME: "{{ .Values.siem_env.malcolm_beats_template_lifecycle_name }}"
+  MALCOLM_OTHER_INDEX_LIFECYCLE_ROLLOVER_ALIAS: "{{ .Values.siem_env.malcolm_beats_template_lifecycle_rollover_alias }}"
   MALCOLM_OTHER_INDEX_TIME_FIELD: "{{ .Values.siem_env.malcolm_other_index_time_field }}"
   MALCOLM_OTHER_INDEX_SUFFIX: "{{ .Values.siem_env.malcolm_other_index_suffix }}"
   ARKIME_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.arkime_network_index_pattern }}"
@@ -306,6 +322,7 @@ data:
   EXTRACTED_FILE_CAPA_VERBOSE: "false"
   EXTRACTED_FILE_ENABLE_CAPA: "{{ .Values.zeek_env.extracted_file_enable_capa }}"
   EXTRACTED_FILE_ENABLE_CLAMAV: "{{ .Values.zeek_env.extracted_file_enable_clamav }}"
+  EXTRACTED_FILE_ENABLE_VTOT: "{{ .Values.zeek_env.extracted_file_enable_vtot }}"
   EXTRACTED_FILE_ENABLE_YARA: "{{ .Values.zeek_env.extracted_file_enable_yara }}"
   EXTRACTED_FILE_HTTP_SERVER_ENABLE: "{{ .Values.zeek_env.extracted_file_http_server_enable }}"
   EXTRACTED_FILE_HTTP_SERVER_ZIP: "false"
@@ -338,10 +355,11 @@ data:
   ZEEK_DISABLE_ICS_GE_SRTP: ""
   ZEEK_DISABLE_ICS_HART_IP: ""
   ZEEK_DISABLE_ICS_OMRON_FINS: ""
-  ZEEK_DISABLE_ICS_MODBUS: ""
   ZEEK_DISABLE_ICS_OPCUA_BINARY: ""
+  ZEEK_DISABLE_ICS_MODBUS: ""
   ZEEK_DISABLE_ICS_PROFINET: ""
   ZEEK_DISABLE_ICS_PROFINET_IO_CM: ""
+  ZEEK_DISABLE_ICS_ROC_PLUS: ""
   ZEEK_DISABLE_ICS_S7COMM: ""
   ZEEK_DISABLE_ICS_SYNCHROPHASOR: ""
   ZEEK_DISABLE_LOG_PASSWORDS: ""

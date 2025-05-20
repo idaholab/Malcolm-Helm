@@ -31,9 +31,6 @@ spec:
         imagePullPolicy: Always
         stdin: false
         tty: true
-        command:
-        - "/bin/bash"
-        - "/opt/command_override.sh"
         securityContext:
           # TODO we should not be using root here
           runAsGroup: 0
@@ -85,20 +82,12 @@ spec:
           successThreshold: 1
           failureThreshold: 10
         volumeMounts:
-          - mountPath: /opt/arkime/etc/config.orig.ini
-            name: arkime-live-config-default
-            subPath: config.ini
-          - name: arkime-live-shell-override-volume
-            mountPath: /opt/command_override.sh
-            subPath: command_override.sh
           - mountPath: "/opt/arkime/lua/configmap"
             name: arkime-live-lua-volume
           - mountPath: /var/local/ca-trust/configmap
             name: arkime-live-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: arkime-live-opensearch-curlrc-secret-volume
-          - mountPath: /opt/arkime/rules/configmap
-            name: arkime-live-rules-volume
           - mountPath: "/data/pcap"
             name: arkime-live-pcap-volume
 {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
@@ -125,9 +114,6 @@ spec:
           - name: arkime-live-pcap-volume
             mountPath: "/data/pcap"
       volumes:
-        - name: arkime-live-config-default
-          configMap:
-            name: arkime-config
         - name: arkime-live-var-local-catrust-volume
           configMap:
             name: var-local-catrust
@@ -137,12 +123,6 @@ spec:
         - name: arkime-live-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
-        - name: arkime-live-rules-volume
-          configMap:
-            name: arkime-rules
-        - name: arkime-live-shell-override-volume
-          configMap:
-            name: arkime-live-shell-override
         - name: arkime-live-pcap-volume
           hostPath:
             path: "{{ .Values.arkime_live.pcap_hostpath }}"

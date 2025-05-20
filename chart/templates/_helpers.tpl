@@ -82,35 +82,6 @@ I am not duplicating this template code.
 
 
 {{/*
-Get Opensearch or Elasticsearch url short version (IE: opensearch:9200).
-*/}}
-{{- define "malcolm.primaryurlshort" -}}
-{{- if .Values.external_elasticsearch.enabled }}
-    {{- $parts := split "://" .Values.external_elasticsearch.url }}
-    {{- printf "%s" $parts._1 }}
-{{- else }}
-    {{- $parts := split "://" .Values.opensearch.url }}
-    {{- printf "%s" $parts._1 }}
-{{- end }}
-{{- end }}
-
-
-{{/*
-Get Opensearch or Elasticsearch dashboards url short version (IE: dashboards:5601).
-*/}}
-{{- define "malcolm.dashboardsurlshort" -}}
-{{- if .Values.external_elasticsearch.enabled }}
-    {{- $parts := split "://" .Values.external_elasticsearch.dashboards_url }}
-    {{- printf "%s" $parts._1 }}
-{{- else }}
-    {{- $parts := split "://" .Values.opensearch.dashboards_url }}
-    {{- $parts2 := split "/" $parts._1 }}
-    {{- printf "%s" $parts2._0 }}
-{{- end }}
-{{- end }}
-
-
-{{/*
 Used for secret generation for the opensearch-curlrc Kubernetes secret
 */}}
 {{- define "malcolm.curlrc" -}}

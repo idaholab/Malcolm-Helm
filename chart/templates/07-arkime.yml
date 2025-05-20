@@ -81,15 +81,10 @@ spec:
           successThreshold: 1
           timeoutSeconds: 30
         volumeMounts:
-          - mountPath: /opt/arkime/etc/config.orig.ini
-            name: arkime-config-default
-            subPath: config.ini
           - mountPath: /var/local/ca-trust/configmap
             name: arkime-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: arkime-opensearch-curlrc-secret-volume
-          - mountPath: /opt/arkime/rules/configmap
-            name: arkime-rules-volume
           - mountPath: "/data/pcap"
             name: arkime-pcap-volume
           - mountPath: "/opt/arkime/lua/configmap"
@@ -118,9 +113,6 @@ spec:
           - name: arkime-pcap-volume
             mountPath: "/data/pcap"
       volumes:
-        - name: arkime-config-default
-          configMap:
-            name: arkime-config
         - name: arkime-var-local-catrust-volume
           configMap:
             name: var-local-catrust
@@ -130,9 +122,6 @@ spec:
         - name: arkime-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
-        - name: arkime-rules-volume
-          configMap:
-            name: arkime-rules
         - name: arkime-pcap-volume
           hostPath:
             path: "{{ .Values.arkime_live.pcap_hostpath }}"
