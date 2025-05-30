@@ -11,9 +11,10 @@ data:
   ZEEK_AUTO_ANALYZE_PCAP_FILES: "true"
   ZEEK_AUTO_ANALYZE_PCAP_THREADS: "1"
   ZEEK_ROTATED_PCAP: "true"
-
   ZEEK_LOG_PATH: "/zeek-live-logs/live"  
   ZEEK_PCAP_PROCESSOR: "false"
+  PCAP_PROCESSOR_CUSTOM: "true"
+
   # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
   ZEEK_DISABLE_STATS: "{{ .Values.zeek_live.zeek_disable_stats }}"
   {{- if .Values.is_production }}
