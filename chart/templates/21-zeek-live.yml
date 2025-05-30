@@ -95,15 +95,16 @@ spec:
               name: zeek-live-env
           - configMapRef:
               name: pcap-capture-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 600
-          periodSeconds: 60
-          timeoutSeconds: 30
-          successThreshold: 1
-          failureThreshold: 3
+        # TODO bring back later after tests are fully vetted.
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #     - /usr/local/bin/container_health.sh
+        #   initialDelaySeconds: 600
+        #   periodSeconds: 60
+        #   timeoutSeconds: 30
+        #   successThreshold: 1
+        #   failureThreshold: 3
         env:
           - name: ZEEK_DISABLED
             value: "false"
