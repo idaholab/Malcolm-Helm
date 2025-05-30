@@ -470,6 +470,7 @@ arkime_live:
     arkime_pcap_write_size: "2560000"
     arkime_tpacketv3_num_threads: "2"
     arkime_tpacketv3_block_size: "8388608"
+    pcap_max_file_size_gb: "0.01"
   production:
     arkime_compression_type: none
     arkime_compression_level: "3"
@@ -479,6 +480,7 @@ arkime_live:
     arkime_pcap_write_size: "2560000"
     arkime_tpacketv3_num_threads: "2"
     arkime_tpacketv3_block_size: "8388608"
+    pcap_max_file_size_gb: "4"
 
   # Arkime live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:

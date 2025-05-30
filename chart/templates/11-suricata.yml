@@ -15,6 +15,7 @@ data:
 {{- end }}
   SURICATA_PCAP_PROCESSOR: "true"
   SURICATA_ROTATED_PCAP: "false"
+  SURICATA_PCAP_PROCESSOR_CUSTOM: "false"
 kind: ConfigMap
 metadata:
   name: suricata-offline-env

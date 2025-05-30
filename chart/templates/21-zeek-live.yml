@@ -7,9 +7,14 @@ apiVersion: v1
 data:
   EXTRACT_FILES_PATH: /zeek/extract_files
   ZEEK_INTEL_PATH: /opt/zeek/share/zeek/site/intel
-  ZEEK_LIVE_CAPTURE: "true"
-  ZEEK_LOG_PATH: "/zeek-live-logs/live"
+  ZEEK_LIVE_CAPTURE: "false"
+  ZEEK_AUTO_ANALYZE_PCAP_FILES: "true"
+  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "1"
+  ZEEK_ROTATED_PCAP: "true"
+  ZEEK_LOG_PATH: "/zeek-live-logs/live"  
   ZEEK_PCAP_PROCESSOR: "false"
+  ZEEK_PCAP_PROCESSOR_CUSTOM: "true"
+  
   # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
   ZEEK_DISABLE_STATS: "{{ .Values.zeek_live.zeek_disable_stats }}"
   {{- if .Values.is_production }}
@@ -90,15 +95,16 @@ spec:
               name: zeek-live-env
           - configMapRef:
               name: pcap-capture-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 600
-          periodSeconds: 60
-          timeoutSeconds: 30
-          successThreshold: 1
-          failureThreshold: 3
+        # TODO bring back later after tests are fully vetted.
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #     - /usr/local/bin/container_health.sh
+        #   initialDelaySeconds: 600
+        #   periodSeconds: 60
+        #   timeoutSeconds: 30
+        #   successThreshold: 1
+        #   failureThreshold: 3
         env:
           - name: ZEEK_DISABLED
             value: "false"
@@ -130,6 +136,8 @@ spec:
           - mountPath: "/opt/zeek/share/zeek/site/intel"
             name: zeek-intel-volume
             subPath: "zeek/intel"
+          - name: zeek-live-pcap-volume
+            mountPath: "/zeek-live-pcaps"
           {{- end }}
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
@@ -148,7 +156,7 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/zeek-live-logs:live/logs;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload"
+            value: "/zeek-live-pcaps;/zeek-live-logs:live/logs;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload"
         volumeMounts:
           - name: zeek-intel-volume
             mountPath: "/data/config"
@@ -156,6 +164,8 @@ spec:
             mountPath: "/zeek-live-logs"
           - name: zeek-live-zeek-volume
             mountPath: "/data/zeek-shared"
+          - name: zeek-live-pcap-volume
+            mountPath: "/zeek-live-pcaps"
       volumes:
         {{- if ne (len .Values.zeek_chart_overrides.live_extra_volumes) 0 }}
         {{- toYaml .Values.zeek_chart_overrides.live_extra_volumes | nindent 8 }}
@@ -181,6 +191,10 @@ spec:
         - name: zeek-live-logs-volume
           hostPath:
             path: "{{ .Values.zeek_live.zeek_log_path }}"
+            type: DirectoryOrCreate
+        - name: zeek-live-pcap-volume
+          hostPath:
+            path: "{{ .Values.arkime_live.pcap_hostpath }}"
             type: DirectoryOrCreate
         {{- end }}
 {{- end }}

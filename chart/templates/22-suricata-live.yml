@@ -6,11 +6,12 @@ apiVersion: v1
 data:
   # Whether or not Suricata should monitor live traffic on a local
   #   interface (PCAP_IFACE variable below specifies capture interfaces)
-  SURICATA_LIVE_CAPTURE: "true"
+  SURICATA_LIVE_CAPTURE: "false"
   SURICATA_PCAP_PROCESSOR: "false"
+  SURICATA_PCAP_PROCESSOR_CUSTOM: "true"
   # Specifies the Suricata runmode for live capture (see
   #   https://suricata.readthedocs.io/en/latest/performance/runmodes.html)
-  SURICATA_RUNMODE: workers
+  # SURICATA_RUNMODE: workers
   # Whether or not enable capture statistics and include them in eve.json
   SURICATA_STATS_ENABLED: "{{ .Values.suricata_live.suricata_stats_enabled }}"
   SURICATA_STATS_EVE_ENABLED: "{{ .Values.suricata_live.suricata_stats_enabled }}"
@@ -99,15 +100,16 @@ spec:
               name: suricata-live-env
           - configMapRef:
               name: pcap-capture-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 600
-          periodSeconds: 60
-          timeoutSeconds: 30
-          successThreshold: 1
-          failureThreshold: 3
+        # TODO bring back later
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #     - /usr/local/bin/container_health.sh
+        #   initialDelaySeconds: 600
+        #   periodSeconds: 60
+        #   timeoutSeconds: 30
+        #   successThreshold: 1
+        #   failureThreshold: 3
         env:
           - name: SURICATA_DISABLED
             value: "false"
@@ -127,6 +129,8 @@ spec:
             name: suricata-custom-rules-volume
           - mountPath: "/opt/suricata/include-configs/configmap"
             name: suricata-custom-configs-volume
+          - name: suricata-live-pcap-volume
+            mountPath: "/data/suricata-pcaps"
           {{- end }}
       {{- if ne (len .Values.suricata_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
@@ -145,10 +149,12 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/data/suricata-logs:live"
+            value: "/data/suricata-logs:live;/data/suricata-pcaps"
         volumeMounts:
           - name: suricata-live-suricata-logs-volume
             mountPath: "/data/suricata-logs"
+          - name: suricata-live-pcap-volume
+            mountPath: "/data/suricata-pcaps"
       volumes:
         {{- if ne (len .Values.suricata_chart_overrides.live_volumes) 0 }}
         {{- toYaml .Values.suricata_chart_overrides.live_volumes | nindent 8 }}
@@ -166,5 +172,9 @@ spec:
         - name: suricata-custom-configs-volume
           configMap:
             name: suricata-configs
+        - name: suricata-live-pcap-volume
+          hostPath:
+            path: "{{ .Values.arkime_live.pcap_hostpath }}"
+            type: DirectoryOrCreate
         {{- end }}
 {{- end }}

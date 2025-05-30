@@ -98,8 +98,11 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          # TODO figure out a better way to implement this
           - name: FILEBEAT_ZEEK_LOG_LIVE_PATH
             value: "/zeek-live-logs/live"
+          - name: FILEBEAT_ZEEK_LOG_PATH
+            value: "/zeek-live-logs/live/logs/current/"
         livenessProbe:
           exec:
             command:
