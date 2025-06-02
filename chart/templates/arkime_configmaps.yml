@@ -125,6 +125,8 @@ data:
   ARKIME_TPACKETV3_NUM_THREADS: "{{ .arkime_tpacketv3_num_threads }}"
   #The block size in bytes used for reads from each interface. There are 120 blocks per interface.
   ARKIME_TPACKETV3_BLOCK_SIZE: "{{ .arkime_tpacketv3_block_size }}"
+  #The size of the pcap file in GB before arkime rolls it 
+  ARKIME_PCAP_MAX_FILE_SIZE: "{{ .pcap_max_file_size_gb }}"
     {{- end }}
   {{- else }}
     {{- with .Values.arkime_live.development }}
@@ -136,6 +138,7 @@ data:
   ARKIME_PCAP_WRITE_SIZE: "{{ .arkime_pcap_write_size }}"
   ARKIME_TPACKETV3_NUM_THREADS: "{{ .arkime_tpacketv3_num_threads }}"
   ARKIME_TPACKETV3_BLOCK_SIZE: "{{ .arkime_tpacketv3_block_size }}"
+  ARKIME_PCAP_MAX_FILE_SIZE: "{{ .pcap_max_file_size_gb }}"
     {{- end }}
   {{- end }}
 
