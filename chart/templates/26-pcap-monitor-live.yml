@@ -23,6 +23,13 @@ data:
   PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
   PCAP_PIPELINE_VERBOSITY: "-vv"
   EXTRA_TAGS: "{{ .Values.upload_common_env.extra_tags }}"
+  # OPENSEARCH_URL: ""
+  # OPENSEARCH_PRIMARY: ""
+  # OPENSEARCH_CREDS_CONFIG_FILE: ""
+  # OPENSEARCH_SSL_CERTIFICATE_VERIFICATION: ""
+  # may need to be changed to /zeek/live/logs/current
+  ZEEK_PATH: "/zeek"
+  PCAP_PATH: "/pcap/arkime-live"
 kind: ConfigMap
 metadata:
   name: upload-live-env
