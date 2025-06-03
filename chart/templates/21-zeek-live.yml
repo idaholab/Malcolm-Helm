@@ -14,6 +14,7 @@ data:
   ZEEK_DISABLE_STATS: "{{ .Values.zeek_live.zeek_disable_stats }}"
   {{- if .Values.is_production }}
     {{- with .Values.zeek_live.production }}
+  ZEEK_LB_PROCS_WORKER_DEFAULT: "{{ .zeek_lb_procs_worker_default }}"
   ZEEK_LB_PROCS: "{{ .zeek_lb_procs }}"
   WORKER_LB_PROCS: "{{ .worker_lb_procs }}"
   ZEEK_LB_METHOD: "{{ .zeek_lb_method }}"
@@ -22,6 +23,7 @@ data:
     {{- end }}
   {{- else }}
     {{- with .Values.zeek_live.development }}
+  ZEEK_LB_PROCS_WORKER_DEFAULT: "{{ .zeek_lb_procs_worker_default }}"
   ZEEK_LB_PROCS: "{{ .zeek_lb_procs }}"
   WORKER_LB_PROCS: "{{ .worker_lb_procs }}"
   ZEEK_LB_METHOD: "{{ .zeek_lb_method }}"
