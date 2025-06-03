@@ -99,7 +99,7 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
           - name: FILEBEAT_ZEEK_LOG_LIVE_PATH
-            value: "/zeek-live-logs/live"
+            value: "/zeek/live"
         livenessProbe:
           exec:
             command:
@@ -114,14 +114,22 @@ spec:
             name: filebeat-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: filebeat-opensearch-curlrc-secret-volume
-          - mountPath: "/zeek"
-            name: filebeat-zeek-volume
           - mountPath: "/suricata"
             name: filebeat-suricata-live-volume
           - name: filebeat-nginx-runtime-logs-volume
             mountPath: /nginx
             subPath: "nginx"
-          - mountPath: "/zeek-live-logs"
+          - mountPath: "/zeek/live"
+            subPath: "live"
+            name: zeek-live-logs-volume
+          - mountPath: "/zeek/upload"
+            subPath: "upload"
+            name: zeek-live-logs-volume
+          - mountPath: "/zeek/processed"
+            subPath: "processed"
+            name: zeek-live-logs-volume
+          - mountPath: "/zeek/current"
+            subPath: "current"
             name: zeek-live-logs-volume
       initContainers:
       - name: filebeat-dirinit-container
@@ -148,9 +156,6 @@ spec:
         - name: filebeat-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
-        - name: filebeat-zeek-volume
-          persistentVolumeClaim:
-            claimName: zeek-claim
         - name: filebeat-suricata-live-volume
           hostPath:
             path: "{{ .Values.suricata_live.suricata_log_path }}"
