@@ -136,6 +136,7 @@ data:
   ARKIME_PCAP_WRITE_SIZE: "{{ .arkime_pcap_write_size }}"
   ARKIME_TPACKETV3_NUM_THREADS: "{{ .arkime_tpacketv3_num_threads }}"
   ARKIME_TPACKETV3_BLOCK_SIZE: "{{ .arkime_tpacketv3_block_size }}"
+  PCAP_ROTATE_MEGABYTES: "{{ .pcap_max_file_size_gb }}"
     {{- end }}
   {{- end }}
 
