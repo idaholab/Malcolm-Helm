@@ -6,6 +6,8 @@
 apiVersion: v1
 data:
   ZEEK_AUTO_ANALYZE_PCAP_FILES: "true"
+  PCAP_PROCESSED_DIRECTORY: "/pcap/arkime-live"
+  ZEEK_UPLOAD_DIRECTORY: "/zeek/upload"
 {{- if .Values.is_production }}
   {{- with .Values.zeek_offline.production }}
   ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
@@ -21,6 +23,7 @@ data:
   ZEEK_DISABLE_STATS: "true"
   ZEEK_INTEL_REFRESH_CRON_EXPRESSION: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
   ZEEK_INTEL_REFRESH_ON_STARTUP: "{{ .Values.zeek_offline.zeek_intel_refresh_on_startup }}"
+  
 kind: ConfigMap
 metadata:
   name: zeek-pcap-offline-env

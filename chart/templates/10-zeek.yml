@@ -4,6 +4,8 @@
 apiVersion: v1
 data:
   ZEEK_AUTO_ANALYZE_PCAP_FILES: "true"
+  PCAP_PROCESSED_DIRECTORY: "/pcap/processed"
+  ZEEK_UPLOAD_DIRECTORY: "/zeek/upload"
 {{- if .Values.is_production }}
   {{- with .Values.zeek_offline.production }}
   ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
