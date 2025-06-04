@@ -561,8 +561,8 @@ zeek_chart_overrides:
   extra_init_containers: []
   live_extra_volumes: []
   live_extra_volumeMounts: []
-  offline_pcap_daemonset_volumes: []
-  offline_pcap_daemonset_volumeMounts: []
+  # offline_pcap_daemonset_volumes: []
+  # offline_pcap_daemonset_volumeMounts: []
 
 suricata_chart_overrides:
   serviceAccountName: ""

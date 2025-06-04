@@ -1,23 +1,36 @@
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $pcap_monitor_image := .Values.image.pcap_monitor_container_override | default (printf "%s/pcap-monitor:%s" .Values.image.repository .Chart.AppVersion) }}
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: pcap-monitor
-# spec:
-#   ports:
-#     - port: 30441
-#       protocol: TCP
-#       name: zmq
-#   selector:
-#     name: pcap-monitor-deployment
+{{- $zeek_image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
+---
+apiVersion: v1
+data:
+  ZEEK_AUTO_ANALYZE_PCAP_FILES: "true"
+  PCAP_PROCESSED_DIRECTORY: "/pcap/arkime-live"
+  ZEEK_UPLOAD_DIRECTORY: "/zeek/upload"
+{{- if .Values.is_production }}
+  {{- with .Values.zeek_offline.production }}
+  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
+  {{- end }}
+{{- else }}
+  {{- with .Values.zeek_offline.development }}
+  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
+  {{- end }}
+{{- end }}
+  ZEEK_PCAP_PROCESSOR: "true"
+  ZEEK_ROTATED_PCAP: "false"
+  # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
+  ZEEK_DISABLE_STATS: "true"
+  ZEEK_INTEL_REFRESH_CRON_EXPRESSION: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
+  ZEEK_INTEL_REFRESH_ON_STARTUP: "{{ .Values.zeek_offline.zeek_intel_refresh_on_startup }}"
+kind: ConfigMap
+metadata:
+  name: zeek-pcap-offline-env
 
 ---
 apiVersion: v1
 data:
   AUTO_TAG: "true"
-  PCAP_MONITOR_HOST: pcap-monitor
+  PCAP_MONITOR_HOST: "localhost"
   PCAP_PIPELINE_IGNORE_PREEXISTING: "true"
   PCAP_PIPELINE_POLLING: "false"
   PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
@@ -34,20 +47,21 @@ data:
   WATCHER_PUBLISH: "true"
 kind: ConfigMap
 metadata:
-  name: upload-live-env
+  name: upload-pcap-offline-env
+
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: pcap-monitor-daemonset
+  name: pcap-processor-daemonset
 spec:
   selector:
     matchLabels:
-      name: pcap-monitor-daemonset
+      name: pcap-processor-daemonset
   template:
     metadata:
       labels:
-        name: pcap-monitor-daemonset
+        name: pcap-processor-daemonset
     spec:
       containers:
       - name: pcap-monitor-container
@@ -70,7 +84,7 @@ spec:
           - configMapRef:
               name: ssl-env
           - configMapRef:
-              name: upload-live-env
+              name: upload-pcap-offline-env
         # TODO fix livenessProbe later
         # livenessProbe:
         #   exec:
@@ -83,13 +97,71 @@ spec:
         #   failureThreshold: 10
         volumeMounts:
         - mountPath: /var/local/ca-trust/configmap
-          name: pcap-monitor-var-local-catrust-volume
-        - mountPath: /var/local/curlrc/secretmap
-          name: pcap-monitor-opensearch-curlrc-secret-volume
+          name: var-local-catrust-volume
+        # - mountPath: /var/local/curlrc/secretmap
+        #   name: pcap-monitor-opensearch-curlrc-secret-volume
         - mountPath: "/pcap"
-          name: pcap-monitor-pcap-volume
+          name: pcap-volume
         - mountPath: "/zeek"
-          name: pcap-monitor-zeek-volume
+          name: zeek-volume
+# Start of the ZEEK container
+      - name: zeek-container
+        image: "{{ $zeek_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: upload-common-env
+          - configMapRef:
+              name: zeek-env
+          - secretRef:
+              name: zeek-secret-env
+          - configMapRef:
+              name: zeek-pcap-offline-env
+        env:
+          - name: PCAP_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        # livenessProbe intentionally omitted as per original comment
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume
+          - mountPath: "/pcap"
+            name: pcap-volume
+          - mountPath: "/zeek/extract_files"
+            name: zeek-volume
+            subPath: "extract_files"
+          - mountPath: "/zeek/upload"
+            name: zeek-volume
+            subPath: "upload"
+          - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
+            name: zeek-custom-volume
+          - mountPath: "/opt/zeek/share/zeek/site/intel-preseed/configmap"
+            name: zeek-offline-intel-preseed-volume
+          - mountPath: "/opt/zeek/share/zeek/site/intel"
+            name: zeek-intel-volume
+            subPath: "zeek/intel"
+          - name: misp-config
+            mountPath: "/opt/zeek/share/zeek/site/intel-preseed/MISP/.misp_input.txt"
+            subPath: misp_input.txt
+          - mountPath: /opt/zeek/share/zeek/site/custom
+            name: zeek-intel-volume
+            subPath: "zeek/custom"
+          - mountPath: /opt/zeek/share/zeek/site/custom-global
+            name: zeek-intel-volume
+            subPath: "zeek/custom-global"
+      # {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
+      # {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
+      # {{- end }}
       initContainers:
       - name: pcap-monitor-dirinit-container
         image: "{{ $dirinit_image }}"
@@ -106,24 +178,53 @@ spec:
           - name: PUSER_MKDIR
             value: "/data/pcap:processed,upload"
         volumeMounts:
-          - name: pcap-monitor-pcap-volume
+          - name: pcap-volume
+            mountPath: "/data/pcap"      
+      - name: zeek-offline-dirinit-container
+        image: "{{ $dirinit_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        envFrom:
+          - configMapRef:
+              name: process-env
+        env:
+          - name: PUSER_MKDIR
+            value: "/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/pcap:processed;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload"
+        volumeMounts:
+          - name: zeek-intel-volume
+            mountPath: "/data/config"
+          - name: pcap-volume
             mountPath: "/data/pcap"
-      volumes:
-      - name: pcap-monitor-var-local-catrust-volume
+          - name: zeek-volume
+            mountPath: "/data/zeek-logs"
+      volumes:      
+      - name: var-local-catrust-volume
         configMap:
           name: var-local-catrust
-      - name: pcap-monitor-opensearch-curlrc-secret-volume
-        secret:
-          secretName: opensearch-curlrc
-      - name: pcap-monitor-pcap-volume
+      # - name: pcap-monitor-opensearch-curlrc-secret-volume
+      #   secret:
+      #     secretName: opensearch-curlrc
+      - name: pcap-volume
         hostPath:
           path: "{{ .Values.arkime_live.pcap_hostpath }}"
           type: DirectoryOrCreate
-      - name: pcap-monitor-zeek-volume
+      - name: zeek-volume
         hostPath:
           path: "{{ .Values.zeek_live.zeek_log_path }}"
           type: DirectoryOrCreate
-        # TODO extract files should probably go to a shared PVC even while running at scale.
-        # persistentVolumeClaim:
-        #   claimName: zeek-claim
-
+      - name: zeek-custom-volume
+        configMap:
+          name: zeek-custom
+      - name: zeek-offline-intel-preseed-volume
+        configMap:
+          name: zeek-intel-preseed
+      - name: zeek-intel-volume
+        persistentVolumeClaim:
+          claimName: config-claim
+      - name: misp-config
+        secret:
+          secretName: misp-api
