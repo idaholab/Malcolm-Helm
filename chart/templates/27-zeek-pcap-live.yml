@@ -1,0 +1,150 @@
+{{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
+
+{{- if not .Values.zeek_live.enabled }}
+---
+apiVersion: v1
+data:
+  ZEEK_AUTO_ANALYZE_PCAP_FILES: "true"
+{{- if .Values.is_production }}
+  {{- with .Values.zeek_offline.production }}
+  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
+  {{- end }}
+{{- else }}
+  {{- with .Values.zeek_offline.development }}
+  ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
+  {{- end }}
+{{- end }}
+  ZEEK_PCAP_PROCESSOR: "true"
+  ZEEK_ROTATED_PCAP: "false"
+  # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
+  ZEEK_DISABLE_STATS: "true"
+  ZEEK_INTEL_REFRESH_CRON_EXPRESSION: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
+  ZEEK_INTEL_REFRESH_ON_STARTUP: "{{ .Values.zeek_offline.zeek_intel_refresh_on_startup }}"
+kind: ConfigMap
+metadata:
+  name: zeek-pcap-offline-env
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: zeek-offline-daemonset
+spec:
+  selector:
+    matchLabels:
+      name: zeek-offline-daemonset
+  template:
+    metadata:
+      labels:
+        name: zeek-offline-daemonset
+    spec:
+      serviceAccountName: {{ .Values.zeek_chart_overrides.serviceAccountName | default "default" }}
+      containers:
+      - name: zeek-container
+        image: "{{ $image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: upload-common-env
+          - configMapRef:
+              name: zeek-env
+          - secretRef:
+              name: zeek-secret-env
+          - configMapRef:
+              name: zeek-pcap-offline-env
+        env:
+          - name: PCAP_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        # livenessProbe intentionally omitted as per original comment
+        volumeMounts:
+          {{- if ne (len .Values.zeek_chart_overrides.volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_chart_overrides.volumeMounts | nindent 12 }}
+          {{- else }}
+          - mountPath: /var/local/ca-trust/configmap
+            name: zeek-offline-var-local-catrust-volume
+          - mountPath: "/pcap"
+            name: zeek-offline-pcap-volume
+          - mountPath: "/zeek/extract_files"
+            name: zeek-offline-zeek-volume
+            subPath: "extract_files"
+          - mountPath: "/zeek/upload"
+            name: zeek-offline-zeek-volume
+            subPath: "upload"
+          - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
+            name: zeek-custom-volume
+          - mountPath: "/opt/zeek/share/zeek/site/intel-preseed/configmap"
+            name: zeek-offline-intel-preseed-volume
+          - mountPath: "/opt/zeek/share/zeek/site/intel"
+            name: zeek-intel-volume
+            subPath: "zeek/intel"
+          {{- end }}
+      {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
+      {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
+      {{- end }}
+      initContainers:
+      - name: zeek-offline-dirinit-container
+        image: "{{ $dirinit_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        envFrom:
+          - configMapRef:
+              name: process-env
+        env:
+          - name: PUSER_MKDIR
+            value: "/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/pcap:processed;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload"
+        volumeMounts:
+          - name: zeek-intel-volume
+            mountPath: "/data/config"
+          - name: zeek-offline-pcap-volume
+            mountPath: "/data/pcap"
+          - name: zeek-offline-zeek-volume
+            mountPath: "/data/zeek-logs"
+      volumes:
+        {{- if ne (len .Values.zeek_chart_overrides.volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.volumes | nindent 8 }}
+        {{- else }}
+        - name: zeek-offline-var-local-catrust-volume
+          configMap:
+            name: var-local-catrust
+        # TODO dont delete until you have fully tested this scenario
+        # - name: zeek-offline-pcap-volume
+        #   persistentVolumeClaim:
+        #     claimName: pcap-claim
+        # - name: zeek-offline-zeek-volume
+        #   persistentVolumeClaim:
+        #     claimName: zeek-claim
+        - name: zeek-custom-volume
+          configMap:
+            name: zeek-custom
+        - name: zeek-offline-intel-preseed-volume
+          configMap:
+            name: zeek-intel-preseed
+        - name: zeek-intel-volume
+          persistentVolumeClaim:
+            claimName: config-claim
+        - name: zeek-offline-pcap-volume
+          hostPath:
+            path: "{{ .Values.arkime_live.pcap_hostpath }}"
+            type: DirectoryOrCreate
+        - name: zeek-offline-zeek-volume
+          hostPath:
+            path: "{{ .Values.zeek_live.zeek_log_path }}"
+            type: DirectoryOrCreate
+        {{- end }}
+{{- end }}
