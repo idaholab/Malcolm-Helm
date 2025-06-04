@@ -80,8 +80,8 @@ spec:
         #   successThreshold: 1
         #   failureThreshold: 50
         volumeMounts:
-          {{- if ne (len .Values.zeek_chart_overrides.volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_chart_overrides.volumeMounts | nindent 10 }}
+          {{- if ne (len .Values.zeek_chart_overrides.offline_upload_volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_chart_overrides.offline_upload_volumeMounts | nindent 10 }}
           {{- else }}
           - mountPath: /var/local/ca-trust/configmap
             name: zeek-offline-var-local-catrust-volume
@@ -127,8 +127,8 @@ spec:
           - name: zeek-offline-zeek-volume
             mountPath: "/data/zeek-logs"
       volumes:
-        {{- if ne (len .Values.zeek_chart_overrides.volumes) 0 }}
-        {{- toYaml .Values.zeek_chart_overrides.volumes | nindent 8 }}
+        {{- if ne (len .Values.zeek_chart_overrides.offline_upload_volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.offline_upload_volumes | nindent 8 }}
         {{- else }}
         - name: zeek-offline-var-local-catrust-volume
           configMap:

@@ -69,8 +69,8 @@ spec:
                 fieldPath: spec.nodeName
         # livenessProbe intentionally omitted as per original comment
         volumeMounts:
-          {{- if ne (len .Values.zeek_chart_overrides.volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_chart_overrides.volumeMounts | nindent 12 }}
+          {{- if ne (len .Values.zeek_chart_overrides.offline_pcap_daemonset_volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_chart_overrides.offline_pcap_daemonset_volumeMounts | nindent 12 }}
           {{- else }}
           - mountPath: /var/local/ca-trust/configmap
             name: zeek-offline-var-local-catrust-volume
@@ -116,19 +116,12 @@ spec:
           - name: zeek-offline-zeek-volume
             mountPath: "/data/zeek-logs"
       volumes:
-        {{- if ne (len .Values.zeek_chart_overrides.volumes) 0 }}
-        {{- toYaml .Values.zeek_chart_overrides.volumes | nindent 8 }}
+        {{- if ne (len .Values.zeek_chart_overrides.offline_pcap_daemonset_volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.offline_pcap_daemonset_volumes | nindent 8 }}
         {{- else }}
         - name: zeek-offline-var-local-catrust-volume
           configMap:
             name: var-local-catrust
-        # TODO dont delete until you have fully tested this scenario
-        # - name: zeek-offline-pcap-volume
-        #   persistentVolumeClaim:
-        #     claimName: pcap-claim
-        # - name: zeek-offline-zeek-volume
-        #   persistentVolumeClaim:
-        #     claimName: zeek-claim
         - name: zeek-custom-volume
           configMap:
             name: zeek-custom

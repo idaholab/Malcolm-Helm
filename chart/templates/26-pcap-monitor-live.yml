@@ -69,10 +69,6 @@ spec:
               name: process-env
           - configMapRef:
               name: ssl-env
-          # I dont think we need these environment variables for 
-          # storing already processed pcaps to ELASTIC in this use case.
-          # - configMapRef:
-          #     name: opensearch-env
           - configMapRef:
               name: upload-live-env
         # TODO fix livenessProbe later
