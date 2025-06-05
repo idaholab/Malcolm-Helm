@@ -99,7 +99,7 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
           - name: FILEBEAT_ZEEK_LOG_LIVE_PATH
-            value: "/zeek-live-logs/live"
+            value: "/zeek/live"
         livenessProbe:
           exec:
             command:
@@ -121,7 +121,10 @@ spec:
           - name: filebeat-nginx-runtime-logs-volume
             mountPath: /nginx
             subPath: "nginx"
-          - mountPath: "/zeek-live-logs"
+          # TODO I broke this and need to go back and fix 
+          # - mountPath: "/zeek-live-logs"
+          #   name: zeek-live-logs-volume
+          - mountPath: "/zeek"
             name: zeek-live-logs-volume
       initContainers:
       - name: filebeat-dirinit-container
