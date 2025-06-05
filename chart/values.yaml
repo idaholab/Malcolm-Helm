@@ -343,6 +343,10 @@ zeek_live:
   # Zeek live is a Daemonset but it will only schedule on kubernetes nodes that has following label
   nodeSelector:
     cnaps.io/zeek-capture: "true"
+  # For adding additional configmap/secret based environment variables
+  extra_envFrom: []
+  # For adding additional enviornment variables
+  extra_env: []
 
   development:
     zeek_lb_procs_worker_default: ""
