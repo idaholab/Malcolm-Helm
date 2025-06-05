@@ -30,6 +30,15 @@ metadata:
 ---
 apiVersion: v1
 data:
+  .gitignore: |+
+    *
+    !.gitignore
+kind: ConfigMap
+metadata:
+  name: suricata-configs
+---
+apiVersion: v1
+data:
   AUTO_TAG: "true"
   PCAP_MONITOR_HOST: "localhost"
   PCAP_PIPELINE_IGNORE_PREEXISTING: "true"
