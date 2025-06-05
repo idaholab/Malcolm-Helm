@@ -131,9 +131,6 @@ spec:
           - mountPath: "/zeek/current"
             subPath: "current"
             name: zeek-live-logs-volume
-          - mountPath: "/zeek/extract_files"
-            subPath: "extract_files"
-            name: filebeat-zeek-volume
       initContainers:
       - name: filebeat-dirinit-container
         image: "{{ $dirinit_image }}"
@@ -159,9 +156,6 @@ spec:
         - name: filebeat-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
-        - name: filebeat-zeek-volume
-          persistentVolumeClaim:
-            claimName: zeek-claim
         - name: filebeat-suricata-live-volume
           hostPath:
             path: "{{ .Values.suricata_live.suricata_log_path }}"
