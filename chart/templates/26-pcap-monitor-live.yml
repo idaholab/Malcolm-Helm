@@ -182,7 +182,7 @@ spec:
           - configMapRef:
               name: ssl-env
           - configMapRef:
-              name: upload-common-env
+              name: upload-pcap-offline-env
           - configMapRef:
               name: suricata-env
           - configMapRef:
