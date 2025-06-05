@@ -98,8 +98,6 @@ spec:
         volumeMounts:
         - mountPath: /var/local/ca-trust/configmap
           name: var-local-catrust-volume
-        # - mountPath: /var/local/curlrc/secretmap
-        #   name: pcap-monitor-opensearch-curlrc-secret-volume
         - mountPath: "/pcap"
           name: pcap-volume
         - mountPath: "/zeek"
@@ -138,7 +136,7 @@ spec:
           - mountPath: "/pcap"
             name: pcap-volume
           - mountPath: "/zeek/extract_files"
-            name: zeek-volume
+            name: extract-zeek-volume
             subPath: "extract_files"
           - mountPath: "/zeek/upload"
             name: zeek-volume
@@ -159,9 +157,6 @@ spec:
           - mountPath: /opt/zeek/share/zeek/site/custom-global
             name: zeek-intel-volume
             subPath: "zeek/custom-global"
-      # {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
-      # {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
-      # {{- end }}
       initContainers:
       - name: pcap-monitor-dirinit-container
         image: "{{ $dirinit_image }}"
@@ -205,9 +200,6 @@ spec:
       - name: var-local-catrust-volume
         configMap:
           name: var-local-catrust
-      # - name: pcap-monitor-opensearch-curlrc-secret-volume
-      #   secret:
-      #     secretName: opensearch-curlrc
       - name: pcap-volume
         hostPath:
           path: "{{ .Values.arkime_live.pcap_hostpath }}"
@@ -228,3 +220,6 @@ spec:
       - name: misp-config
         secret:
           secretName: misp-api
+      - name: extract-zeek-volume
+        persistentVolumeClaim:
+          claimName: zeek-claim
