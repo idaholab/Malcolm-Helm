@@ -74,6 +74,9 @@ spec:
               # SYS_NICE - to set process nice values, real-time scheduling policies, I/O scheduling
               - SYS_NICE
         envFrom:
+          {{- if ne (len .Values.zeek_live.extra_envFrom) 0 }}
+          {{- toYaml .Values.zeek_live.extra_envFrom | nindent 10 }}
+          {{- end }}
           - configMapRef:
               name: process-env
           - configMapRef:
@@ -102,6 +105,9 @@ spec:
           successThreshold: 1
           failureThreshold: 3
         env:
+          {{- if ne (len .Values.zeek_live.extra_env) 0 }}
+          {{- toYaml .Values.zeek_live.extra_env | nindent 10 }}
+          {{- end }}
           - name: ZEEK_DISABLED
             value: "false"
           - name: PCAP_NODE_NAME
