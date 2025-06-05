@@ -114,8 +114,8 @@ spec:
             name: filebeat-var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: filebeat-opensearch-curlrc-secret-volume
-          - mountPath: "/zeek"
-            name: filebeat-zeek-volume
+          # - mountPath: "/zeek"
+          #   name: filebeat-zeek-volume
           - mountPath: "/suricata"
             name: filebeat-suricata-live-volume
           - name: filebeat-nginx-runtime-logs-volume
@@ -151,9 +151,9 @@ spec:
         - name: filebeat-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
-        - name: filebeat-zeek-volume
-          persistentVolumeClaim:
-            claimName: zeek-claim
+        # - name: filebeat-zeek-volume
+        #   persistentVolumeClaim:
+        #     claimName: zeek-claim
         - name: filebeat-suricata-live-volume
           hostPath:
             path: "{{ .Values.suricata_live.suricata_log_path }}"
