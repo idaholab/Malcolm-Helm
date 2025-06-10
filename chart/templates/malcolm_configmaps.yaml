@@ -390,9 +390,6 @@ data:
   ZEEK_JSON: ""
   PCAP_PROCESSED_DIRECTORY: "/pcap/processed"
   ZEEK_UPLOAD_DIRECTORY: "/zeek/upload"
-  # ZEEK_KAFKA_ENABLED: ""
-  # ZEEK_KAFKA_BROKERS: "kafka.local:9091"
-  # ZEEK_KAFKA_TOPIC: "zeek"
 kind: ConfigMap
 metadata:
   name: zeek-env

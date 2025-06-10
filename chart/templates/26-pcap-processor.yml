@@ -101,6 +101,10 @@ spec:
               name: zeek-secret-env
           - configMapRef:
               name: zeek-offline-env
+          {{- if .Values.kafka.enabled }}
+          - configMapRef:
+              name: kafka-config
+          {{- end }}
         env:
           - name: PCAP_NODE_NAME
             valueFrom:
@@ -182,18 +186,14 @@ spec:
             name: pcap-volume
           - mountPath: "/var/log/suricata"
             name: suricata-logs-volume
-          # - mountPath: "/opt/suricata/rules/configmap"
-          #   name: suricata-custom-rules-volume
-          # - mountPath: "/opt/suricata/include-configs/configmap"
-          #   name: suricata-custom-configs-volume
-          # Overrides original volume mount
-          - name: suricata-custom-rules-volume
-            mountPath: /opt/suricata/rules/
-          # Overrides original volume mount
-          - name: suricata-custom-configs-volume
-            mountPath: /opt/suricata/include-configs/
-          - name: local-rules
-            mountPath: /opt/dataplane/rules
+          {{- if ne (len .Values.suricata_chart_overrides.volumeMounts) 0 }}
+          {{- toYaml .Values.suricata_chart_overrides.volumeMounts | nindent 10 }}
+          {{- else }}
+          - mountPath: "/opt/suricata/rules/configmap"
+            name: suricata-custom-rules-volume
+          - mountPath: "/opt/suricata/include-configs/configmap"
+            name: suricata-custom-configs-volume
+          {{- end }}
       {{- if ne (len .Values.suricata_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
@@ -234,6 +234,9 @@ spec:
           - mountPath: "/zeek/extract_files"
             name: extract-zeek-volume
             subPath: "extract_files"
+      {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
+      {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
+      {{- end }}
       volumes:      
       - name: var-local-catrust-volume
         configMap:
