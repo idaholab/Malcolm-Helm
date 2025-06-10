@@ -40,7 +40,7 @@ spec:
       labels:
         name: pcap-processor-daemonset
     spec:
-      serviceAccountName: {{ .Values.suricata_chart_overrides.serviceAccountName | default "default" }}
+      serviceAccountName: {{ .Values.zeek_chart_overrides.serviceAccountName | default "default" }}
       containers:
       - name: pcap-monitor-container
         image: "{{ $pcap_monitor_image }}"
