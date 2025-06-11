@@ -276,7 +276,7 @@ Vagrant.configure("2") do |config|
   else
     config.vm.provision "shell", inline: <<-SHELL
       echo "Waiting for rke2-ingress-nginx-controller-admission..." >&2
-      until kubectl get endpoints --namespace kube-system 2>/dev/null | grep -Pq "rke2-ingress-nginx-controller-admission\s+.+:\d+"; do
+      until kubectl get endpoints --namespace kube-system 2>/dev/null | grep -Pq "rke2-ingress-nginx-controller-admission\\s+.+:\\d+"; do
         sleep 20
       done
       echo "rke2-ingress-nginx-controller-admission is present" >&2
