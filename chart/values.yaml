@@ -438,7 +438,7 @@ arkime_env:
     rotate_index: daily
     # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
     # Whether or not Arkime should perform index management
-    index_management_enabled: "false"
+    index_management_enabled: "true"
     # Time in hours/days before moving to warm and force merge (number followed by h or d)
     index_management_optimization_period: "30d"
     # Time in hours/days before deleting index (number followed by h or d)
@@ -454,8 +454,8 @@ arkime_env:
     spi_data_max_indices: "7"
   production:
     free_space_g: "20%"
-    rotate_index: hourly
-    index_management_enabled: "false"
+    rotate_index: daily
+    index_management_enabled: "true"
     index_management_optimization_period: "30d"
     index_management_retention_time: "90d"
     index_management_older_session_replicas: "0"
