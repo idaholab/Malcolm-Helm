@@ -331,7 +331,7 @@ suricata_offline:
   development:
     suricata_auto_analyze_pcap_threads: 1
   production:
-    suricata_auto_analyze_pcap_threads: 3
+    suricata_auto_analyze_pcap_threads: 16
 
 # Zeek live is enabled by default and will listen pcap_iface
 # Defined under pcap_capture_env
