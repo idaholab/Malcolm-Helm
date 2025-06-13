@@ -6,7 +6,7 @@ enable_network_policies: false
 
 # When this is set live, Arkime, Zeek and Suricata will capture off the NIC. 
 # If this is set to pipeline, all Zeek and Suricata ingest from live PCAP provided by Arkime.
-capture_mode: ###ZARF_VAR_CAPTURE_MODE###
+capture_mode: live
 
 # When scaling the _helpers.tpl function that is used for scaling out nodes will do a calculation based on this label
 # Basically it will count the total number of nodes that have this label
