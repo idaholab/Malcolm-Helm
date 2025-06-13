@@ -80,9 +80,6 @@ spec:
         #   successThreshold: 1
         #   failureThreshold: 50
         volumeMounts:
-          {{- if ne (len .Values.zeek_chart_overrides.volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_chart_overrides.volumeMounts | nindent 10 }}
-          {{- else }}
           - mountPath: /var/local/ca-trust/configmap
             name: zeek-offline-var-local-catrust-volume
           - mountPath: "/pcap"
@@ -93,13 +90,16 @@ spec:
           - mountPath: "/zeek/upload"
             name: zeek-offline-zeek-volume
             subPath: "upload"
-          - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
-            name: zeek-custom-volume
           - mountPath: "/opt/zeek/share/zeek/site/intel-preseed/configmap"
             name: zeek-offline-intel-preseed-volume
           - mountPath: "/opt/zeek/share/zeek/site/intel"
             name: zeek-intel-volume
             subPath: "zeek/intel"
+          {{- if ne (len .Values.zeek_chart_overrides.offline_upload_volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_chart_overrides.offline_upload_volumeMounts | nindent 10 }}
+          {{- else }}
+          - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
+            name: zeek-custom-volume
           {{- end }}
       {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
@@ -127,9 +127,6 @@ spec:
           - name: zeek-offline-zeek-volume
             mountPath: "/data/zeek-logs"
       volumes:
-        {{- if ne (len .Values.zeek_chart_overrides.volumes) 0 }}
-        {{- toYaml .Values.zeek_chart_overrides.volumes | nindent 8 }}
-        {{- else }}
         - name: zeek-offline-var-local-catrust-volume
           configMap:
             name: var-local-catrust
@@ -139,13 +136,16 @@ spec:
         - name: zeek-offline-zeek-volume
           persistentVolumeClaim:
             claimName: zeek-claim
-        - name: zeek-custom-volume
-          configMap:
-            name: zeek-custom
         - name: zeek-offline-intel-preseed-volume
           configMap:
             name: zeek-intel-preseed
         - name: zeek-intel-volume
           persistentVolumeClaim:
             claimName: config-claim
+        {{- if ne (len .Values.zeek_chart_overrides.offline_upload_volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.offline_upload_volumes | nindent 8 }}
+        {{- else }}
+        - name: zeek-custom-volume
+          configMap:
+            name: zeek-custom
         {{- end }}

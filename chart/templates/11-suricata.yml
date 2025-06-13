@@ -71,15 +71,15 @@ spec:
           successThreshold: 1
           failureThreshold: 10
         volumeMounts:
-          {{- if ne (len .Values.suricata_chart_overrides.volumeMounts) 0 }}
-          {{- toYaml .Values.suricata_chart_overrides.volumeMounts | nindent 10 }}
-          {{- else }}
           - mountPath: /var/local/ca-trust/configmap
             name: suricata-offline-var-local-catrust-volume
           - mountPath: "/data/pcap"
             name: suricata-offline-pcap-volume
           - mountPath: "/var/log/suricata"
             name: suricata-offline-suricata-logs-volume
+          {{- if ne (len .Values.suricata_chart_overrides.volumeMounts) 0 }}
+          {{- toYaml .Values.suricata_chart_overrides.volumeMounts | nindent 10 }}
+          {{- else }}
           - mountPath: "/opt/suricata/rules/configmap"
             name: suricata-custom-rules-volume
           - mountPath: "/opt/suricata/include-configs/configmap"
@@ -107,9 +107,6 @@ spec:
           - name: suricata-offline-pcap-volume
             mountPath: "/data/pcap"
       volumes:
-        {{- if ne (len .Values.suricata_chart_overrides.volumes) 0 }}
-        {{- toYaml .Values.suricata_chart_overrides.volumes | nindent 8 }}
-        {{- else }}
         - name: suricata-offline-var-local-catrust-volume
           configMap:
             name: var-local-catrust
@@ -119,6 +116,9 @@ spec:
         - name: suricata-offline-suricata-logs-volume
           persistentVolumeClaim:
             claimName: suricata-claim-offline
+        {{- if ne (len .Values.suricata_chart_overrides.volumes) 0 }}
+        {{- toYaml .Values.suricata_chart_overrides.volumes | nindent 8 }}
+        {{- else }}
         - name: suricata-custom-rules-volume
           configMap:
             name: suricata-rules

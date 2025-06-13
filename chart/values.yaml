@@ -4,6 +4,10 @@
 is_production: false
 enable_network_policies: false
 
+# When this is set live, Arkime, Zeek and Suricata will capture off the NIC. 
+# If this is set to pipeline, all Zeek and Suricata ingest from live PCAP provided by Arkime.
+capture_mode: live
+
 # When scaling the _helpers.tpl function that is used for scaling out nodes will do a calculation based on this label
 # Basically it will count the total number of nodes that have this label
 # WARNING: If none of the nodes have this logstash replicas will get SET to 0
@@ -295,7 +299,6 @@ suricata_env:
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
 #https://docs.suricata.io/en/suricata-6.0.0/performance/tuning-considerations.html#af-packet AF_PACKET_RING_SIZE
 suricata_live:
-  enabled: true
   suricata_stats_enabled: true
   suricata_log_path: /opt/suricata/logs
   # Suricata live is a Daemonset but it will only schedule on kubernetes nodes that has following label
@@ -331,13 +334,12 @@ suricata_offline:
   development:
     suricata_auto_analyze_pcap_threads: 1
   production:
-    suricata_auto_analyze_pcap_threads: 3
+    suricata_auto_analyze_pcap_threads: 16
 
 # Zeek live is enabled by default and will listen pcap_iface
 # Defined under pcap_capture_env
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
 zeek_live:
-  enabled: true
   zeek_disable_stats: ""
   zeek_log_path: /opt/zeek/logs
   # Zeek live is a Daemonset but it will only schedule on kubernetes nodes that has following label
@@ -438,7 +440,7 @@ arkime_env:
     rotate_index: daily
     # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
     # Whether or not Arkime should perform index management
-    index_management_enabled: "false"
+    index_management_enabled: "true"
     # Time in hours/days before moving to warm and force merge (number followed by h or d)
     index_management_optimization_period: "30d"
     # Time in hours/days before deleting index (number followed by h or d)
@@ -454,8 +456,8 @@ arkime_env:
     spi_data_max_indices: "7"
   production:
     free_space_g: "20%"
-    rotate_index: hourly
-    index_management_enabled: "false"
+    rotate_index: daily
+    index_management_enabled: "true"
     index_management_optimization_period: "30d"
     index_management_retention_time: "90d"
     index_management_older_session_replicas: "0"
@@ -505,7 +507,7 @@ pcap_capture_env:
   # NOTE Net Sniff and tcpdump cannot be both true. Only one or the other can be running at a time.
   net_sniff: false
   tcpdump: true
-  pcap_rotate_megabytes: 4096
+  pcap_rotate_megabytes: 4
   pcap_rotate_minutes: 10
   home_net: "192.168.0.0/16,10.0.0.0/8,172.16.0.0/12"
   pcap_iface_tweak: true
@@ -560,14 +562,13 @@ rule_mount_override:
 zeek_chart_overrides:
   serviceAccountName: ""
   sideCars: []
-  volumes: []
-  volumeMounts: []
+  offline_upload_volumes: []
+  offline_upload_volumeMounts: []
   live_volumes: []
   live_volumeMounts: []
   extra_init_containers: []
-  live_extra_volumes: []
-  live_extra_volumeMounts: []
-
+  live_extra_volumes: []  
+  
 suricata_chart_overrides:
   serviceAccountName: ""
   sideCars: []
