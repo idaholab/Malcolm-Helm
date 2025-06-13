@@ -1,6 +1,6 @@
 {{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- if .Values.capture_mode == "live" }}
+{{- if eq .Values.capture_mode "live" }}
 ---
 apiVersion: v1
 data:

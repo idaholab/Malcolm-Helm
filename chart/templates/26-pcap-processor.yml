@@ -2,7 +2,7 @@
 {{- $pcap_monitor_image := .Values.image.pcap_monitor_container_override | default (printf "%s/pcap-monitor:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $zeek_image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $suricata_image := .Values.image.suricata_container_override | default (printf "%s/suricata:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- if .Values.capture_mode == "pipeline" }}
+{{- if eq .Values.capture_mode "pipeline" }}
 ---
 apiVersion: v1
 data:
