@@ -119,17 +119,7 @@ spec:
           - name: filebeat-nginx-runtime-logs-volume
             mountPath: /nginx
             subPath: "nginx"
-          - mountPath: "/zeek/live"
-            subPath: "live"
-            name: zeek-live-logs-volume
-          - mountPath: "/zeek/upload"
-            subPath: "upload"
-            name: zeek-live-logs-volume
-          - mountPath: "/zeek/processed"
-            subPath: "processed"
-            name: zeek-live-logs-volume
-          - mountPath: "/zeek/current"
-            subPath: "current"
+          - mountPath: "/zeek"
             name: zeek-live-logs-volume
       initContainers:
       - name: filebeat-dirinit-container
@@ -144,11 +134,15 @@ spec:
           - configMapRef:
               name: process-env
         env:
+          - name: PUSER_CHOWN
+            value: /zeek
           - name: PUSER_MKDIR
             value: "/data/runtime-logs:nginx"
         volumeMounts:
           - name: filebeat-nginx-runtime-logs-volume
             mountPath: "/data/runtime-logs"
+          - name: zeek-live-logs-volume
+            mountPath: /zeek
       volumes:
         - name: filebeat-var-local-catrust-volume
           configMap:

@@ -4,6 +4,10 @@
 is_production: false
 enable_network_policies: false
 
+# When this is set live, Arkime, Zeek and Suricata will capture off the NIC. 
+# If this is set to pipeline, all Zeek and Suricata ingest from live PCAP provided by Arkime.
+capture_mode: ###ZARF_VAR_CAPTURE_MODE###
+
 # When scaling the _helpers.tpl function that is used for scaling out nodes will do a calculation based on this label
 # Basically it will count the total number of nodes that have this label
 # WARNING: If none of the nodes have this logstash replicas will get SET to 0
@@ -295,7 +299,6 @@ suricata_env:
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
 #https://docs.suricata.io/en/suricata-6.0.0/performance/tuning-considerations.html#af-packet AF_PACKET_RING_SIZE
 suricata_live:
-  enabled: true
   suricata_stats_enabled: true
   suricata_log_path: /opt/suricata/logs
   # Suricata live is a Daemonset but it will only schedule on kubernetes nodes that has following label
@@ -337,7 +340,6 @@ suricata_offline:
 # Defined under pcap_capture_env
 # If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
 zeek_live:
-  enabled: true
   zeek_disable_stats: ""
   zeek_log_path: /opt/zeek/logs
   # Zeek live is a Daemonset but it will only schedule on kubernetes nodes that has following label
