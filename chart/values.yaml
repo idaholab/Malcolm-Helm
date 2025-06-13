@@ -505,7 +505,7 @@ pcap_capture_env:
   # NOTE Net Sniff and tcpdump cannot be both true. Only one or the other can be running at a time.
   net_sniff: false
   tcpdump: true
-  pcap_rotate_megabytes: 4096
+  pcap_rotate_megabytes: 4
   pcap_rotate_minutes: 10
   home_net: "192.168.0.0/16,10.0.0.0/8,172.16.0.0/12"
   pcap_iface_tweak: true
