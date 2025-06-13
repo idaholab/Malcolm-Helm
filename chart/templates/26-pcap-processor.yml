@@ -197,6 +197,9 @@ spec:
       {{- if ne (len .Values.suricata_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
+      {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
+      {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
+      {{- end }}
       initContainers:
       - name: dirinit-container
         image: "{{ $dirinit_image }}"
