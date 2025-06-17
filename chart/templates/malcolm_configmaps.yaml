@@ -329,6 +329,7 @@ data:
   PCAP_PROCESSED_DIRECTORY: "/data/pcap/processed"
 {{- if .Values.is_production }}
   {{- with .Values.suricata_env.production }}
+  SURICATA_NUM_SERVERS: "64"
   SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
   SURICATA_HOST_MEMCAP: "{{ .host_memcap }}"
   SURICATA_DEFRAG_MEMCAP: "{{ .defrag_memcap }}"
@@ -338,6 +339,7 @@ data:
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_env.development }}
+  SURICATA_NUM_SERVERS: "8"
   SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
   SURICATA_HOST_MEMCAP: "{{ .host_memcap }}"
   SURICATA_DEFRAG_MEMCAP: "{{ .defrag_memcap }}"
