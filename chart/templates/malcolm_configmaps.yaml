@@ -290,6 +290,7 @@ data:
   PCAP_IFACE_TWEAK: "{{ .Values.pcap_capture_env.pcap_iface_tweak }}"
   PCAP_ROTATE_MEGABYTES: "{{ .Values.pcap_capture_env.pcap_rotate_megabytes }}"
   PCAP_ROTATE_MINUTES: "{{ .Values.pcap_capture_env.pcap_rotate_minutes }}"
+  PCAP_ROTATE_SECONDS: "{{ mul .Values.pcap_capture_env.pcap_rotate_minutes 60 }}"
 kind: ConfigMap
 metadata:
   name: pcap-capture-env
@@ -385,6 +386,12 @@ data:
   YARA_MAX_REQUESTS: "{{ .yara_max_requests }}"
   EXTRACTED_FILE_MAX_BYTES: "{{ .extracted_file_max_bytes }}"
   EXTRACTED_FILE_MIN_BYTES: "{{ .extracted_file_min_bytes }}"
+  # Prune ./zeek-logs/extract_files/ when it exceeds this size...
+  EXTRACTED_FILE_PRUNE_THRESHOLD_MAX_SIZE: "{{ .extracted_file_prune_threshold_max_size }}"
+  # ... or when the *total* disk usage exceeds this percentage
+  EXTRACTED_FILE_PRUNE_THRESHOLD_TOTAL_DISK_USAGE_PERCENT: "{{ .extracted_file_prune_threshold_total_disk_usage_percent }}"
+  # Interval in seconds for checking whether to prune ./zeek-logs/extract_files/
+  EXTRACTED_FILE_PRUNE_INTERVAL_SECONDS: "{{ .extracted_file_prune_interval_seconds }}"
     {{- end }}
   {{- else }}
     {{- with .Values.zeek_env.development }}
@@ -392,13 +399,13 @@ data:
   CLAMD_MAX_REQUESTS: "{{ .clamd_max_requests }}"
   YARA_MAX_REQUESTS: "{{ .yara_max_requests }}"
   EXTRACTED_FILE_MAX_BYTES: "{{ .extracted_file_max_bytes }}"
+  EXTRACTED_FILE_MIN_BYTES: "{{ .extracted_file_min_bytes }}"
   # Prune ./zeek-logs/extract_files/ when it exceeds this size...
   EXTRACTED_FILE_PRUNE_THRESHOLD_MAX_SIZE: "{{ .extracted_file_prune_threshold_max_size }}"
   # ... or when the *total* disk usage exceeds this percentage
   EXTRACTED_FILE_PRUNE_THRESHOLD_TOTAL_DISK_USAGE_PERCENT: "{{ .extracted_file_prune_threshold_total_disk_usage_percent }}"
   # Interval in seconds for checking whether to prune ./zeek-logs/extract_files/
   EXTRACTED_FILE_PRUNE_INTERVAL_SECONDS: "{{ .extracted_file_prune_interval_seconds }}"
-  EXTRACTED_FILE_MIN_BYTES: "{{ .extracted_file_min_bytes }}"
     {{- end }}
   {{- end }}
   EXTRACTED_FILE_CAPA_VERBOSE: "false"
