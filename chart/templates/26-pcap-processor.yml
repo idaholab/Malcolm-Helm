@@ -11,7 +11,7 @@ data:
   PCAP_PIPELINE_IGNORE_PREEXISTING: "true"
   PCAP_PIPELINE_POLLING: "false"
   PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
-  PCAP_PIPELINE_VERBOSITY: "-vv"
+  PCAP_PIPELINE_VERBOSITY: "{{ .Values.pcap_capture_env.pcap_pipeline_verbosity }}"
   EXTRA_TAGS: "{{ .Values.upload_common_env.extra_tags }}"
   OPENSEARCH_URL: ""
   OPENSEARCH_PRIMARY: ""
