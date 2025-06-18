@@ -41,6 +41,12 @@ spec:
         name: pcap-processor-daemonset
     spec:
       serviceAccountName: {{ .Values.zeek_chart_overrides.serviceAccountName | default "default" }}
+      nodeSelector:
+{{ toYaml .Values.pcap_processor_env.nodeSelector | indent 8 }}
+{{- with .Values.live_capture.tolerations }}
+      tolerations:
+{{ toYaml . | indent 6 }}
+{{- end }}
       containers:
       - name: pcap-monitor-container
         image: "{{ $pcap_monitor_image }}"
