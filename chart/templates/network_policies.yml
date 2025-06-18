@@ -71,7 +71,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-istio-ingress-egress
-  namespace: malcolm
 spec:
   # Select all the pods
   podSelector: {}
@@ -123,7 +122,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-all-to-ingress-proxy
-  namespace: malcolm
 spec:
   podSelector:
     matchLabels:
