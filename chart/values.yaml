@@ -559,6 +559,12 @@ process_env:
 rule_mount_override:
   enabled: false
 
+# Sets and controls values specific to 26-pcap-processor.yml file
+pcap_processor_env:
+  nodeSelector:
+    cnaps.io/arkime-capture: "true"
+  
+
 zeek_chart_overrides:
   serviceAccountName: ""
   sideCars: []
