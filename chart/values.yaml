@@ -115,6 +115,7 @@ siem_env:
     rollover_alias_zeek: malcolm_network_zeek
     rollover_alias_suricata: malcolm_network_suricata
     rollover_alias_beats: malcolm_beats
+    default_beats_pipeline: sensor-status
     ilm_beats_policy: logs
     search_alias: malcolm_network
     other_search_alias: ""

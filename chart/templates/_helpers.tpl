@@ -193,7 +193,8 @@ data:
         "lifecycle.rollover_alias": "{{ .rollover_alias }}",
         "mapping.total_fields.limit" : "6000",
         "mapping.nested_fields.limit" : "250",
-        "max_docvalue_fields_search" : "200"
+        "max_docvalue_fields_search" : "200",
+        "default_pipeline": "{{ .default_beats_pipeline }}"
       }
     },
     "mappings": {
