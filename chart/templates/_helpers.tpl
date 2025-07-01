@@ -157,6 +157,58 @@ data:
 {{- end }}
 {{- end }}
 
+{{- define "malcolm.beatstemplate" }}
+{
+  "index_patterns" : ["{{ .index_patterns }}"],
+  "composed_of": [
+    "ecs_base",
+    "ecs_ecs",
+    "ecs_event",
+    "ecs_agent",
+    "ecs_client",
+    "ecs_destination",
+    "ecs_error",
+    "ecs_file",
+    "ecs_host",
+    "ecs_http",
+    "ecs_log",
+    "ecs_network",
+    "ecs_process",
+    "ecs_related",
+    "ecs_server",
+    "ecs_source",
+    "ecs_threat",
+    "ecs_url",
+    "ecs_user",
+    "ecs_user_agent",
+    "custom_miscbeat",
+    "custom_suricata_stats",
+    "custom_winlog",
+    "custom_zeek_diagnostic"
+  ],
+  "template" :{
+    "settings" : {
+      "index" : {
+        "lifecycle.name": "{{ .ilm_policy }}",
+        "lifecycle.rollover_alias": "{{ .rollover_alias }}",
+        "mapping.total_fields.limit" : "6000",
+        "mapping.nested_fields.limit" : "250",
+        "max_docvalue_fields_search" : "200",
+        "default_pipeline": "{{ .default_pipeline }}"
+      }
+    },
+    "mappings": {
+      "properties": {
+        "timestamp": { "type": "date" },
+        "node": { "type": "keyword" },
+        "event.result": { "type": "keyword" },
+        "os.family": { "type": "keyword" },
+        "os.type": { "type": "keyword" }
+      }
+    }
+  }
+}
+{{- end }}
 
 {{- define "malcolm.ecstemplate" }}
 {

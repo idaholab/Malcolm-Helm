@@ -104,6 +104,9 @@ spec:
           - mountPath: /opt/templates/malcolm_template_suricata.json
             name: malcolm-template-override
             subPath: malcolm_template_suricata.json
+          - mountPath: /opt/templates/malcolm_beats_template.json
+            name: malcolm-template-override
+            subPath: malcolm_beats_template.json
 {{- end }}
       volumes:
         - name: dashboards-helper-var-local-catrust-volume
