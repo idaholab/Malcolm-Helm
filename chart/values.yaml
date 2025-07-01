@@ -114,6 +114,8 @@ siem_env:
     # Must match the patterns located inside of logstash_override.yml
     rollover_alias_zeek: malcolm_network_zeek
     rollover_alias_suricata: malcolm_network_suricata
+    rollover_alias_beats: malcolm_beats
+    ilm_beats_policy: logs
     search_alias: malcolm_network
     other_search_alias: ""
   # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
