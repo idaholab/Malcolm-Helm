@@ -51,10 +51,29 @@ auth:
   arkime_password: vagrant
   # Possible values are basic for htadmin auth, keycloak for embedded keycloak and finally keycloak_remote for remote keycloak instance.
   mode: "basic"
-  # for Keycloak
+  # for keycloak or keycloak_remote modes
   require_group: ""
-  require_role: ""
-  htadmin_disabled: true
+  require_role: ""  
+  role_based_access: "false"
+  role_admin: "admin"
+  role_read_access: "read_access"
+  role_read_write_access: "read_write_access"  
+  role_arkime_admin: "arkime_admin"
+  role_arkime_read_access: "arkime_read_access"
+  role_arkime_read_write_access: "arkime_read_write_access"
+  role_arkime_pcap_access: "arkime_pcap_access"
+  role_arkime_hunt_access: "arkime_hunt_access"  
+  role_arkime_wise_read_access: "arkime_wise_read_access"
+  role_arkime_wise_read_write_access: "arkime_wise_read_write_access"  
+  role_dashboards_read_access: "dashboards_read_access"  
+  role_dashboards_read_all_apps_access: "dashboards_read_all_apps_access"  
+  role_dashboards_read_write_access: "dashboards_read_write_access"  
+  role_dashboards_read_write_all_apps_access: "dashboards_read_write_all_apps_access"  
+  role_extracted_files: "extracted_files"  
+  role_netbox_read_access: "netbox_read_access"  
+  role_netbox_read_write_access: "netbox_read_write_access"  
+  role_upload: "upload"
+  role_capture_service: "capture_service"
 
 opensearch:
   enabled: true
@@ -64,8 +83,10 @@ opensearch:
   dashboards_url: http://dashboards:5601/dashboards
   development:
     java_memory: -Xmx10g -Xms10g -Xss256k
+    cluster_max_shards_per_node: 1000
   production:
     java_memory: -Xmx32g -Xms32g -Xss256k
+    cluster_max_shards_per_node: 2500
 
 external_elasticsearch:
   enabled: false
@@ -174,6 +195,7 @@ netbox:
   netbox_auto_populate: true
   netbox_cache_size: "10000"
   netbox_cache_ttl: "300"
+  netbox_auto_populate_subnets: ""
 
 
 postgres:
@@ -438,7 +460,6 @@ maxmind:
 # Variables apply to both offline and live version of arkime
 arkime_env:
   arkime_debug_level: "0"
-  opensearch_max_shards_per_node: 2500
   development:
     free_space_g: "10%"
     rotate_index: daily

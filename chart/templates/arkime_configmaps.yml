@@ -26,10 +26,8 @@ data:
   # Whether or not Arkime is allowed to delete uploaded/captured PCAP
   #   https://arkime.com/faq#pcap-deletion
   MANAGE_PCAP_FILES: "true"
-  OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
   # debug flag for config.ini (https://arkime.com/settings#debug)
   ARKIME_DEBUG_LEVEL: "{{ .Values.arkime_env.arkime_debug_level }}"
-  OPENSEARCH_MAX_SHARDS_PER_NODE: "{{ .Values.arkime_env.opensearch_max_shards_per_node }}"
 {{- if ne .Values.siem_env.malcolm_network_index_pattern "arkime_sessions3-*" }}
   # Always query all indices instead of trying to calculate which ones
   #   https://arkime.com/settings#queryAllIndices
@@ -41,6 +39,9 @@ data:
   ARKIME_CERTFILE: "/usr/local/share/ca-certificates/elastic_ca.crt"
 {{- end }}
 {{- if .Values.is_production }}
+  {{- with .Values.opensearch.production }}
+    OPENSEARCH_MAX_SHARDS_PER_NODE: "{{ .cluster_max_shards_per_node }}"
+  {{- end }}
   {{- with .Values.arkime_env.production }}
   ARKIME_FREESPACEG: "{{ .free_space_g }}"
   # How often to create a new index in OpenSearch/Elasticsearch
@@ -67,6 +68,9 @@ data:
   ARKIME_SPI_DATA_MAX_INDICES: "{{ .spi_data_max_indices }}"
   {{- end }}
 {{- else }}
+  {{- with .Values.opensearch.development }}
+    OPENSEARCH_MAX_SHARDS_PER_NODE: "{{ .cluster_max_shards_per_node }}"
+  {{- end }}
   {{- with .Values.arkime_env.development }}
   ARKIME_FREESPACEG: "{{ .free_space_g }}"
   ARKIME_ROTATE_INDEX: "{{ .rotate_index }}"

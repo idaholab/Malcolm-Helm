@@ -4,49 +4,48 @@ data:
   NGINX_AUTH_MODE: "{{ .Values.auth.mode }}"
   NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group }}"
   NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role }}"
-  # HTADMIN_DISABLED: "{{ .Values.auth.htadmin_disabled }}"
   ROLE_BASED_ACCESS: "false"
   # General access roles
   # ROLE_ADMIN - Unrestricted access
-  ROLE_ADMIN: "admin"
+  ROLE_ADMIN: "{{ .Values.auth.role_admin }}"
   # ROLE_READ_ACCESS - Read-only access across all components
-  ROLE_READ_ACCESS: "read_access"
+  ROLE_READ_ACCESS: "{{ .Values.auth.role_read_access }}"
   # ROLE_READ_WRITE_ACCESS - Read/write access across all components, excluding some admin functions
-  ROLE_READ_WRITE_ACCESS: "read_write_access"
+  ROLE_READ_WRITE_ACCESS: "{{ .Values.auth.role_read_write_access }}"
   # ------------------------------------------------------------------------------
   # Specific access roles
   # ROLE_ARKIME_ADMIN - Maps to the built-in arkimeAdmin role
-  ROLE_ARKIME_ADMIN: "arkime_admin"
+  ROLE_ARKIME_ADMIN: "{{ .Values.auth.role_arkime_admin }}"
   # ROLE_ARKIME_READ_ACCESS - Maps to a user-defined role with read-only Viewer access
-  ROLE_ARKIME_READ_ACCESS: "arkime_read_access"
+  ROLE_ARKIME_READ_ACCESS: "{{ .Values.auth.role_arkime_read_access }}"
   # ROLE_ARKIME_READ_WRITE_ACCESS - Maps to a user-defined role with read/write Viewer access
-  ROLE_ARKIME_READ_WRITE_ACCESS: "arkime_read_write_access"
+  ROLE_ARKIME_READ_WRITE_ACCESS: "{{ .Values.auth.role_arkime_read_write_access }}"
   # ROLE_ARKIME_PCAP_ACCESS - Maps to a user-defined role with access to viewing/exporting PCAP payloads in Viewer
-  ROLE_ARKIME_PCAP_ACCESS: "arkime_pcap_access"
+  ROLE_ARKIME_PCAP_ACCESS: "{{ .Values.auth.role_arkime_pcap_access }}"
   # ROLE_ARKIME_HUNT_ACCESS - Maps to a user-defined role with access to packet search ("Hunt") in Viewer
-  ROLE_ARKIME_HUNT_ACCESS: "arkime_hunt_access"
+  ROLE_ARKIME_HUNT_ACCESS: "{{ .Values.auth.role_arkime_hunt_access }}"
   # ROLE_ARKIME_WISE_READ_ACCESS - Maps to the built-in wiseUser role
-  ROLE_ARKIME_WISE_READ_ACCESS: "arkime_wise_read_access"
+  ROLE_ARKIME_WISE_READ_ACCESS: "{{ .Values.auth.role_arkime_wise_read_access }}"
   # ROLE_ARKIME_WISE_READ_WRITE_ACCESS - Maps to the built-in wiseAdmin role
-  ROLE_ARKIME_WISE_READ_WRITE_ACCESS: "arkime_wise_read_write_access"
+  ROLE_ARKIME_WISE_READ_WRITE_ACCESS: "{{ .Values.auth.role_arkime_wise_read_write_access }}"
   # ROLE_DASHBOARDS_READ_ACCESS - Read-only access to OpenSearch Dashboards visualizations, but not all Dashboards apps
-  ROLE_DASHBOARDS_READ_ACCESS: "dashboards_read_access"
+  ROLE_DASHBOARDS_READ_ACCESS: "{{ .Values.auth.role_dashboards_read_access }}"
   # ROLE_DASHBOARDS_READ_ALL_APPS_ACCESS - Read-only access to all OpenSearch Dashboards visualizations and apps
-  ROLE_DASHBOARDS_READ_ALL_APPS_ACCESS: "dashboards_read_all_apps_access"
+  ROLE_DASHBOARDS_READ_ALL_APPS_ACCESS: "{{ .Values.auth.role_dashboards_read_all_apps_access }}"
   # ROLE_DASHBOARDS_READ_WRITE_ACCESS - Read/write access to OpenSearch Dashboards visualizations, but not all Dashboards apps
-  ROLE_DASHBOARDS_READ_WRITE_ACCESS: "dashboards_read_write_access"
+  ROLE_DASHBOARDS_READ_WRITE_ACCESS: "{{ .Values.auth.role_dashboards_read_write_access }}"
   # ROLE_DASHBOARDS_READ_WRITE_ALL_APPS_ACCESS - Read/write access to OpenSearch Dashboards visualizations and apps
-  ROLE_DASHBOARDS_READ_WRITE_ALL_APPS_ACCESS: "dashboards_read_write_all_apps_access"
+  ROLE_DASHBOARDS_READ_WRITE_ALL_APPS_ACCESS: "{{ .Values.auth.role_dashboards_read_write_all_apps_access }}"
   # ROLE_EXTRACTED_FILES - Access to extracted file downloads
-  ROLE_EXTRACTED_FILES: "extracted_files"
+  ROLE_EXTRACTED_FILES: "{{ .Values.auth.role_extracted_files }}"
   # ROLE_NETBOX_READ_ACCESS - Read-only access to NetBox
-  ROLE_NETBOX_READ_ACCESS: "netbox_read_access"
+  ROLE_NETBOX_READ_ACCESS: "{{ .Values.auth.role_netbox_read_access }}"
   # ROLE_NETBOX_READ_WRITE_ACCESS - Read/write access to NetBox
-  ROLE_NETBOX_READ_WRITE_ACCESS: "netbox_read_write_access"
+  ROLE_NETBOX_READ_WRITE_ACCESS: "{{ .Values.auth.role_netbox_read_write_access }}"
   # ROLE_UPLOAD - Access to upload artifact interface
-  ROLE_UPLOAD: "upload"
+  ROLE_UPLOAD: "{{ .Values.auth.role_upload }}"
   # ROLE_CAPTURE_SERVICE - Internal-use role for service account used by Arkime capture on remote network sensor
-  ROLE_CAPTURE_SERVICE: "capture_service"
+  ROLE_CAPTURE_SERVICE: "{{ .Values.auth.role_capture_service }}"
 kind: ConfigMap
 metadata:
   name: auth-common-env
@@ -107,7 +106,7 @@ data:
   #   * If both inclusions and exclusions are listed:
   #       * Only addresses matching the allowed subnets will be considered.
   #       * Among those, any matching excluded subnets will be rejected.
-  NETBOX_AUTO_POPULATE_SUBNETS: ""
+  NETBOX_AUTO_POPULATE_SUBNETS: "{{ .Values.netbox.netbox_auto_populate_subnets }}"
 kind: ConfigMap
 metadata:
   name: netbox-common-env
@@ -162,7 +161,7 @@ data:
   REMOTE_AUTH_GROUP_SYNC_ENABLED: "True"
   REMOTE_AUTH_GROUP_SEPARATOR: ","
   # these group names should match role names from auth-common.env
-  REMOTE_AUTH_DEFAULT_GROUPS: "netbox_read_access"
+  REMOTE_AUTH_DEFAULT_GROUPS: "{{ .Values.auth.role_netbox_read_access }}"
   REMOTE_AUTH_SUPERUSER_GROUPS: "admin"
   REMOTE_AUTH_STAFF_GROUPS: "admin"
   REMOTE_AUTH_ENABLED: "True"
@@ -219,14 +218,15 @@ data:
   ARKIME_INIT_REPLICAS: ""
   ARKIME_INIT_REFRESH_SEC: ""
   ARKIME_INIT_SHARDS_PER_NODE: ""
-  CLUSTER_MAX_SHARDS_PER_NODE: "2500"
 {{- if .Values.is_production }}
   {{- with .Values.opensearch.production }}
   OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
+  CLUSTER_MAX_SHARDS_PER_NODE: "{{ .cluster_max_shards_per_node }}"
   {{- end }}
 {{- else }}
   {{- with .Values.opensearch.development }}
   OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
+  CLUSTER_MAX_SHARDS_PER_NODE: "{{ .cluster_max_shards_per_node }}"
   {{- end }}
 {{- end }}
   OPENSEARCH_PRIMARY: "{{ include "malcolm.opensearchprimary" . }}"
