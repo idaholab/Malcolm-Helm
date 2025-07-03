@@ -438,6 +438,7 @@ maxmind:
 # Variables apply to both offline and live version of arkime
 arkime_env:
   arkime_debug_level: "0"
+  opensearch_max_shards_per_node: 2500
   development:
     free_space_g: "10%"
     rotate_index: daily

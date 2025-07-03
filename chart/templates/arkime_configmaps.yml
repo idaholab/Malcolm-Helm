@@ -29,6 +29,7 @@ data:
   OPENSEARCH_MAX_SHARDS_PER_NODE: "2500"
   # debug flag for config.ini (https://arkime.com/settings#debug)
   ARKIME_DEBUG_LEVEL: "{{ .Values.arkime_env.arkime_debug_level }}"
+  OPENSEARCH_MAX_SHARDS_PER_NODE: "{{ .Values.arkime_env.opensearch_max_shards_per_node }}"
 {{- if ne .Values.siem_env.malcolm_network_index_pattern "arkime_sessions3-*" }}
   # Always query all indices instead of trying to calculate which ones
   #   https://arkime.com/settings#queryAllIndices

@@ -79,6 +79,8 @@ spec:
               name: ssl-env
           - configMapRef:
               name: zeek-env
+          - configMapRef:
+              name: auth-common-env
           - secretRef:
               name: zeek-secret-env
         env:
