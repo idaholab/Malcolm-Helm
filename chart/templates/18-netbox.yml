@@ -64,6 +64,8 @@ spec:
               name: netbox-common-env
           - configMapRef:
               name: netbox-env
+          - configMapRef:
+              name: auth-common-env
           - secretRef:
               name: netbox-secret-env
           - secretRef:

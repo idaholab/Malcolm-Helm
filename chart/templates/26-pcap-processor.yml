@@ -54,6 +54,8 @@ spec:
         stdin: false
         tty: true
         env:
+          - name: PCAP_PATH_PROCESSED_SUBDIR
+            value: ""
           - name: PCAP_NODE_NAME
             valueFrom:
               fieldRef:
