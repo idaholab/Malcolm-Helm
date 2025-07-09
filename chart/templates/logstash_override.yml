@@ -1,3 +1,4 @@
+{{- if .Values.siem_env.logstash_override.enabled }}
 ---
 apiVersion: v1
 data:
@@ -75,3 +76,4 @@ data:
 kind: ConfigMap
 metadata:
   name: malcolm-template-override
+{{- end }}

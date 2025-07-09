@@ -140,8 +140,8 @@ siem_env:
     ilm_beats_policy: logs
     search_alias: malcolm_network
     other_search_alias: ""
-    number_of_shards": "2"
-    number_of_replicas": "1"
+    number_of_shards: "2"
+    number_of_replicas: "1"
   # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
   malcolm_network_index_pattern: "arkime_sessions3-*"
   # Default time field to use for network traffic logs in Logstash and Dashboards

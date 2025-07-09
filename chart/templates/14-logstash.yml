@@ -172,6 +172,8 @@ spec:
         - name: logstash-config-persist-volume
           persistentVolumeClaim:
             claimName: config-claim
+{{- if .Values.siem_env.logstash_override.enabled }}
         - name: elastic-output-override
           configMap:
             name: elastic-output-override
+{{- end }}
