@@ -100,6 +100,26 @@ Check the chart/values.yaml file for all the features that can be enabled disabl
 2. `cd <project dir that contains chart foler>`
 3. `helm install malcolm chart/ -n malcolm`
 
+
+## Storage Provisioner Options
+
+Malcolm-Helm's chart/values.yaml file defaults to the Rancher [local-path provisioner](https://github.com/rancher/local-path-provisioner) which leverages a part of the Kubernetes node's storage. As stated above, any storage provider that supports ReadWriteMany may be employed. This section will review how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for Kubernetes clusters with an available NFS server. 
+
+### Configure NFS server
+
+The [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) relies on an external NFS server to provide for Kuberenetes Persistent Volumes. The first step is to install an NFS server where the Kuberentes cluster can access shared volumes. For Debian based systems (including Ubuntu) [this page](https://documentation.ubuntu.com/server/how-to/networking/install-nfs/index.html) details steps to install an NFS server with apt:
+```
+sudo apt install nfs-kernel-server
+sudo systemctl start nfs-kernel-server.service
+```
+
+With the NFS service installed and running, some directory must be exported for use by other systems. In this example we export a directory for the nfs-subdir-provisioner by first creating the folder structure on the local filesystem then adding the path to /etc/exports on the NFS server. To verify everything works properly we will start with fully-open permissions.
+
+```
+sudo mkdir -p /exports/malcolm/nfs-subdir-provisioner
+sudo chmod -R 777 /exports/malcolm/nfs-subdir-provisioner/
+```
+
 ## Upgrade procedures
 
 Upgrading Malcolm-Helm to a new version of Malcolm requires manually applying the changes between the current and desired versions. To find the current version of Malcolm used by Malcolm-Helm, check the `appVersion` in the `Malcolm-Helm/chart/Chart.yaml` file.
