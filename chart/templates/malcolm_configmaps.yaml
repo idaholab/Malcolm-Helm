@@ -2,13 +2,50 @@
 apiVersion: v1
 data:
   NGINX_AUTH_MODE: "{{ .Values.auth.mode }}"
-  NGINX_LDAP_TLS_STUNNEL: "false"
-  NGINX_LDAP_TLS_STUNNEL_CHECK_HOST: ""
-  NGINX_LDAP_TLS_STUNNEL_CHECK_IP: ""
-  NGINX_LDAP_TLS_STUNNEL_VERIFY_LEVEL: "2"
   NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group }}"
   NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role }}"
-  HTADMIN_DISABLED: "{{ .Values.auth.htadmin_disabled }}"
+  ROLE_BASED_ACCESS: "false"
+  # General access roles
+  # ROLE_ADMIN - Unrestricted access
+  ROLE_ADMIN: "{{ .Values.auth.role_admin }}"
+  # ROLE_READ_ACCESS - Read-only access across all components
+  ROLE_READ_ACCESS: "{{ .Values.auth.role_read_access }}"
+  # ROLE_READ_WRITE_ACCESS - Read/write access across all components, excluding some admin functions
+  ROLE_READ_WRITE_ACCESS: "{{ .Values.auth.role_read_write_access }}"
+  # ------------------------------------------------------------------------------
+  # Specific access roles
+  # ROLE_ARKIME_ADMIN - Maps to the built-in arkimeAdmin role
+  ROLE_ARKIME_ADMIN: "{{ .Values.auth.role_arkime_admin }}"
+  # ROLE_ARKIME_READ_ACCESS - Maps to a user-defined role with read-only Viewer access
+  ROLE_ARKIME_READ_ACCESS: "{{ .Values.auth.role_arkime_read_access }}"
+  # ROLE_ARKIME_READ_WRITE_ACCESS - Maps to a user-defined role with read/write Viewer access
+  ROLE_ARKIME_READ_WRITE_ACCESS: "{{ .Values.auth.role_arkime_read_write_access }}"
+  # ROLE_ARKIME_PCAP_ACCESS - Maps to a user-defined role with access to viewing/exporting PCAP payloads in Viewer
+  ROLE_ARKIME_PCAP_ACCESS: "{{ .Values.auth.role_arkime_pcap_access }}"
+  # ROLE_ARKIME_HUNT_ACCESS - Maps to a user-defined role with access to packet search ("Hunt") in Viewer
+  ROLE_ARKIME_HUNT_ACCESS: "{{ .Values.auth.role_arkime_hunt_access }}"
+  # ROLE_ARKIME_WISE_READ_ACCESS - Maps to the built-in wiseUser role
+  ROLE_ARKIME_WISE_READ_ACCESS: "{{ .Values.auth.role_arkime_wise_read_access }}"
+  # ROLE_ARKIME_WISE_READ_WRITE_ACCESS - Maps to the built-in wiseAdmin role
+  ROLE_ARKIME_WISE_READ_WRITE_ACCESS: "{{ .Values.auth.role_arkime_wise_read_write_access }}"
+  # ROLE_DASHBOARDS_READ_ACCESS - Read-only access to OpenSearch Dashboards visualizations, but not all Dashboards apps
+  ROLE_DASHBOARDS_READ_ACCESS: "{{ .Values.auth.role_dashboards_read_access }}"
+  # ROLE_DASHBOARDS_READ_ALL_APPS_ACCESS - Read-only access to all OpenSearch Dashboards visualizations and apps
+  ROLE_DASHBOARDS_READ_ALL_APPS_ACCESS: "{{ .Values.auth.role_dashboards_read_all_apps_access }}"
+  # ROLE_DASHBOARDS_READ_WRITE_ACCESS - Read/write access to OpenSearch Dashboards visualizations, but not all Dashboards apps
+  ROLE_DASHBOARDS_READ_WRITE_ACCESS: "{{ .Values.auth.role_dashboards_read_write_access }}"
+  # ROLE_DASHBOARDS_READ_WRITE_ALL_APPS_ACCESS - Read/write access to OpenSearch Dashboards visualizations and apps
+  ROLE_DASHBOARDS_READ_WRITE_ALL_APPS_ACCESS: "{{ .Values.auth.role_dashboards_read_write_all_apps_access }}"
+  # ROLE_EXTRACTED_FILES - Access to extracted file downloads
+  ROLE_EXTRACTED_FILES: "{{ .Values.auth.role_extracted_files }}"
+  # ROLE_NETBOX_READ_ACCESS - Read-only access to NetBox
+  ROLE_NETBOX_READ_ACCESS: "{{ .Values.auth.role_netbox_read_access }}"
+  # ROLE_NETBOX_READ_WRITE_ACCESS - Read/write access to NetBox
+  ROLE_NETBOX_READ_WRITE_ACCESS: "{{ .Values.auth.role_netbox_read_write_access }}"
+  # ROLE_UPLOAD - Access to upload artifact interface
+  ROLE_UPLOAD: "{{ .Values.auth.role_upload }}"
+  # ROLE_CAPTURE_SERVICE - Internal-use role for service account used by Arkime capture on remote network sensor
+  ROLE_CAPTURE_SERVICE: "{{ .Values.auth.role_capture_service }}"
 kind: ConfigMap
 metadata:
   name: auth-common-env
@@ -60,6 +97,16 @@ data:
   # Customize manufacturer matching/creation with NETBOX_AUTO_POPULATE
   NETBOX_CACHE_SIZE: "{{ .Values.netbox.netbox_cache_size }}"
   NETBOX_CACHE_TTL: "{{ .Values.netbox.netbox_cache_ttl }}"
+  # Comma-separated list of private CIDR subnets to control NetBox IP autopopulation.
+  #   See "Subnets considered for autopopulation" in the documentation for examples.
+  # Behavior:
+  #   * If left blank, *all private* IPv4 and IPv6 address ranges will be autopopulated.
+  #   * Use an exclamation point (`!`) before a CIDR to explicitly *exclude* that subnet.
+  #   * If only exclusions are listed, all private IPs are allowed *except* those excluded.
+  #   * If both inclusions and exclusions are listed:
+  #       * Only addresses matching the allowed subnets will be considered.
+  #       * Among those, any matching excluded subnets will be rejected.
+  NETBOX_AUTO_POPULATE_SUBNETS: "{{ .Values.netbox.netbox_auto_populate_subnets }}"
 kind: ConfigMap
 metadata:
   name: netbox-common-env
@@ -102,22 +149,26 @@ data:
   REDIS_INSECURE_SKIP_TLS_VERIFY: "false"
   REDIS_SSL: "false"
   RELEASE_CHECK_URL: ""
-  REMOTE_AUTH_AUTO_CREATE_USER: "True"
-  REMOTE_AUTH_AUTO_CREATE_GROUPS: "True"
-  REMOTE_AUTH_GROUP_SYNC_ENABLED: "False"
   REMOTE_AUTH_BACKEND: netbox.authentication.RemoteUserBackend
   REMOTE_AUTH_DEFAULT_GROUPS: standard
   REMOTE_AUTH_DEFAULT_PERMISSIONS: standard_permission
+  REMOTE_AUTH_AUTO_CREATE_USER: "True"
+  REMOTE_AUTH_USER_EMAIL: "HTTP_X_REMOTE_AUTH_EMAIL"
+  REMOTE_AUTH_USER_FIRST_NAME: "HTTP_X_REMOTE_AUTH_FIRST_NAME"
+  REMOTE_AUTH_USER_LAST_NAME: "HTTP_X_REMOTE_AUTH_LAST_NAME"
+  REMOTE_AUTH_GROUP_HEADER: "HTTP_X_FORWARDED_ROLES"
+  REMOTE_AUTH_AUTO_CREATE_GROUPS: "False"
+  REMOTE_AUTH_GROUP_SYNC_ENABLED: "True"
+  REMOTE_AUTH_GROUP_SEPARATOR: ","
+  # these group names should match role names from auth-common.env
+  REMOTE_AUTH_DEFAULT_GROUPS: "{{ .Values.auth.role_netbox_read_access }}"
+  REMOTE_AUTH_SUPERUSER_GROUPS: "admin"
+  REMOTE_AUTH_STAFF_GROUPS: "admin"
   REMOTE_AUTH_ENABLED: "True"
   REMOTE_AUTH_HEADER: HTTP_X_REMOTE_AUTH
-  REMOTE_AUTH_GROUP_HEADER: HTTP_X_REMOTE_AUTH_GROUP
   REMOTE_AUTH_USER_EMAIL: HTTP_X_REMOTE_AUTH_EMAIL
   REMOTE_AUTH_USER_FIRST_NAME: HTTP_X_REMOTE_AUTH_FIRST_NAME
   REMOTE_AUTH_USER_LAST_NAME: HTTP_X_REMOTE_AUTH_LAST_NAME
-  REMOTE_AUTH_STAFF_GROUPS: administrator
-  REMOTE_AUTH_STAFF_USERS: ""
-  REMOTE_AUTH_SUPERUSER_GROUPS: administrator
-  REMOTE_AUTH_SUPERUSERS: ""
   ENFORCE_GLOBAL_UNIQUE: "false"
   SKIP_STARTUP_SCRIPTS: "true"
   SKIP_SUPERUSER: "false"
@@ -140,6 +191,18 @@ data:
   NGINX_RESOLVER_IPV6_OFF: "false"
   NGINX_X_FORWARDED_PROTO_OVERRIDE: ""
   NGINX_ERROR_LOG_LEVEL: ""
+
+  # NGINX LDAP (NGINX_AUTH_MODE=ldap) can support LDAP, LDAPS, or LDAP+StartTLS.
+  #   For StartTLS, set NGINX_LDAP_TLS_STUNNEL=true to issue the StartTLS command
+  #   and use stunnel to tunnel the connection.
+  NGINX_LDAP_TLS_STUNNEL: "false"
+  # stunnel will require and verify certificates for StartTLS when one or more
+  #   trusted CA certificate files are placed in the ./nginx/ca-trust directory.
+  #   For additional security, hostname or IP address checking of the associated
+  #   CA certificate(s) can be enabled by providing these values.
+  NGINX_LDAP_TLS_STUNNEL_CHECK_HOST: ""
+  NGINX_LDAP_TLS_STUNNEL_CHECK_IP: ""
+  NGINX_LDAP_TLS_STUNNEL_VERIFY_LEVEL: "2"
 kind: ConfigMap
 metadata:
   name: nginx-env
@@ -149,13 +212,29 @@ apiVersion: v1
 data:
   MAX_LOCKED_MEMORY: unlimited
   OPENSEARCH_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.primary.curlrc
+  # These variables, if specified, are used for Arkime's <init opts> for db.pl init and upgrade operations and for the corresponding
+  #   index pattern template created in shared-object-creation.sh  
 {{- if .Values.is_production }}
+  {{- with .Values.arkime_env.production }}
+  ARKIME_INIT_SHARDS: "{{ .arkime_init_shards }}"
+  ARKIME_INIT_REPLICAS: "{{ .arkime_init_replicas }}"
+  ARKIME_INIT_REFRESH_SEC: "{{ .arkime_init_refresh_sec }}"
+  ARKIME_INIT_SHARDS_PER_NODE: "{{ .arkime_init_shards_per_node }}"
+  {{- end }}
   {{- with .Values.opensearch.production }}
   OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
+  CLUSTER_MAX_SHARDS_PER_NODE: "{{ .cluster_max_shards_per_node }}"
   {{- end }}
 {{- else }}
+  {{- with .Values.arkime_env.development }}
+  ARKIME_INIT_SHARDS: "{{ .arkime_init_shards }}"
+  ARKIME_INIT_REPLICAS: "{{ .arkime_init_replicas }}"
+  ARKIME_INIT_REFRESH_SEC: "{{ .arkime_init_refresh_sec }}"
+  ARKIME_INIT_SHARDS_PER_NODE: "{{ .arkime_init_shards_per_node }}"
+  {{- end }}
   {{- with .Values.opensearch.development }}
   OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
+  CLUSTER_MAX_SHARDS_PER_NODE: "{{ .cluster_max_shards_per_node }}"
   {{- end }}
 {{- end }}
   OPENSEARCH_PRIMARY: "{{ include "malcolm.opensearchprimary" . }}"

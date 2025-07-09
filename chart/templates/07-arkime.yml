@@ -61,6 +61,8 @@ spec:
               name: arkime-env
           - configMapRef:
               name: arkime-offline-env
+          - configMapRef:
+              name: auth-common-env
           - secretRef:
               name: arkime-secret-env
         env:
