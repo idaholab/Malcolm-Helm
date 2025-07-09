@@ -213,17 +213,25 @@ data:
   MAX_LOCKED_MEMORY: unlimited
   OPENSEARCH_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.primary.curlrc
   # These variables, if specified, are used for Arkime's <init opts> for db.pl init and upgrade operations and for the corresponding
-  #   index pattern template created in shared-object-creation.sh
-  ARKIME_INIT_SHARDS: ""
-  ARKIME_INIT_REPLICAS: ""
-  ARKIME_INIT_REFRESH_SEC: ""
-  ARKIME_INIT_SHARDS_PER_NODE: ""
+  #   index pattern template created in shared-object-creation.sh  
 {{- if .Values.is_production }}
+  {{- with .Values.arkime_env.production }}
+  ARKIME_INIT_SHARDS: "{{ .arkime_init_shards }}"
+  ARKIME_INIT_REPLICAS: "{{ .arkime_init_replicas }}"
+  ARKIME_INIT_REFRESH_SEC: "{{ .arkime_init_refresh_sec }}"
+  ARKIME_INIT_SHARDS_PER_NODE: "{{ .arkime_init_shards_per_node }}"
+  {{- end }}
   {{- with .Values.opensearch.production }}
   OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
   CLUSTER_MAX_SHARDS_PER_NODE: "{{ .cluster_max_shards_per_node }}"
   {{- end }}
 {{- else }}
+  {{- with .Values.arkime_env.development }}
+  ARKIME_INIT_SHARDS: "{{ .arkime_init_shards }}"
+  ARKIME_INIT_REPLICAS: "{{ .arkime_init_replicas }}"
+  ARKIME_INIT_REFRESH_SEC: "{{ .arkime_init_refresh_sec }}"
+  ARKIME_INIT_SHARDS_PER_NODE: "{{ .arkime_init_shards_per_node }}"
+  {{- end }}
   {{- with .Values.opensearch.development }}
   OPENSEARCH_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
   CLUSTER_MAX_SHARDS_PER_NODE: "{{ .cluster_max_shards_per_node }}"

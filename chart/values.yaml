@@ -140,6 +140,8 @@ siem_env:
     ilm_beats_policy: logs
     search_alias: malcolm_network
     other_search_alias: ""
+    number_of_shards": "2"
+    number_of_replicas": "1"
   # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
   malcolm_network_index_pattern: "arkime_sessions3-*"
   # Default time field to use for network traffic logs in Logstash and Dashboards
@@ -459,7 +461,7 @@ maxmind:
 
 # Variables apply to both offline and live version of arkime
 arkime_env:
-  arkime_debug_level: "0"
+  arkime_debug_level: "0"  
   development:
     free_space_g: "10%"
     rotate_index: daily
@@ -479,8 +481,12 @@ arkime_env:
     # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
     index_management_hot_warm_enabled: "false"
     spi_data_max_indices: "7"
+    arkime_init_shards: "1"
+    arkime_init_replicas: "1"
+    arkime_init_refresh_sec: ""
+    arkime_init_shards_per_node: ""
   production:
-    free_space_g: "20%"
+    free_space_g: "5%"
     rotate_index: daily
     index_management_enabled: "true"
     index_management_optimization_period: "30d"
@@ -490,6 +496,10 @@ arkime_env:
     index_management_segments: "1"
     index_management_hot_warm_enabled: "false"
     spi_data_max_indices: "-1"
+    arkime_init_shards: "2"
+    arkime_init_replicas: "1"
+    arkime_init_refresh_sec: ""
+    arkime_init_shards_per_node: ""
 
 arkime_live:
   enabled: true

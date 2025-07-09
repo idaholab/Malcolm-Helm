@@ -247,11 +247,13 @@ data:
         },
         "settings" : {
             "index": {
-            "lifecycle.name": "{{ .ilm_policy }}",
-            "lifecycle.rollover_alias": "{{ .rollover_alias }}",
-            "mapping.total_fields.limit": "6000",
-            "mapping.nested_fields.limit": "250",
-            "max_docvalue_fields_search": "200"
+                "lifecycle.name": "{{ .ilm_policy }}",
+                "lifecycle.rollover_alias": "{{ .rollover_alias }}",
+                "mapping.total_fields.limit": "6000",
+                "mapping.nested_fields.limit": "250",
+                "max_docvalue_fields_search": "200",
+                "number_of_shards": "{{ .number_of_shards }}",
+                "number_of_replicas": "{{ .number_of_replicas }}"
             }
         }
   }
