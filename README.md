@@ -177,8 +177,10 @@ $ kubectl get sc -A
 ```
 
 returns:
-<pre>NAME                   PROVISIONER                                     RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
-     nfs-client             cluster.local/nfs-subdir-external-provisioner            Delete          Immediate                  true            16s</pre>
+<pre>
+        NAME                   PROVISIONER                                     RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+     nfs-client             cluster.local/nfs-subdir-external-provisioner         Delete          Immediate                  true            16s
+</pre>
 
 You will see a new nfs-subdir-external-provisioner pod is now running in the default namespace
 
@@ -187,10 +189,10 @@ $ kubectl get pods -A
 ```
 
 returns:
-><pre>
->     NAMESPACE       NAME                                               READY   STATUS              RESTARTS      AGE
->     default         nfs-subdir-external-provisioner-7ff748465c-ssf7s   1/1     Running             0             32s
-></pre>
+<pre>
+        NAMESPACE       NAME                                               READY   STATUS              RESTARTS      AGE
+        default         nfs-subdir-external-provisioner-7ff748465c-ssf7s   1/1     Running             0             32s
+</pre>
 
 ### Test the newly installed nfs-subdir-external-provisioner
 
