@@ -103,22 +103,60 @@ Check the chart/values.yaml file for all the features that can be enabled disabl
 
 ## Storage Provisioner Options
 
-Malcolm-Helm's chart/values.yaml file defaults to the Rancher [local-path provisioner](https://github.com/rancher/local-path-provisioner) which leverages a part of the Kubernetes node's storage. As stated above, any storage provider that supports ReadWriteMany may be employed. This section will review how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for Kubernetes clusters with an available NFS server. 
+Malcolm-Helm's chart/values.yaml file defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner which leverages a part of each Kubernetes node storage. As stated above, any storage provider that supports ReadWriteMany may be employed for Malcolm-Helm. This section will review how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for enviroments with an NFS server available. 
 
-### Configure NFS server
+### Configure an NFS server
 
-The [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) relies on an external NFS server to provide for Kuberenetes Persistent Volumes. The first step is to install an NFS server where the Kuberentes cluster can access shared volumes. For Debian based systems (including Ubuntu) [this page](https://documentation.ubuntu.com/server/how-to/networking/install-nfs/index.html) details steps to install an NFS server with apt:
+The [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) relies on an external NFS server to provide Kuberenetes Persistent Volumes. The first step is to install an NFS server where the Kuberentes cluster can access shared volumes. For Debian based systems (including Ubuntu) [this page](https://documentation.ubuntu.com/server/how-to/networking/install-nfs/index.html) details steps to install an NFS server with apt:
+
 ```
 sudo apt install nfs-kernel-server
 sudo systemctl start nfs-kernel-server.service
 ```
 
-With the NFS service installed and running, some directory must be exported for use by other systems. In this example we export a directory for the nfs-subdir-provisioner by first creating the folder structure on the local filesystem then adding the path to /etc/exports on the NFS server. To verify everything works properly we will start with fully-open permissions.
+With the NFS service installed and running, a directory must be exported for use by the Kubernetes provisioner. In this example we export a directory for the nfs-subdir-provisioner by first creating the folder structure on the local filesystem then adding the path to /etc/exports on the NFS server. To verify everything works properly we will start with fully-open directory permissions.
 
 ```
 sudo mkdir -p /exports/malcolm/nfs-subdir-provisioner
+sudo chown nobody:nogroup /exports
 sudo chmod -R 777 /exports/malcolm/nfs-subdir-provisioner/
 ```
+
+Add a new line to /etc/exports with the base path of our newly created /exports directory and an optional network subnet filter. In the following example we limit NFS access to IP addresses within the 10.0.0.0/16 subnet. This can also be replaced with an asterisk "*" symbol to disable subnet filtering.
+
+```
+/exports 10.0.0.0/255.255.0.0(rw,sync,insecure,no_root_squash,no_subtree_check,crossmnt)
+```
+
+Finally, apply the NFS configuration changes with the exportfs command
+
+```
+sudo exportfs -av
+exporting 10.0.0.0/255.255.0.0:/exports
+```
+
+Optionally, we can verify the exported directory by querying the NFS server with showmount.
+
+```
+/usr/sbin/showmount -e nfsserver.malcolm.local
+Export list for nfsserver.malcolm.local:
+/exports 10.0.0.0/255.255.0.0
+```
+
+Make note of your NFS server's IP address or DNS name and the exported path for use in the next steps.
+
+### Install the nfs-client on all Kubernetes nodes
+
+Since the Kubernetes pods will be making use of the NFS server export and the pods may run on any Kubernetes node we need the nfs client installed on all nodes. Connect to each and run the following commands:
+
+```
+sudo apt update
+sudo apt install nfs-common -y
+```
+
+### Install the nfs-subdir-external-provisioner
+
+If you haven't already, install Helm 
 
 ## Upgrade procedures
 
