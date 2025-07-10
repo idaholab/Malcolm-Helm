@@ -158,9 +158,9 @@ sudo apt install nfs-common -y
 
 ### Install the nfs-subdir-external-provisioner
 
-The [nfs-subdir-exeternal-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) can be installed via Helm, Kustomize, or manually via a set of YAML files. Since Malcolm-Helm is a Helm based project we will also install the provisioner via [Helm](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner?tab=readme-ov-file#with-helm).
+The [nfs-subdir-exeternal-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) can be installed via Helm, Kustomize, or manually via a set of YAML files. Since Malcolm-Helm is a Helm based project we will also install the provisioner [via Helm](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner?tab=readme-ov-file#with-helm).
 
-For these steps we will need the NFS server IP address or DNS name as well as the exported path from above. In the following example the server's DNS name is "nfsserver.malcolm.local" and the exported path to on that server is "/exports/malcolm/nfs-subdir-provisioner". Notice: the NFS export path is /exports but we can point the nfs-subdir-external-provisioner to a sub-directory within the exported path (/exports/malcolm/nfs-subdir-provisioner) to keep the automatically generated files contained to that directory. We start by adding the Helm repo then install the provisioner with the server name and export path as parameters. The storageClass.onDelete=true setting tells the provisioner not to archive the Kubernetes Persistent Volume Claim when deleting.
+For these steps we will need the NFS server IP address or DNS name as well as the exported path from above. In the following example the server's DNS name is "nfsserver.malcolm.local" and the exported path on that server is "/exports/malcolm/nfs-subdir-provisioner". Notice: the NFS export path is /exports but we can point the nfs-subdir-external-provisioner to a sub-directory within the exported path (/exports/malcolm/nfs-subdir-provisioner) to keep the automatically generated files contained to that directory. We start by adding the Helm repo then install the provisioner with the server name and export path as parameters. The storageClass.onDelete=true setting tells the provisioner not to archive the Kubernetes Persistent Volume Claim when deleting.
  
 ```
 $ helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
@@ -170,23 +170,25 @@ $ helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/n
     --set storageClass.onDelete=true
 ```
 
-Check the Storage Clas was successfully deployed to your Kubernetes cluster with the "get sc" command
+Check the Storage Class was successfully deployed to your Kubernetes cluster with the "get sc" command
 
 ```
 $ kubectl get sc -A
 ```
+
 returns:
-> 		NAME                   PROVISIONER                                     RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
-> nfs-client             cluster.local/nfs-subdir-external-provisioner            Delete          Immediate                  true            16s
+>    NAME                   PROVISIONER                                     RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+>    nfs-client             cluster.local/nfs-subdir-external-provisioner            Delete          Immediate                  true            16s
 
 You will see a new nfs-subdir-external-provisioner pod is now running in the default namespace
 
 ```
 $ kubectl get pods -A
 ```
+
 returns:
-> NAMESPACE       NAME                                               READY   STATUS              RESTARTS      AGE
-> default         nfs-subdir-external-provisioner-7ff748465c-ssf7s   1/1     Running             0             32s
+><pre>NAMESPACE       NAME                                               READY   STATUS              RESTARTS      AGE</pre>
+><pre>default         nfs-subdir-external-provisioner-7ff748465c-ssf7s   1/1     Running             0             32s</pre>
 
 ### Test the newly installed nfs-subdir-external-provisioner
 
