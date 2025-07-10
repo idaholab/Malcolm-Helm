@@ -114,7 +114,7 @@ sudo apt install nfs-kernel-server
 sudo systemctl start nfs-kernel-server.service
 ```
 
-With the NFS service installed and running, a directory must be exported for use by the Kubernetes provisioner. In this example we export a directory for the nfs-subdir-provisioner by first creating the folder structure on the local filesystem then adding the path to /etc/exports on the NFS server. To verify everything works properly we will start with fully-open directory permissions.
+With the NFS service installed and running, a directory must be exported for use by the Kubernetes provisioner. In this example we export a directory for the nfs-subdir-provisioner by first creating a folder structure on the local server filesystem then adding that path to /etc/exports on the NFS server. To verify everything works properly we will start with fully-open directory permissions.
 
 ```
 sudo mkdir -p /exports/malcolm/nfs-subdir-provisioner
@@ -131,23 +131,25 @@ Add a new line to /etc/exports with the base path of our newly created /exports 
 Finally, apply the NFS configuration changes with the exportfs command
 
 ```
-sudo exportfs -av
-exporting 10.0.0.0/255.255.0.0:/exports
+$ sudo exportfs -av
 ```
+returns: 
+> "exporting 10.0.0.0/255.255.0.0:/exports"
 
 Optionally, we can verify the exported directory by querying the NFS server with showmount.
 
 ```
-/usr/sbin/showmount -e nfsserver.malcolm.local
-Export list for nfsserver.malcolm.local:
-/exports 10.0.0.0/255.255.0.0
+$ /usr/sbin/showmount -e nfsserver.malcolm.local
 ```
+returns: 
+> Export list for nfsserver.malcolm.local:
+> /exports 10.0.0.0/255.255.0.0
 
 Make note of your NFS server's IP address or DNS name and the exported path for use in the next steps.
 
 ### Install the nfs-client on all Kubernetes nodes
 
-Since the Kubernetes pods will be making use of the NFS server export and the pods may run on any Kubernetes node we need the nfs client installed on all nodes. Connect to each and run the following commands:
+Since the Kubernetes pods will be making use of the NFS server export and the pods may run on any Kubernetes node we need the nfs client installed on all nodes. Connect to each machine and run the following commands:
 
 ```
 sudo apt update
@@ -156,7 +158,39 @@ sudo apt install nfs-common -y
 
 ### Install the nfs-subdir-external-provisioner
 
-If you haven't already, install Helm 
+The [nfs-subdir-exeternal-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) can be installed via Helm, Kustomize, or manually via a set of YAML files. Since Malcolm-Helm is a Helm based project we will also install the provisioner via [Helm](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner?tab=readme-ov-file#with-helm).
+
+For these steps we will need the NFS server IP address or DNS name as well as the exported path from above. In the following example the server's DNS name is "nfsserver.malcolm.local" and the exported path to on that server is "/exports/malcolm/nfs-subdir-provisioner". Notice: the NFS export path is /exports but we can point the nfs-subdir-external-provisioner to a sub-directory within the exported path (/exports/malcolm/nfs-subdir-provisioner) to keep the automatically generated files contained to that directory. We start by adding the Helm repo then install the provisioner with the server name and export path as parameters. The storageClass.onDelete=true setting tells the provisioner not to archive the Kubernetes Persistent Volume Claim when deleting.
+ 
+```
+$ helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+$ helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
+    --set nfs.server=nfsserver.malcolm.local \
+    --set nfs.path=/exports/malcolm/nfs-subdir-provisioner \
+    --set storageClass.onDelete=true
+```
+
+Check the Storage Clas was successfully deployed to your Kubernetes cluster with the "get sc" command
+
+```
+$ kubectl get sc -A
+```
+returns:
+> 		NAME                   PROVISIONER                                     RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+> nfs-client             cluster.local/nfs-subdir-external-provisioner            Delete          Immediate                  true            16s
+
+You will see a new nfs-subdir-external-provisioner pod is now running in the default namespace
+
+```
+$ kubectl get pods -A
+```
+returns:
+> NAMESPACE       NAME                                               READY   STATUS              RESTARTS      AGE
+> default         nfs-subdir-external-provisioner-7ff748465c-ssf7s   1/1     Running             0             32s
+
+### Test the newly installed nfs-subdir-external-provisioner
+
+
 
 ## Upgrade procedures
 
