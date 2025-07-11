@@ -339,7 +339,7 @@ data:
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_env.development }}
-  SURICATA_NUM_SERVERS: "2"
+  SURICATA_NUM_SERVERS: "8"
   SURICATA_STREAM_MEMCAP: "{{ .stream_memcap }}"
   SURICATA_HOST_MEMCAP: "{{ .host_memcap }}"
   SURICATA_DEFRAG_MEMCAP: "{{ .defrag_memcap }}"
