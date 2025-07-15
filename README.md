@@ -103,18 +103,18 @@ Check the chart/values.yaml file for all the features that can be enabled disabl
 
 ## Storage Provisioner Options
 
-Malcolm-Helm's chart/values.yaml file defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner which leverages a part of each Kubernetes node storage. As stated above, any storage provider that supports ReadWriteMany may be employed for Malcolm-Helm. This section will review how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for enviroments with an NFS server available. 
+Malcolm-Helm's chart/values.yaml file defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner which allocates storage from the Kubernetes nodes. As stated above, any storage provider that supports ReadWriteMany may be employed for Malcolm-Helm. This section will review how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for enviroments with an NFS server available. 
 
 ### Configure an NFS server
 
-The [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) relies on an external NFS server to provide Kuberenetes Persistent Volumes. The first step is to install an NFS server where the Kuberentes cluster can access shared volumes. For Debian based systems (including Ubuntu) [this page](https://documentation.ubuntu.com/server/how-to/networking/install-nfs/index.html) details steps to install an NFS server with apt:
+The [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) relies on an external NFS server to provide Kuberenetes Persistent Volumes. The first step is to install an NFS server where the Kuberentes cluster can access the NFS shared volumes. For Debian based systems (including Ubuntu) [this page](https://documentation.ubuntu.com/server/how-to/networking/install-nfs/index.html) details steps to install an NFS server with apt:
 
 ```
 sudo apt install nfs-kernel-server
 sudo systemctl start nfs-kernel-server.service
 ```
 
-With the NFS service installed and running, a directory must be exported for use by the Kubernetes provisioner. In this example we export a directory for the nfs-subdir-provisioner by first creating a folder structure on the local server filesystem then adding that path to /etc/exports on the NFS server. To verify everything works properly we will start with fully-open directory permissions.
+With the NFS service installed and running, a directory must be exported for use by the Kubernetes provisioner. In this example we export a directory for the nfs-subdir-provisioner by first creating a folder structure on the local server filesystem then add that path to /etc/exports on the NFS server. To verify everything works properly we will start with fully-open directory permissions.
 
 ```
 sudo mkdir -p /exports/malcolm/nfs-subdir-provisioner
@@ -122,7 +122,7 @@ sudo chown nobody:nogroup /exports
 sudo chmod -R 777 /exports/malcolm/nfs-subdir-provisioner/
 ```
 
-Add a new line to /etc/exports with the base path of our newly created /exports directory and an optional network subnet filter. In the following example we limit NFS access to IP addresses within the 10.0.0.0/16 subnet. This can also be replaced with an asterisk "*" symbol to disable subnet filtering.
+Add a new line to the NFS server's /etc/exports with the base path of our newly created /exports directory and an optional network subnet filter. In the following example we limit NFS access to IP addresses within the 10.0.0.0/16 subnet. This can also be replaced with an asterisk "*" symbol to disable subnet filtering.
 
 ```
 /exports 10.0.0.0/255.255.0.0(rw,sync,insecure,no_root_squash,no_subtree_check,crossmnt)
@@ -133,7 +133,7 @@ Finally, apply the NFS configuration changes with the exportfs command
 ```
 $ sudo exportfs -av
 ```
-returns: 
+that command returns: 
 > "exporting 10.0.0.0/255.255.0.0:/exports"
 
 Optionally, we can verify the exported directory by querying the NFS server with showmount.
@@ -141,7 +141,7 @@ Optionally, we can verify the exported directory by querying the NFS server with
 ```
 $ /usr/sbin/showmount -e nfsserver.malcolm.local
 ```
-returns: 
+that command returns: 
 > Export list for nfsserver.malcolm.local:
 > /exports 10.0.0.0/255.255.0.0
 
@@ -160,14 +160,13 @@ sudo apt install nfs-common -y
 
 The [nfs-subdir-exeternal-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) can be installed via Helm, Kustomize, or manually via a set of YAML files. Since Malcolm-Helm is a Helm based project we will also install the provisioner [via Helm](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner?tab=readme-ov-file#with-helm).
 
-For these steps we will need the NFS server IP address or DNS name as well as the exported path from above. In the following example the server's DNS name is "nfsserver.malcolm.local" and the exported path on that server is "/exports/malcolm/nfs-subdir-provisioner". Notice: the NFS export path is /exports but we can point the nfs-subdir-external-provisioner to a sub-directory within the exported path (/exports/malcolm/nfs-subdir-provisioner) to keep the automatically generated files contained to that directory. We start by adding the Helm repo then install the provisioner with the server name and export path as parameters. The storageClass.onDelete=true setting tells the provisioner not to archive the Kubernetes Persistent Volume Claim when deleting.
+For these steps we will need the NFS server IP address or DNS name as well as the NFS exported path from above. In the following example the server's DNS name is "nfsserver.malcolm.local" and the exported path on that server is "/exports/malcolm/nfs-subdir-provisioner". Notice: the NFS export path is /exports but we can point the nfs-subdir-external-provisioner to a sub-directory within the exported path (/exports/malcolm/nfs-subdir-provisioner) to keep the automatically generated files contained to that directory. We start by adding the Helm repo then install the provisioner with the server name and export path as parameters.
  
 ```
 $ helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
 $ helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
     --set nfs.server=nfsserver.malcolm.local \
-    --set nfs.path=/exports/malcolm/nfs-subdir-provisioner \
-    --set storageClass.onDelete=true
+    --set nfs.path=/exports/malcolm/nfs-subdir-provisioner 
 ```
 
 Check the Storage Class was successfully deployed to your Kubernetes cluster with the "get sc" command
@@ -190,13 +189,129 @@ $ kubectl get pods -A
 
 returns:
 <pre>
-NAMESPACE       NAME                                               READY   STATUS              RESTARTS      AGE
+NAMESPACE       NAME                                               READYs   STATUS              RESTARTS      AGE
 default         nfs-subdir-external-provisioner-7ff748465c-ssf7s   1/1     Running             0             32s
 </pre>
 
 ### Test the newly installed nfs-subdir-external-provisioner
 
+Two YAML files are needed to test the provisioner configuration. The [first](https://raw.githubusercontent.com/kubernetes-sigs/nfs-subdir-external-provisioner/master/deploy/test-claim.yaml) defines a PersistentVolumeClaim that leverages the nfs-subdir-external-provisioner.
 
+```
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-claim
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Mi
+```
+Notice the storageClassName is set to "nfs-client" which matches the output of the "kubectl get sc -A" command above.
+
+ 
+The other [test file](https://raw.githubusercontent.com/kubernetes-sigs/nfs-subdir-external-provisioner/master/deploy/test-pod.yaml) defines a pod to make use of the newly created PersistentVolumeClaim.
+
+```
+kind: Pod
+apiVersion: v1
+metadata:
+  name: test-pod
+spec:
+  containers:
+  - name: test-pod
+    image: busybox:stable
+    command:
+      - "/bin/sh"
+    args:
+      - "-c"
+      - "touch /mnt/SUCCESS && exit 0 || exit 1"
+    volumeMounts:
+      - name: nfs-pvc
+        mountPath: "/mnt"
+  restartPolicy: "Never"
+  volumes:
+    - name: nfs-pvc
+      persistentVolumeClaim:
+        claimName: test-claim
+```
+
+This Pod definition lists "test-claim" in the volumes: section at the bottom of the file which matches the PersistentVolumeClaim's "name" field above and ties the two together.
+
+Both of these test files are avalabile as part of the nfs-subdir-external-provisioner source code so we can deploy them directly from the GitHub links
+
+```
+kubectl create -f https://raw.githubusercontent.com/kubernetes-sigs/nfs-subdir-external-provisioner/master/deploy/test-claim.yaml -f https://raw.githubusercontent.com/kubernetes-sigs/nfs-subdir-external-provisioner/master/deploy/test-pod.yaml
+```
+
+returns:
+<pre>
+persistentvolumeclaim/test-claim created
+pod/test-pod created
+</pre>
+
+Verify the PersistentVolumeClaim was created with the following command:
+```
+kubectl get pvc
+```
+
+returns:
+<pre>
+NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+test-claim   Bound    pvc-49649079-ffc5-402e-a6da-b3be50978e02   1Mi        RWX            nfs-client     <unset>                 100s
+</pre>
+
+The test-claim has a status of "Bound" so we should also see the test Pod running. Check that with the "get pods" command for the default namespace:
+```
+kubectl get pods -n default
+```
+
+returns:
+<pre>
+NAME                                               READY   STATUS      RESTARTS   AGE
+nfs-subdir-external-provisioner-7ff748465c-q5hbl   1/1     Running     0          27d
+test-pod                                           0/1     Completed   0          7m31s
+</pre>
+
+The PerstentVolumeClaim should make a new directory in the NFS export and the Pod is designed to exit after createing a "SUCCESS" file in that directory so it has a status of "Completed". Check the NFS directory to verify a new directory has been create with a file named "SUCCESS".
+
+<pre>
+nfs-subdir-provisioner$ ls -al
+total 0
+drwxrwxrwx  3 1000  1000  81 Jan 15 09:58 .
+drwxrwxrwx 10 1000  1000 213 Jan 18 08:02 ..
+drwxrwxrwx  2 root  root    21 Jan 15 09:58 default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328
+</pre>
+
+The directory should contain one file which was created by the Pod when it started.
+<pre>
+nfs-subdir-provisioner$ ls default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328/
+SUCCESS
+</pre>
+
+Delete the Pod and the PersistentVolumeClaim using the same YAML files we used to create them:
+```
+kubectl delete -f https://raw.githubusercontent.com/kubernetes-sigs/nfs-subdir-external-provisioner/master/deploy/test-claim.yaml -f https://raw.githubusercontent.com/kubernetes-sigs/nfs-subdir-external-provisioner/master/deploy/test-pod.yaml
+
+```
+
+returns:
+<pre>
+persistentvolumeclaim "test-claim" deleted
+pod "test-pod" deleted
+</pre>
+
+The NFS directory will be marked as "archived" and can be manually deleted.
+
+```
+rm -rf archived-default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328/
+```
+
+
+### Configure Malcolm-Helm to use the nfs-subdir-external-provisioner
 
 ## Upgrade procedures
 
