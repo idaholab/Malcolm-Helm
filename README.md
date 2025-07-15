@@ -210,7 +210,7 @@ spec:
     requests:
       storage: 1Mi
 ```
-Notice the storageClassName is set to "nfs-client" which matches the output of the "kubectl get sc -A" command above.
+Note the storageClassName is set to "nfs-client" which matches the output of the "kubectl get sc -A" command above.
 
  
 The other [test file](https://raw.githubusercontent.com/kubernetes-sigs/nfs-subdir-external-provisioner/master/deploy/test-pod.yaml) defines a pod to make use of the newly created PersistentVolumeClaim.
@@ -283,10 +283,10 @@ nfs-subdir-provisioner$ ls -al
 total 0
 drwxrwxrwx  3 1000  1000  81 Jan 15 09:58 .
 drwxrwxrwx 10 1000  1000 213 Jan 18 08:02 ..
-drwxrwxrwx  2 root  root    21 Jan 15 09:58 default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328
+drwxrwxrwx  2 root  root  21 Jan 15 09:58 default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328
 </pre>
 
-The directory should contain one file which was created by the Pod when it started.
+The directory should contain one file which was created when the Pod started.
 <pre>
 nfs-subdir-provisioner$ ls default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328/
 SUCCESS
@@ -312,6 +312,143 @@ rm -rf archived-default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328/
 
 
 ### Configure Malcolm-Helm to use the nfs-subdir-external-provisioner
+Now that we know the NFS server exports are configured correctly, and the Kubernetes nfs-subdir-external-provisioner is able to access those for PersistentVolumeClaims, we are ready to configure Malcolm-Helm for deployment. As stated above, the Malcolm-Helm [values.yaml file](https://github.com/idaholab/Malcolm-Helm/blob/e29ad656f9f86c59011b319efb6538b4f9807c63/chart/values.yaml#L222) defaults to the [Rancher local-path](https://github.com/rancher/local-path-provisioner) storage provisioner.  We will need to change all of those values.yaml entries to "nfs-client" to leverage the nfs-subpath-external-provisioner and the NFS server exports. The storage: section of your values.yaml file should look like the following:
+
+```
+storage:
+  # This helm chart requires a storage provisioner class it defaults to local-path provisioner
+  # If your kuberenetes cluster has a different storage provisioner please ensure you change this name.
+  # https://github.com/rancher/local-path-provisioner
+  development:
+    pcap_claim:
+      # The size of the claim
+      size: 25Gi
+      # The kubernetes storage class name
+      className: nfs-client
+    zeek_claim:
+      size: 25Gi
+      className: nfs-client
+    suricata_claim:
+      size: 25Gi
+      className: nfs-client
+    config_claim:
+      size: 25Gi
+      className: nfs-client
+    runtime_logs_claim:
+      size: 25Gi
+      className: nfs-client
+    opensearch_claim:
+      size: 25Gi
+      className: nfs-client
+    opensearch_backup_claim:
+      size: 25Gi
+      className: nfs-client
+    postgres_claim:
+      size: 15Gi
+      className: nfs-client
+  production:
+    pcap_claim:
+      size: 100Gi
+      className: nfs-client
+    zeek_claim:
+      size: 50Gi
+      className: nfs-client
+    suricata_claim:
+      size: 50Gi
+      className: nfs-client
+    config_claim:
+      size: 25Gi
+      className: nfs-client
+    runtime_logs_claim:
+      size: 25Gi
+      className: nfs-client
+    opensearch_claim:
+      size: 25Gi
+      className: nfs-client
+    opensearch_backup_claim:
+      size: 25Gi
+      className: nfs-client
+    postgres_claim:
+      size: 15Gi
+      className: nfs-client
+
+```
+
+Now follow the [Installation procedures](https://github.com/idaholab/Malcolm-Helm#installation-procedures) section above to deploy the Malcolm-Helm chart into your cluser.
+
+```
+1. `cd <project dir that contains chart foler>`
+2. `helm install malcolm chart/ -n malcolm --create-namespace`
+```
+
+returns:
+<pre>
+NAME: malcolm
+LAST DEPLOYED: Tue Jul 15 13:35:51 2025
+NAMESPACE: malcolm
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+</pre>
+
+The Malcolm-Helm pods should all be Running after a few minutes:
+
+<pre>
+Malcolm-Helm$ kubectl get pods -n malcolm
+NAME                                           READY   STATUS    RESTARTS   AGE
+api-deployment-8685768bbd-8kr8x                1/1     Running   0          103s
+arkime-deployment-7dbf5f99c5-nrgxm             1/1     Running   0          103s
+dashboards-deployment-5897d7cfcf-nh9r6         1/1     Running   0          103s
+dashboards-helper-deployment-758645fdc-vggnq   1/1     Running   0          101s
+file-monitor-deployment-64c595db-2xwlp         1/1     Running   0          103s
+filebeat-offline-deployment-596bb57f5b-4hl89   1/1     Running   0          103s
+freq-deployment-bb49df764-frhqt                1/1     Running   0          103s
+htadmin-deployment-7658bf6ff5-bwqqg            1/1     Running   0          101s
+logstash-deployment-569899b584-758nw           1/1     Running   0          102s
+netbox-deployment-654cb5598c-c58n8             1/1     Running   0          103s
+nginx-proxy-deployment-5db4b75948-8ltpx        1/1     Running   0          103s
+opensearch-0                                   1/1     Running   0          103s
+pcap-monitor-deployment-84986f9ccc-wd45z       1/1     Running   0          103s
+postgres-statefulset-0                         1/1     Running   0          103s
+redis-cache-deployment-644f9947f4-6dwqk        1/1     Running   0          103s
+redis-deployment-677476f956-782n4              1/1     Running   0          102s
+suricata-offline-deployment-678fcdc985-mmj67   1/1     Running   0          103s
+upload-deployment-6b458f89c7-k8hd8             1/1     Running   0          103s
+zeek-offline-deployment-57c548c646-d86lw       1/1     Running   0          102s
+</pre>
+
+The PersistenVolumeClaims should be bound:
+
+<pre>
+Malcolm-Helm$ kubectl get pvc -n malcolm
+NAME                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+config-claim                            Bound    pvc-90dd6987-12c3-45d5-8acb-516db28e1104   25Gi       RWX            nfs-client     <unset>                 3m12s
+opensearch-backup-claim-opensearch-0    Bound    pvc-b5534ea1-e370-4e71-b0fc-434773d34f9d   25Gi       RWO            nfs-client     <unset>                 3m12s
+opensearch-claim-opensearch-0           Bound    pvc-cc824212-3ce0-40a2-9e41-3e630e3e9903   25Gi       RWO            nfs-client     <unset>                 3m12s
+pcap-claim                              Bound    pvc-412ec10b-ea5d-46e6-8a6a-53aeb7109441   25Gi       RWX            nfs-client     <unset>                 3m12s
+postgres-claim-postgres-statefulset-0   Bound    pvc-ba220505-d4d7-43b3-beaf-d15ec0dce900   15Gi       RWO            nfs-client     <unset>                 3m12s
+runtime-logs-claim                      Bound    pvc-03dd17f9-18a4-4cc6-a2a0-a8a3d5986a7b   25Gi       RWX            nfs-client     <unset>                 3m12s
+suricata-claim-offline                  Bound    pvc-5897418a-5801-4dac-9d4b-074d101fc3bd   25Gi       RWX            nfs-client     <unset>                 3m12s
+zeek-claim                              Bound    pvc-c30307ae-41e2-4a02-aff2-8143a17128cb   25Gi       RWX            nfs-client     <unset>                 3m12s
+</pre>
+
+And you should see several sub-directories were created in the NFS server export directory:
+
+<pre>
+nfs-subdir-provisioner$ ls -al
+total 4
+drwxrwxrwx 11 1000  1000   4096 Jan 15 13:35 .
+drwxrwxrwx 10 1000  1000   213 Jan 18 08:02 ..
+drwxrwxrwx  8 root  root   116 Jan 15 13:35 malcolm-config-claim-pvc-90dd6987-12c3-45d5-8acb-516db28e1104
+drwxrwxrwx  2 root  root   6 Jan 15 13:35 malcolm-opensearch-backup-claim-opensearch-0-pvc-b5534ea1-e370-4e71-b0fc-434773d34f9d
+drwxrwxrwx  4 root  root   49 Jan 15 13:36 malcolm-opensearch-claim-opensearch-0-pvc-cc824212-3ce0-40a2-9e41-3e630e3e9903
+drwxrwxrwx  4 root  root   49 Jan 15 13:35 malcolm-pcap-claim-pvc-412ec10b-ea5d-46e6-8a6a-53aeb7109441
+drwxrwxrwx  3 root  root   22 Jan 15 13:36 malcolm-postgres-claim-postgres-statefulset-0-pvc-ba220505-d4d7-43b3-beaf-d15ec0dce900
+drwxrwxrwx  3 root  root   27 Jan 15 13:35 malcolm-runtime-logs-claim-pvc-03dd17f9-18a4-4cc6-a2a0-a8a3d5986a7b
+drwxrwxrwx  2 1000  1000   54 Jan 15 13:36 malcolm-suricata-claim-offline-pvc-5897418a-5801-4dac-9d4b-074d101fc3bd
+drwxrwxrwx  7 root  root   109 Jan 15 13:35 malcolm-zeek-claim-pvc-c30307ae-41e2-4a02-aff2-8143a17128cb
+</pre>
+
 
 ## Upgrade procedures
 
