@@ -210,7 +210,7 @@ spec:
     requests:
       storage: 1Mi
 ```
-Note the storageClassName is set to "nfs-client" which matches the output of the "kubectl get sc -A" command above.
+Note: the storageClassName is set to "nfs-client" which matches the output of the "kubectl get sc -A" command above.
 
  
 The other [test file](https://raw.githubusercontent.com/kubernetes-sigs/nfs-subdir-external-provisioner/master/deploy/test-pod.yaml) defines a pod to make use of the newly created PersistentVolumeClaim.
@@ -276,7 +276,7 @@ nfs-subdir-external-provisioner-7ff748465c-q5hbl   1/1     Running     0        
 test-pod                                           0/1     Completed   0          7m31s
 </pre>
 
-The PerstentVolumeClaim should make a new directory in the NFS export and the Pod is designed to exit after createing a "SUCCESS" file in that directory so it has a status of "Completed". Check the NFS directory to verify a new directory has been create with a file named "SUCCESS".
+The PerstentVolumeClaim should make a new directory in the NFS export and the Pod is designed to exit after creating a "SUCCESS" file in that directory so it shows a status of "Completed". Check the NFS directory to verify a new directory has been create with a file named "SUCCESS".
 
 <pre>
 nfs-subdir-provisioner$ ls -al
@@ -304,7 +304,7 @@ persistentvolumeclaim "test-claim" deleted
 pod "test-pod" deleted
 </pre>
 
-The NFS directory will be marked as "archived" and can be manually deleted.
+The NFS directory will be renamed as "archived-default-test-claim-pvc...." and can be manually deleted.
 
 ```
 rm -rf archived-default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328/
