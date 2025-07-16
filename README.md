@@ -276,7 +276,7 @@ nfs-subdir-external-provisioner-7ff748465c-q5hbl   1/1     Running     0        
 test-pod                                           0/1     Completed   0          7m31s
 </pre>
 
-The PerstentVolumeClaim should make a new directory in the NFS export and the Pod is designed to exit after creating a "SUCCESS" file in that directory. The test-pod shows a status of "Completed" because the pod already started, created the file, and exited. Check the NFS directory to verify a new directory has been create and it contains a file named "SUCCESS".
+The PerstentVolumeClaim should make a new directory in the NFS export and the Pod is designed to exit after creating a "SUCCESS" file in that directory. The test-pod shows a status of "Completed" because the pod already started, created the file, and exited. Check the NFS directory to verify a new directory has been created and it contains a file named "SUCCESS".
 
 <pre>
 nfs-subdir-provisioner$ ls -al
