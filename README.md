@@ -103,7 +103,7 @@ Check the chart/values.yaml file for all the features that can be enabled disabl
 
 ## Storage Provisioner Options
 
-Malcolm-Helm's chart/values.yaml file defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner which allocates storage from the Kubernetes nodes. As stated above, any storage provider that supports ReadWriteMany may be employed for Malcolm-Helm. This section will review how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for enviroments with an NFS server available. 
+Malcolm-Helm's chart/values.yaml file defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner which allocates storage from the Kubernetes nodes. As stated above, any storage provider that supports the ReadWriteMany access mode may be employed for Malcolm-Helm. This section will review how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for enviroments with an NFS server available. 
 
 ### Configure an NFS server
 
@@ -114,7 +114,7 @@ sudo apt install nfs-kernel-server
 sudo systemctl start nfs-kernel-server.service
 ```
 
-With the NFS service installed and running, a directory must be exported for use by the Kubernetes provisioner. In this example we export a directory for the nfs-subdir-provisioner by first creating a folder structure on the local server filesystem then add that path to /etc/exports on the NFS server. To verify everything works properly we will start with fully-open directory permissions.
+With the NFS service installed and running, a directory must be exported for use by the Kubernetes provisioner. In this example we export a directory for the nfs-subdir-provisioner by first creating a folder structure on the server's local filesystem then add that path to /etc/exports on the NFS server. To verify everything works properly we will start with fully-open directory permissions.
 
 ```
 sudo mkdir -p /exports/malcolm/nfs-subdir-provisioner
@@ -160,7 +160,7 @@ sudo apt install nfs-common -y
 
 The [nfs-subdir-exeternal-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) can be installed via Helm, Kustomize, or manually via a set of YAML files. Since Malcolm-Helm is a Helm based project we will also install the provisioner [via Helm](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner?tab=readme-ov-file#with-helm).
 
-For these steps we will need the NFS server IP address or DNS name as well as the NFS exported path from above. In the following example the server's DNS name is "nfsserver.malcolm.local" and the exported path on that server is "/exports/malcolm/nfs-subdir-provisioner". Notice: the NFS export path is /exports but we can point the nfs-subdir-external-provisioner to a sub-directory within the exported path (/exports/malcolm/nfs-subdir-provisioner) to keep the automatically generated files contained to that directory. We start by adding the Helm repo then install the provisioner with the server name and export path as parameters.
+For these steps we will need the NFS server IP address or DNS name as well as the NFS exported path from above. In the following example the server's DNS name is "nfsserver.malcolm.local" and the exported path on that server is "/exports/malcolm/nfs-subdir-provisioner". Notice: the NFS server's export path is actually /exports but we can point the nfs-subdir-external-provisioner to a sub-directory within the exported path (/exports/malcolm/nfs-subdir-provisioner) to keep the automatically generated files contained to that directory. We start by adding the Helm repo then install the provisioner with the server name and exported path as parameters.
  
 ```
 $ helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
@@ -276,7 +276,7 @@ nfs-subdir-external-provisioner-7ff748465c-q5hbl   1/1     Running     0        
 test-pod                                           0/1     Completed   0          7m31s
 </pre>
 
-The PerstentVolumeClaim should make a new directory in the NFS export and the Pod is designed to exit after creating a "SUCCESS" file in that directory so it shows a status of "Completed". Check the NFS directory to verify a new directory has been create with a file named "SUCCESS".
+The PerstentVolumeClaim should make a new directory in the NFS export and the Pod is designed to exit after creating a "SUCCESS" file in that directory so it shows a status of "Completed" above. Check the NFS directory to verify a new directory has been create and it contains a file named "SUCCESS".
 
 <pre>
 nfs-subdir-provisioner$ ls -al
@@ -288,7 +288,7 @@ drwxrwxrwx  2 root  root  21 Jan 15 09:58 default-test-claim-pvc-20de4d0b-3e1c-4
 
 The directory should contain one file which was created when the Pod started.
 <pre>
-nfs-subdir-provisioner$ ls default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328/
+nfs-subdir-provisioner$ ls default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328
 SUCCESS
 </pre>
 
