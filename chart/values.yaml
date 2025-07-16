@@ -79,7 +79,7 @@ opensearch:
   enabled: true
   singleNode: true
   replicas: 3
-  url: http://opensearch:9200
+  url: https://opensearch:9200
   dashboards_url: http://dashboards:5601/dashboards
   development:
     java_memory: -Xmx10g -Xms10g -Xss256k
@@ -95,7 +95,7 @@ external_elasticsearch:
   es_port: 9200
   kibana_port: 5601
   username: "malcolm"
-  password: ""
+  password: "malcolm_password"
   # Secret must be in following format if using elastic_secret_name:
   # apiVersion: v1
   #  data:

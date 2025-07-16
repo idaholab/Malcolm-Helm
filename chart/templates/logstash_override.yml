@@ -7,7 +7,7 @@ data:
       if [event][kind] == "metric" {
         elasticsearch {
           id => "output_opensearch_malcolm_metrics"
-          hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
+          hosts => "${OPENSEARCH_URL:https://opensearch:9200}"
           ssl_certificate_verification => "false"
           manage_template => false
           document_id => "%{+YYMMdd}-%{[event][hash]}"
@@ -18,7 +18,7 @@ data:
       } else if [event][provider] == "suricata" {
         elasticsearch {
           id => "output_opensearch_malcolm_suricata"
-          hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
+          hosts => "${OPENSEARCH_URL:https://opensearch:9200}"
           ssl_certificate_verification => "false"
           manage_template => false
           document_id => "%{+YYMMdd}-%{[event][hash]}"
@@ -29,7 +29,7 @@ data:
       } else {
         elasticsearch {
           id => "output_opensearch_malcolm_zeek"
-          hosts => "${OPENSEARCH_URL:http://opensearch:9200}"
+          hosts => "${OPENSEARCH_URL:https://opensearch:9200}"
           ssl_certificate_verification => "false"
           manage_template => false
           document_id => "%{+YYMMdd}-%{[event][hash]}"
