@@ -125,9 +125,8 @@ spec:
           secret:
             secretName: opensearch-curlrc
         - name: arkime-pcap-volume
-          hostPath:
-            path: "{{ .Values.arkime_live.pcap_hostpath }}"
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: pcap-claim
 {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
         - name: elastic-cert
           secret:
