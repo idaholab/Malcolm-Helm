@@ -44,7 +44,6 @@ Vagrant.configure("2") do |config|
     vb.customize ['modifyvm', :id, '--ioapic', 'on']
     vb.customize ['modifyvm', :id, '--accelerate3d', 'off']
     vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxsvga']
-    vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--device", 0, "--nonrotational", vm_ssd]
     vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--nonrotational", vm_ssd]
     vb.name = vm_name
   end

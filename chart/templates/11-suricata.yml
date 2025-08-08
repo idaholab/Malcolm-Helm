@@ -6,11 +6,14 @@ data:
   SURICATA_AUTO_ANALYZE_PCAP_FILES: "true"
 {{- if .Values.is_production }}
   {{- with .Values.suricata_offline.production }}
+  # The number of threads per Suricata process (0 means "default behavior")
+  SURICATA_AUTO_ANALYZE_PCAP_PROCESSES: "{{ .suricata_auto_analyze_pcap_processes }}"
   SURICATA_AUTO_ANALYZE_PCAP_THREADS: "{{ .suricata_auto_analyze_pcap_threads }}"
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_offline.development }}
   SURICATA_AUTO_ANALYZE_PCAP_THREADS: "{{ .suricata_auto_analyze_pcap_threads }}"
+  SURICATA_AUTO_ANALYZE_PCAP_PROCESSES: "{{ .suricata_auto_analyze_pcap_processes }}"
   {{- end }}
 {{- end }}
   SURICATA_PCAP_PROCESSOR: "true"
