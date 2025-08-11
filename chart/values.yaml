@@ -174,7 +174,7 @@ siem_env:
 logstash:
   # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
   development:
-    java_memory: -Xmx2500m -Xms2500m -Xss2048k
+    java_memory: -Xmx3g -Xms3g -Xss2048k
     #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
     workers: 2
     batch_delay: 50
@@ -359,9 +359,11 @@ dashboards_helper_env:
 
 suricata_offline:
   development:
-    suricata_auto_analyze_pcap_threads: 1
+    suricata_auto_analyze_pcap_threads: 0
+    suricata_auto_analyze_pcap_processes: 1
   production:
-    suricata_auto_analyze_pcap_threads: 16
+    suricata_auto_analyze_pcap_threads: 0
+    suricata_auto_analyze_pcap_processes: 10
 
 # Zeek live is enabled by default and will listen pcap_iface
 # Defined under pcap_capture_env
