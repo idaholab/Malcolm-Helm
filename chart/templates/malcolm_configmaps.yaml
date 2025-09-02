@@ -190,7 +190,7 @@ data:
   NGINX_RESOLVER_IPV4_OFF: "false"
   NGINX_RESOLVER_IPV6_OFF: "false"
   NGINX_X_FORWARDED_PROTO_OVERRIDE: ""
-  NGINX_ERROR_LOG_LEVEL: ""
+  NGINX_ERROR_LOG_LEVEL: "{{ .Values.nginx.log_level }}"
 
   # NGINX LDAP (NGINX_AUTH_MODE=ldap) can support LDAP, LDAPS, or LDAP+StartTLS.
   #   For StartTLS, set NGINX_LDAP_TLS_STUNNEL=true to issue the StartTLS command
