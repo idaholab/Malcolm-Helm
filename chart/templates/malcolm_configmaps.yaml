@@ -4,7 +4,7 @@ data:
   NGINX_AUTH_MODE: "{{ .Values.auth.mode }}"
   NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group }}"
   NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role }}"
-  ROLE_BASED_ACCESS: "false"
+  ROLE_BASED_ACCESS: "{{ .Values.auth.role_based_access }}"
   # General access roles
   # ROLE_ADMIN - Unrestricted access
   ROLE_ADMIN: "{{ .Values.auth.role_admin }}"
