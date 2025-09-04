@@ -643,3 +643,7 @@ keycloak:
   kc_proxy_headers: "xforwarded"
   kc_bootstrap_admin_username: "vagrant"
   kc_bootstrap_admin_password: "vagrant"
+
+
+nginx:
+  log_level: ""

@@ -4,7 +4,7 @@ data:
   NGINX_AUTH_MODE: "{{ .Values.auth.mode }}"
   NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group }}"
   NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role }}"
-  ROLE_BASED_ACCESS: "false"
+  ROLE_BASED_ACCESS: "{{ .Values.auth.role_based_access }}"
   # General access roles
   # ROLE_ADMIN - Unrestricted access
   ROLE_ADMIN: "{{ .Values.auth.role_admin }}"
@@ -190,7 +190,7 @@ data:
   NGINX_RESOLVER_IPV4_OFF: "false"
   NGINX_RESOLVER_IPV6_OFF: "false"
   NGINX_X_FORWARDED_PROTO_OVERRIDE: ""
-  NGINX_ERROR_LOG_LEVEL: ""
+  NGINX_ERROR_LOG_LEVEL: "{{ .Values.nginx.log_level }}"
 
   # NGINX LDAP (NGINX_AUTH_MODE=ldap) can support LDAP, LDAPS, or LDAP+StartTLS.
   #   For StartTLS, set NGINX_LDAP_TLS_STUNNEL=true to issue the StartTLS command
