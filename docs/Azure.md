@@ -26,23 +26,41 @@ Click the Cloud Shell icon to open a shell instance. A terminal emulator pane wi
 
 ![Screen shot of the Azure Cloud Shell pane](images/screenshots/Azure_Cloud_Shell_Pane-09112025.png)
 
-The Kubernetes tools we will need come pre-installed. We will assume you are using the bash implementation of Cloud Shell rather than the PowerShell interpreter.
+The Kubernetes tools we will need, such as helm and kubectl, come pre-installed. We will assume you are using the bash implementation of Cloud Shell rather than the PowerShell interpreter.
 
 ![Screen shot showing helm and kubectl versions in Cloud Shell](images/screenshots/Azure_Cloud_Shell_Tool_Versions-09112025.png)
 
+We will need to generate an SSH key-pair in the Cloud Shell environment with:
 
-It is required that your host machine has 500GB of free space, 16 GB of free RAM and 8 extra CPU cores to run this quickstart.
+```
+ssh-keygen -t rsa -b 8192
+```
 
-1. Install virtual box version 7.0.10 r158379 or greater from https://www.virtualbox.org/wiki/Downloads
-2. Install vagrant version 2.4.0 or greater from https://developer.hashicorp.com/vagrant/downloads
-3. Install vagrant disk size plugin verion 0.1.3 with `vagrant plugin install vagrant-disksize`
-4. Install vagrant reload version 0.0.1 with `vagrant plugin install vagrant-reload`
-5. Run `cd <root of the project where the Vagrantfile is located>`
-6. Run `vagrant up`
-7. Wait until everything installs at the end of the install you should see the ssh command echo out.
-8. run `ssh -p 2222 vagrant@localhost` and login using vagrant as the password.
-9. Open chrome and navigate to http://localhost:8080 which will display the landing page with links to all of Malcolms services. (NOTE: If they dont come up make sure the pods are running and give it at least 5 minutes before trying to hit all the services. )
-10. If prompted for credentials username is always vagrant and password is always vagrant.
+Save the file to /home/{user}/.ssh/id_rsa (or just hit enter for the default) and don't set a passphrase for now. The command output should look similar to this:
+
+![Screen shot of output from running ssh-keygen in Cloud Shell](images/screenshots/Azure_Cloud_Shell_ssh-keygen_command-09112025.png)
+
+There is also one extension we will need to add to the Azure "az" command for working with kubernetes using the following command:
+
+```
+az extension add -n k8s-extension
+```
+
+The output should look similar to this:
+
+![Screen shot of output from az extension add command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_extension_add_command-09112025.png)
+
+You can verify which extensions are installed with:
+
+```
+az extension list
+```
+
+The output should include the k8s-extension along with a few others
+
+![Screen shot of output from az extension list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_extension_list_command-09112025.png)
+
+Now that we have confirmed access to the Azure environement and the Cloud Shell tools we can begin adding the necessary services
 
 ### Vagrant Quickstart with istio
 
