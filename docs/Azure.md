@@ -1,25 +1,15 @@
-# Malcolm Helm Chart
+# Deploying Malcolm-Helm on Azure
 
-The purpose of this project is to make installing Malcolm with all of its server and sensor components easily across a 
-large Kubernetes cluster. Case in point, lets say you have 8 servers and 50 sensors. Some sensors will be high bandwidth 
-while others may be low bandwith. This helm chart for example can either deploy a opensearch setup or point to a 
-preconfigured external elasticsearch.  Furthermore, it will deploy live sensors for suricata and zeek as well as offline 
-deployment for uploading pcaps offline. 
+Microsoft Azure is a comprehensive cloud computing platform and infrastructure created by Microsoft. It offers a wide range of cloud services, including those for computing, analytics, storage, and networking. Users can pick and choose from these services to develop and scale new applications, or run existing applications in the public cloud. Azure is designed to help businesses manage their cloud infrastructure, ensuring scalability, reliability, and security. It supports 
+multiple programming languages, tools, and frameworks including the Microsoft Azure Kubernetes Service (AKS) where Malcolm-Helm can be deployed. 
 
-## Features
+## Connect to your Azure account
 
-Malcolm comes with a wide variety of including but not limited to the following:
+We will assume you already have a Microsoft Azure account setup and funding in place to run cloud instances. If you have a Visual Studio subscription it may include [free credits](https://learn.microsoft.com/en-us/visualstudio/subscriptions/vs-azure-eligibility) to try deploying Malcom-Helm in Azure AKS. 
 
-- Opensearch or External Elastic
-- Netbox
-- PCAP capture
-- Arkime PCAP Capture (Not implemented yet)
-- Suricata Live
-- Zeek Live
-- Offline PCAP Processing
-- Zeek file extraction 
+Point your browser to the [Azure login portal](https://portal.azure.com) at: https://portal.azure.com. You should be prompted to login:
 
-For a more comprehensive list of components navigate to https://malcolm.fyi/docs/components.html. 
+![](./images/screenshots/Azure_Portal_Login-09112025.png)
 
 ## Vagrant Quickstart
 
@@ -478,12 +468,3 @@ For each change identified in Step 3, modify the corresponding files in Malcolm-
 Step 5:
 Test the updated Malcolm-Helm configuration
 After mapping all changes, launch Dataplane's Malcolm instance to verify the upgrade. Ensure there are no breaking changes and that everything functions as expected.
-
-
-
-## Deploying Malcolm-Helm on Cloud Service Providers
-
-Please see the documentation pages for each cloud service provider below
-
-		[**Deploying Malcolm-Helm on Azure**](docs/Azure.md).
-
