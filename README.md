@@ -485,5 +485,6 @@ After mapping all changes, launch Dataplane's Malcolm instance to verify the upg
 
 Please see the documentation pages for each cloud service provider below
 
-		[**Deploying Malcolm-Helm on Azure**](docs/Azure.md).
+  [**Deploying Malcolm-Helm on Azure**](docs/Azure.md)
+
 
