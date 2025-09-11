@@ -3,15 +3,33 @@
 Microsoft Azure is a comprehensive cloud computing platform and infrastructure created by Microsoft. It offers a wide range of cloud services, including those for computing, analytics, storage, and networking. Users can pick and choose from these services to develop and scale new applications, or run existing applications in the public cloud. Azure is designed to help businesses manage their cloud infrastructure, ensuring scalability, reliability, and security. It supports 
 multiple programming languages, tools, and frameworks including the Microsoft Azure Kubernetes Service (AKS) where Malcolm-Helm can be deployed. 
 
-## Connect to your Azure account
+## Connect to the Azure portal
 
-We will assume you already have a Microsoft Azure account setup and funding in place to run cloud instances. If you have a Visual Studio subscription it may include [free credits](https://learn.microsoft.com/en-us/visualstudio/subscriptions/vs-azure-eligibility) to try deploying Malcom-Helm in Azure AKS. 
+We will assume you already have a Microsoft Azure account setup and funding in place to run cloud instances. If you have active Visual Studio subscription it may include [free credits](https://learn.microsoft.com/en-us/visualstudio/subscriptions/vs-azure-eligibility) to test Malcom-Helm in Azure AKS. 
 
-Point your browser to the [Azure login portal](https://portal.azure.com) at: https://portal.azure.com. You should be prompted to login:
+Point your browser to the [Azure login portal](https://portal.azure.com) at: https://portal.azure.com. 
+You should be prompted to login:
 
-![](./images/screenshots/Azure_Portal_Login-09112025.png)
+![Screen shot of the Azure login page](./images/screenshots/Azure_Portal_Login-09112025.png)
 
-## Vagrant Quickstart
+After authenticating you should see your Azure services home page with a list of resources, your subscription type and links to the various services available.
+
+![Screen shot of the Azure landing page](images/screenshots/Azure_Landing_Page-09112025.png)
+
+## Azure Cloud Shell
+
+Rather than install the Kubernetes and Helm tools locally we will leverage the Azure Cloud Shell for command line operations. The cloud shell icon is located near the top-right corner of the Azure landing page.
+
+![Azure Cloud Shell icon circled](images/screenshots/Azure_Cloud_Shell_Icon-09112025.png)
+
+Click the Cloud Shell icon to open a shell instance. A terminal emulator pane will open (usually at the bottom of the window)
+
+![Screen shot of the Azure Cloud Shell pane](images/screenshots/Azure_Cloud_Shell_Pane-09112025.png)
+
+The Kubernetes tools we will need come pre-installed. We will assume you are using the bash implementation of Cloud Shell rather than the PowerShell interpreter.
+
+![Screen shot showing helm and kubectl versions in Cloud Shell](images/screenshots/Azure_Cloud_Shell_Tool_Versions-09112025.png)
+
 
 It is required that your host machine has 500GB of free space, 16 GB of free RAM and 8 extra CPU cores to run this quickstart.
 

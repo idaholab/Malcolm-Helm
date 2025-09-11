@@ -483,7 +483,7 @@ After mapping all changes, launch Dataplane's Malcolm instance to verify the upg
 
 ## Deploying Malcolm-Helm on Cloud Service Providers
 
-Please see the documentation pages for each cloud service provider below
+Please see the documentation pages for each cloud service provider below:
 
   [**Deploying Malcolm-Helm on Azure**](docs/Azure.md)
 
