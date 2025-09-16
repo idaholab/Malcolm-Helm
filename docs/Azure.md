@@ -30,23 +30,23 @@ The Kubernetes tools we will need, such as helm and kubectl, come pre-installed.
 
 ![Screen shot showing helm and kubectl versions in Cloud Shell](images/screenshots/Azure_Cloud_Shell_Tool_Versions-09112025.png)
 
-We will need to generate an SSH key-pair in the Cloud Shell environment with:
+Generate a new SSH key-pair in the Cloud Shell environment with:
 
 ```
 ssh-keygen -t rsa -b 8192
 ```
 
-Save the file to /home/{user}/.ssh/id_rsa (or just hit enter for the default) and don't set a passphrase for now. The command output should look similar to this:
+Save the newly generated key file to /home/{user}/.ssh/id_rsa (or just hit enter for the default) and don't set a passphrase for now. The command output should look similar to this:
 
 ![Screen shot of output from running ssh-keygen in Cloud Shell](images/screenshots/Azure_Cloud_Shell_ssh-keygen_command-09112025.png)
 
-There is also one extension we will need to add to the Azure "az" command for working with kubernetes using the following command:
+There is also one extension we will need to add to the Azure "az" command for working with kubernetes with the following command:
 
 ```
 az extension add -n k8s-extension
 ```
 
-The output should look similar to this:
+The output should look like to this:
 
 ![Screen shot of output from az extension add command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_extension_add_command-09112025.png)
 
@@ -56,7 +56,7 @@ You can verify which extensions are installed with:
 az extension list
 ```
 
-The output should include the k8s-extension along with a few others
+The output will include the k8s-extension along with a few others. (Note: The extension is only installed on this instance of Cloud Shell and will. You may need to re-install each time you open a new Cloud Shell instance and start working with Malcolm-Helm)
 
 ![Screen shot of output from az extension list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_extension_list_command-09112025.png)
 
