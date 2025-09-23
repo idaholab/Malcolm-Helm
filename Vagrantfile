@@ -166,15 +166,16 @@ Vagrant.configure("2") do |config|
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
     # Load specific settings sysctl settings needed for opensearch
-    grep -qxF 'fs.file-max=2097152' /etc/sysctl.conf || echo 'fs.file-max=2097152' >> /etc/sysctl.conf
-    grep -qxF 'fs.inotify.max_queued_events=131072' /etc/sysctl.conf || echo 'fs.inotify.max_queued_events=131072' >> /etc/sysctl.conf
-    grep -qxF 'fs.inotify.max_user_instances=8192' /etc/sysctl.conf || echo 'fs.inotify.max_user_instances=8192' >> /etc/sysctl.conf
-    grep -qxF 'fs.inotify.max_user_watches=131072' /etc/sysctl.conf || echo 'fs.inotify.max_user_watches=131072' >> /etc/sysctl.conf
-    grep -qxF 'kernel.dmesg_restrict=0' /etc/sysctl.conf || echo 'kernel.dmesg_restrict=0' >> /etc/sysctl.conf
-    grep -qxF 'vm.dirty_background_ratio=40' /etc/sysctl.conf || echo 'vm.dirty_background_ratio=40' >> /etc/sysctl.conf
-    grep -qxF 'vm.dirty_ratio=80' /etc/sysctl.conf || echo 'vm.dirty_ratio=80' >> /etc/sysctl.conf
-    grep -qxF 'vm.max_map_count=262144' /etc/sysctl.conf || echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
-    grep -qxF 'vm.swappiness=0' /etc/sysctl.conf || echo 'vm.swappiness=0' >> /etc/sysctl.conf
+    touch /etc/sysctl.d/performance.conf
+    grep -qxF 'fs.file-max=2097152' /etc/sysctl.d/performance.conf || echo 'fs.file-max=2097152' >> /etc/sysctl.d/performance.conf
+    grep -qxF 'fs.inotify.max_queued_events=131072' /etc/sysctl.d/performance.conf || echo 'fs.inotify.max_queued_events=131072' >> /etc/sysctl.d/performance.conf
+    grep -qxF 'fs.inotify.max_user_instances=8192' /etc/sysctl.d/performance.conf || echo 'fs.inotify.max_user_instances=8192' >> /etc/sysctl.d/performance.conf
+    grep -qxF 'fs.inotify.max_user_watches=131072' /etc/sysctl.d/performance.conf || echo 'fs.inotify.max_user_watches=131072' >> /etc/sysctl.d/performance.conf
+    grep -qxF 'kernel.dmesg_restrict=0' /etc/sysctl.d/performance.conf || echo 'kernel.dmesg_restrict=0' >> /etc/sysctl.d/performance.conf
+    grep -qxF 'vm.dirty_background_ratio=40' /etc/sysctl.d/performance.conf || echo 'vm.dirty_background_ratio=40' >> /etc/sysctl.d/performance.conf
+    grep -qxF 'vm.dirty_ratio=80' /etc/sysctl.d/performance.conf || echo 'vm.dirty_ratio=80' >> /etc/sysctl.d/performance.conf
+    grep -qxF 'vm.max_map_count=262144' /etc/sysctl.d/performance.conf || echo 'vm.max_map_count=262144' >> /etc/sysctl.d/performance.conf
+    grep -qxF 'vm.swappiness=0' /etc/sysctl.d/performance.conf || echo 'vm.swappiness=0' >> /etc/sysctl.d/performance.conf
     sysctl -p
     if [[ ! -f /etc/security/limits.d/limits.conf ]]; then
       mkdir -p /etc/security/limits.d/
