@@ -115,7 +115,7 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.32.3+rke2r1 sh -
+    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.34.1+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
     [[ -n "${RKE2_DATA_DIR}" ]] && echo "data-dir: ${RKE2_DATA_DIR}" >> /etc/rancher/rke2/config.yaml
@@ -152,7 +152,7 @@ Vagrant.configure("2") do |config|
     fi
     kubectl apply -f /tmp/sc.yaml
 
-    STERN_VERSION=1.32.0
+    STERN_VERSION=1.33.0
     LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
     STERN_URL="https://github.com/stern/stern/releases/download/v${STERN_VERSION}/stern_${STERN_VERSION}_linux_${LINUX_CPU}.tar.gz"
     cd /tmp
@@ -166,17 +166,19 @@ Vagrant.configure("2") do |config|
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
     # Load specific settings sysctl settings needed for opensearch
-    touch /etc/sysctl.d/performance.conf
-    grep -qxF 'fs.file-max=2097152' /etc/sysctl.d/performance.conf || echo 'fs.file-max=2097152' >> /etc/sysctl.d/performance.conf
-    grep -qxF 'fs.inotify.max_queued_events=131072' /etc/sysctl.d/performance.conf || echo 'fs.inotify.max_queued_events=131072' >> /etc/sysctl.d/performance.conf
-    grep -qxF 'fs.inotify.max_user_instances=8192' /etc/sysctl.d/performance.conf || echo 'fs.inotify.max_user_instances=8192' >> /etc/sysctl.d/performance.conf
-    grep -qxF 'fs.inotify.max_user_watches=131072' /etc/sysctl.d/performance.conf || echo 'fs.inotify.max_user_watches=131072' >> /etc/sysctl.d/performance.conf
-    grep -qxF 'kernel.dmesg_restrict=0' /etc/sysctl.d/performance.conf || echo 'kernel.dmesg_restrict=0' >> /etc/sysctl.d/performance.conf
-    grep -qxF 'vm.dirty_background_ratio=40' /etc/sysctl.d/performance.conf || echo 'vm.dirty_background_ratio=40' >> /etc/sysctl.d/performance.conf
-    grep -qxF 'vm.dirty_ratio=80' /etc/sysctl.d/performance.conf || echo 'vm.dirty_ratio=80' >> /etc/sysctl.d/performance.conf
-    grep -qxF 'vm.max_map_count=262144' /etc/sysctl.d/performance.conf || echo 'vm.max_map_count=262144' >> /etc/sysctl.d/performance.conf
-    grep -qxF 'vm.swappiness=0' /etc/sysctl.d/performance.conf || echo 'vm.swappiness=0' >> /etc/sysctl.d/performance.conf
-    sysctl -p
+    if [[ ! -f /etc/sysctl.d/performance.conf ]]; then
+      mkdir -p /etc/sysctl.d/
+      echo 'fs.file-max=2097152' > /etc/sysctl.d/performance.conf
+      echo 'fs.inotify.max_queued_events=131072' >> /etc/sysctl.d/performance.conf
+      echo 'fs.inotify.max_user_instances=8192' >> /etc/sysctl.d/performance.conf
+      echo 'fs.inotify.max_user_watches=131072' >> /etc/sysctl.d/performance.conf
+      echo 'kernel.dmesg_restrict=0' >> /etc/sysctl.d/performance.conf
+      echo 'vm.dirty_background_ratio=40' >> /etc/sysctl.d/performance.conf
+      echo 'vm.dirty_ratio=80' >> /etc/sysctl.d/performance.conf
+      echo 'vm.max_map_count=262144' >> /etc/sysctl.d/performance.conf
+      echo 'vm.swappiness=0' >> /etc/sysctl.d/performance.conf
+      sysctl -p
+    fi
     if [[ ! -f /etc/security/limits.d/limits.conf ]]; then
       mkdir -p /etc/security/limits.d/
       echo '* soft nofile 65535' > /etc/security/limits.d/limits.conf
@@ -244,7 +246,7 @@ Vagrant.configure("2") do |config|
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      ISTIO_VERSION=1.25.1
+      ISTIO_VERSION=1.27.1
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
