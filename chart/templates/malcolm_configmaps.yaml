@@ -359,6 +359,7 @@ data:
   PCAP_PIPELINE_POLLING: "true"
   PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
   PCAP_PIPELINE_VERBOSITY: ""
+  PCAP_UPLOAD_MAX_FILE_GB: "{{ .Values.upload_common_env.pcap_upload_max_file_gb }}"
   EXTRA_TAGS: "{{ .Values.upload_common_env.extra_tags }}"
   WATCHER_UPLOAD: "true"
   WATCHER_PUBLISH: "true"

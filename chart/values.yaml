@@ -356,6 +356,9 @@ dashboards_helper_env:
   opensearch_index_size_prune_limit: 0
   opensearch_index_size_prune_name_sort: false
   dashboards_prefix: "Malcolm"
+  dashboards_dark_mode: true
+  dashboards_timepicker_from: "now-7d"
+  dashboards_timepicker_to: "now"
 
 suricata_offline:
   development:
@@ -556,6 +559,7 @@ live_capture:
 
 upload_common_env:
   extra_tags: "mykit1"
+  pcap_upload_max_file_gb: 50
 
 # Filebeat capture
 filebeat:
