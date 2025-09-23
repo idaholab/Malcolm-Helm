@@ -32,7 +32,7 @@ image:
   dashboards_helper_container_override: ""
   file_monitor_container_override: ""
   filebeat_container_override: ""
-  logsstash_container_override: ""
+  logstash_container_override: ""
   keycloak_container_override: ""
   redis_container_override: ""
   postgres_container_override: ""
