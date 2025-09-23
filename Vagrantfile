@@ -163,6 +163,18 @@ Vagrant.configure("2") do |config|
     chown root:root /usr/local/bin/stern
     rm -rf /tmp/stern*
 
+
+    K9S_VERSION=0.50.12
+    LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+    K9S_URL="https://github.com/derailed/K9S/releases/download/v${K9S_VERSION}/k9s_Linux_${LINUX_CPU}.tar.gz"
+    cd /tmp
+    mkdir -p ./K9S
+    curl -L "${K9S_URL}" | tar xzf - -C ./K9S
+    mv ./K9S/k9s /usr/local/bin/k9s
+    chmod 755 /usr/local/bin/k9s
+    chown root:root /usr/local/bin/k9s
+    rm -rf /tmp/K9S*
+
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
 
     # Load specific settings sysctl settings needed for opensearch

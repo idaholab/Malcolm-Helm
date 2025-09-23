@@ -2,6 +2,8 @@ export KUBESPACE=malcolm
 
 command -v kubectl >/dev/null 2>&1 && alias k=kubectl
 
+alias k9s='k9s --logoless --splashless'
+
 function kctl () {
   if [[ -n "${KUBECONFIG}" ]]; then
     kubectl --kubeconfig "${KUBECONFIG}" "$@"
