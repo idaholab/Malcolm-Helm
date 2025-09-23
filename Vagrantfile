@@ -15,7 +15,7 @@ end
 Vagrant.require_version ">= 2.3.7"
 Vagrant.configure("2") do |config|
   script_choice = ENV['VAGRANT_SETUP_CHOICE'] || 'none'
-  vm_box = ENV['VAGRANT_BOX'] || 'bento/debian-12'
+  vm_box = ENV['VAGRANT_BOX'] || 'bento/debian-13'
   vm_cpus = ENV['VAGRANT_CPUS'] || '8'
   vm_memory = ENV['VAGRANT_MEMORY'] || '24576'
   vm_disk_size = ENV['VAGRANT_DISK_SIZE'] || '400GB'
