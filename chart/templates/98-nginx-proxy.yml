@@ -86,6 +86,8 @@ spec:
               name: keycloak-env
           {{- end }}
           - configMapRef:
+              name: upload-common-env
+          - configMapRef:
               name: auth-common-env
           - configMapRef:
               name: nginx-env

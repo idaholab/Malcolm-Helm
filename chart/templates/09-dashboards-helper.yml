@@ -2,12 +2,14 @@
 ---
 apiVersion: v1
 data:
-  DASHBOARDS_DARKMODE: "true"
+  DASHBOARDS_DARKMODE: "{{ .Values.dashboards_helper_env.dashboards_dark_mode }}"
   ISM_SNAPSHOT_COMPRESSED: "false"
   ISM_SNAPSHOT_REPO: logs
   OPENSEARCH_INDEX_SIZE_PRUNE_LIMIT: "{{ .Values.dashboards_helper_env.opensearch_index_size_prune_limit }}"
   OPENSEARCH_INDEX_SIZE_PRUNE_NAME_SORT: "{{ .Values.dashboards_helper_env.opensearch_index_size_prune_name_sort }}"
   DASHBOARDS_PREFIX: "{{ .Values.dashboards_helper_env.dashboards_prefix }}"
+  DASHBOARDS_TIMEPICKER_FROM: "{{ .Values.dashboards_helper_env.dashboards_timepicker_from }}"
+  DASHBOARDS_TIMEPICKER_TO: "{{ .Values.dashboards_helper_env.dashboards_timepicker_to }}"
 kind: ConfigMap
 metadata:
   name: dashboards-helper-env
