@@ -12,13 +12,15 @@ description: A Helm chart for Deploying Malcolm in Kubernetes
 # pipeline. Library charts do not define any templates and therefore cannot be deployed.
 type: application
 
-# This is the chart version. This version number should be incremented each time you make changes
-# to the chart and its templates, including the app version.
-# Versions are expected to follow Semantic Versioning (https://semver.org/)
+# This is the chart version. It should match appVersion, with the addition
+# of a packaging revision, beginning at -0 and incrementing if there are
+# multiple revisions of the chart for a single Malcolm release
+# (e.g., 25.09.0-0, 25.09.0-1, etc.).
 version: 25.09.0-0
 
-# This is the version number of the application being deployed. This version number should be
-# incremented each time you make changes to the application. Versions are not expected to
-# follow Semantic Versioning. They should reflect the version the application is using.
-# It is recommended to use it with quotes.
+# This is the version number of the application being deployed. The application
+# version tracks the Malcolm release number (https://github.com/idaholab/Malcolm/releases),
+# which follows calendar versioning (https://calver.org/), e.g., 25.09.0.
+# This variable is also used to determine the tag of the Malcolm container
+# images pulled (unless overridden in values.yaml).
 appVersion: "25.09.0"
