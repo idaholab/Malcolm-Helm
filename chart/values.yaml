@@ -15,6 +15,13 @@ node_count_label:
   key: cnaps.io/node-type
   value: Tier-1
 
+# This helm chart requires a storage provisioner class it defaults to local-path provisioner
+# If your kuberenetes cluster has a different storage provisioner please ensure you change this name.
+# https://github.com/rancher/local-path-provisioner
+# This will be used in the templates unless overridden below
+# you can override this at install time with 'helm install –set “storage_class_name=nfs-client”'
+storage_class_name: "local-path"
+
 image:
   repository: ghcr.io/idaholab/malcolm
   pullPolicy: IfNotPresent
@@ -228,53 +235,53 @@ storage:
       # The size of the claim
       size: 25Gi
       # The kubernetes storage class name
-      className: local-path
+      classNameOverride: ""
     zeek_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     suricata_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     config_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     runtime_logs_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     opensearch_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     opensearch_backup_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     postgres_claim:
       size: 15Gi
-      className: local-path
+      classNameOverride: ""
   production:
     pcap_claim:
       size: 100Gi
-      className: local-path
+      classNameOverride: ""
     zeek_claim:
       size: 50Gi
-      className: local-path
+      classNameOverride: ""
     suricata_claim:
       size: 50Gi
-      className: local-path
+      classNameOverride: ""
     config_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     runtime_logs_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     opensearch_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     opensearch_backup_claim:
       size: 25Gi
-      className: local-path
+      classNameOverride: ""
     postgres_claim:
       size: 15Gi
-      className: local-path
+      classNameOverride: ""
 
 ingress:
   # Enable this to use the default nginx ingress controller

@@ -1,3 +1,4 @@
+{{- $global_storage_class_name := .Values.storage_class_name -}}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $postgres_image := .Values.image.postgres_container_override | default (printf "%s/postgresql:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if and .Values.postgres.enabled }}
@@ -44,7 +45,7 @@ spec:
     - metadata:
         name: postgres-claim
       spec:
-        storageClassName: {{ .postgres_claim.className }}
+        storageClassName: {{ default $global_storage_class_name .postgres_claim.classNameOverride }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
@@ -57,7 +58,7 @@ spec:
     - metadata:
         name: postgres-claim
       spec:
-        storageClassName: {{ .postgres_claim.className }}
+        storageClassName: {{ default $global_storage_class_name .postgres_claim.classNameOverride }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
