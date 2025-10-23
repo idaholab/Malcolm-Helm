@@ -1,3 +1,4 @@
+{{- $global_storage_class_name := .Values.storage_class_name -}}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $opensearch_image := .Values.image.opensearch_container_override | default (printf "%s/opensearch:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if .Values.opensearch.enabled }}
@@ -61,7 +62,7 @@ spec:
     - metadata:
         name: opensearch-claim
       spec:
-        storageClassName: {{ .opensearch_claim.className }}
+        storageClassName: {{ default $global_storage_class_name .opensearch_claim.classNameOverride }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
@@ -71,7 +72,7 @@ spec:
     - metadata:
         name: opensearch-backup-claim
       spec:
-        storageClassName: {{ .opensearch_backup_claim.className }}
+        storageClassName: {{ default $global_storage_class_name .opensearch_backup_claim.classNameOverride }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
@@ -84,7 +85,7 @@ spec:
     - metadata:
         name: opensearch-claim
       spec:
-        storageClassName: {{ .opensearch_claim.className }}
+        storageClassName: {{ default $global_storage_class_name .opensearch_claim.classNameOverride }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
@@ -94,7 +95,7 @@ spec:
     - metadata:
         name: opensearch-backup-claim
       spec:
-        storageClassName: {{ .opensearch_backup_claim.className }}
+        storageClassName: {{ default $global_storage_class_name .opensearch_backup_claim.classNameOverride }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
