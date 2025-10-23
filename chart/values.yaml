@@ -19,7 +19,7 @@ node_count_label:
 # If your kuberenetes cluster has a different storage provisioner please ensure you change this name.
 # https://github.com/rancher/local-path-provisioner
 # This will be used in the templates unless overridden below
-# you can override this at install time with 'helm install –set “storage_class_name=nfs-client”'
+# you can override this at install time with 'helm install --set "storage_class_name=nfs-client"'
 storage_class_name: local-path
 
 image:
