@@ -1,32 +1,36 @@
-# When set to true the chart will use values defined with production: sections over development: sections
-# It was created for swapping between running the chart on a development kubernetes cluster with minimal
-# resources vs a production one.
+# When `true`, values under the `production:` sections will override those in `development:`.
+# Use this to easily switch between lightweight development deployments and full production configurations.
 is_production: false
+
+# Enable Kubernetes NetworkPolicy resources to control pod ingress and egress traffic.
+# When `true`, the chart creates default policies that restrict external access while allowing
+# internal communication (and optional exceptions for Istio or external Elasticsearch).
 enable_network_policies: false
 
-# When this is set live, Arkime, Zeek and Suricata will capture off the NIC. 
-# If this is set to pipeline, all Zeek and Suricata ingest from live PCAP provided by Arkime.
+# Determines how network traffic is captured and processed.
+# Set to `live` for Arkime, Zeek, and Suricata to capture directly from the network interface,
+# or `pipeline` to have Zeek and Suricata ingest PCAP data streamed from Arkime.
 capture_mode: live
 
-# When scaling the _helpers.tpl function that is used for scaling out nodes will do a calculation based on this label
-# Basically it will count the total number of nodes that have this label
-# WARNING: If none of the nodes have this logstash replicas will get SET to 0
+# Label used by the _helpers.tpl scaling function to count nodes.
+# The total number of nodes with this label determines the number of replicas.
+# WARNING: If no nodes have this label, logstash replicas will be set to 0.
 node_count_label:
   key: cnaps.io/node-type
   value: Tier-1
 
-# This helm chart requires a storage provisioner class it defaults to local-path provisioner
-# If your kuberenetes cluster has a different storage provisioner please ensure you change this name.
-# https://github.com/rancher/local-path-provisioner
-# This will be used in the templates unless overridden below
-# you can override this at install time with 'helm install --set "storage_class_name=nfs-client"'
+# The StorageClass used for persistent volumes. Defaults to `local-path` (Local Path Provisioner).
+# If your cluster doesn't support this, set `storage_class_name` to another class that supports
+# ReadWriteMany. You can also override it at install time, e.g.:
+#   helm install --set "storage_class_name=nfs-client"
 storage_class_name: local-path
 
 image:
   repository: ghcr.io/idaholab/malcolm
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion found in Chart.yml.
-  # Should only need to override these if something is awry with version supplied in Chart.yaml file.
+
+  # Overrides for the container image tags (default is the chart `appVersion` from Chart.yaml).
+  # Only set this if you need a different version than the one specified in Chart.yaml.
   dirinit_container_override: ""
   dashboards_container_override: ""
   opensearch_container_override: ""
@@ -51,14 +55,23 @@ image:
 
 auth:
   username: vagrant
-  # Generated with the openssl passwd -1 <your password>
+
+  # Password for HTTP basic auth login, generated with `openssl passwd -1 <your password>`
   openssl_password: "$1$9akV05vU$JHFoK3C2dDquTFAMoz14x/"
-  # Generated with  htpasswd -bnB <your username> <your password>
+
+  # (The same) password for HTTP basic auth login, generated with `htpasswd -bnB <username> <password>`
   htpass_cred: "vagrant:$2y$05$kaHZ2j2VDDQCBf9bEk1gMuJAPRs4q4rolPRbq3zXUb7j2JyGuc50a"
+
+  # Internal password hash secret for Arkime viewer cluster (see https://arkime.com/settings#passwordSecret)
   arkime_password: vagrant
-  # Possible values are basic for htadmin auth, keycloak for embedded keycloak and finally keycloak_remote for remote keycloak instance.
+
+  # Authentication mode for accessing services. Options:
+  #   - `basic` : htadmin auth
+  #   - `keycloak` : embedded Keycloak
+  #   - `keycloak_remote` : external Keycloak instance
   mode: "basic"
-  # for keycloak or keycloak_remote modes
+
+  # For `keycloak` or `keycloak_remote` modes: define required group/role and role-based access settings
   require_group: ""
   require_role: ""  
   role_based_access: "false"
@@ -97,13 +110,17 @@ opensearch:
 
 external_elasticsearch:
   enabled: false
-  # Internal url or clusterIP service and supports https or http urls for elasticsearch
+
+  # URL for the external Elasticsearch cluster. Can be an internal service or clusterIP,
+  # and supports both `http` and `https`.
   url: https://dataplane-ek-es-http.dataplane-ek.svc:9200
   es_port: 9200
   kibana_port: 5601
   username: "malcolm"
   password: "malcolm_password"
-  # Secret must be in following format if using elastic_secret_name:
+  namespace: "dataplane-ek"
+
+  # Kubernetes Secret format required when using `elastic_secret_name`:
   # apiVersion: v1
   #  data:
   #    password: passwordbase64encoded
@@ -112,8 +129,8 @@ external_elasticsearch:
   # metadata:
   #   name: somename
   #   namespace: somenamespace
-  namespace: "dataplane-ek"
   elastic_secret_name: "dataplane-ek-malcolm-es-auth"
+
   matchLabels:
     kibana:
       common.k8s.elastic.co/type: kibana
@@ -122,70 +139,95 @@ external_elasticsearch:
       common.k8s.elastic.co/type: elasticsearch
       elasticsearch.k8s.elastic.co/cluster-name: dataplane-ek
 
-  # Copy of the elastic certificate from elasticsearch namespace
+  # Name and namespace of the Elasticsearch TLS certificate to use.
+  # This should be a copy of the certificate from the Elasticsearch namespace.
   elastic_cert_name: "dataplane-ek-es-http-certs-public"
   elastic_cert_namespace: "dataplane-ek"
 
-  # Only supports http urls for Kibana.
+  # URL for accessing Kibana dashboards (only supports `http`).
   dashboards_url: "http://dataplane-ek-kb-http.dataplane-ek.svc.cluster.local:5601"
-  # Used for the Malcolm landing page and is only used if using a external_elasticsearch
+
+  # External URL for the Malcolm landing page dashboards.
+  # Only used when `external_elasticsearch.enabled` is true.
   external_dashboards_url: https://dataplane-kibana.vp.bigbang.dev
 
-# Shared environment varibles for both Elasticsearch and Opensearch
+# Shared environment variables for both Elasticsearch and OpenSearch
 siem_env:
-  # OpenSearch index patterns and timestamp fields
+
+  # OpenSearch/Elasticsearch index patterns and timestamp fields
   logstash_override:
-    # When enabled the elasticsearch / opensearch logstash output plugin is modified to point to an ilm rollover alias
-    # ILM policy and rollover_alias will need to be defined outside of this deployment for this to work as expected.
+
+    # Enable this to modify the Logstash Elasticsearch/Opensearch output plugin
+    # to point to an ILM rollover alias. The ILM policy and rollover_alias must
+    # be defined outside of this deployment for correct operation.
     enabled: false
     ilm_policy: nta
-    # Must match the patterns located inside of logstash_override.yml
+
+    # Rollover aliases must match patterns in logstash_override.yml
     rollover_alias_zeek: malcolm_network_zeek
     rollover_alias_suricata: malcolm_network_suricata
     rollover_alias_beats: malcolm_beats
+
+    # Default Beats pipeline and ILM policy
     default_beats_pipeline: sensor-status
     ilm_beats_policy: logs
+
+    # Search aliases
     search_alias: malcolm_network
     other_search_alias: ""
+
+    # Index settings
     number_of_shards: "2"
     number_of_replicas: "1"
-  # Index pattern for network traffic logs written via Logstash (e.g., Zeek logs, Suricata alerts)
+
+  # Index pattern for network traffic logs (e.g., Zeek logs, Suricata alerts)
   malcolm_network_index_pattern: "arkime_sessions3-*"
-  # Default time field to use for network traffic logs in Logstash and Dashboards
+
+  # Default time field for network traffic logs in Logstash and Dashboards
   malcolm_network_index_time_field: "firstPacket"
-  # Suffix used to create index to which network traffic logs are written
-  #   * supports Ruby strftime strings in %{}; e.g.,
-  #     - hourly: %{%y%m%dh%H}, twice daily: %{%P%y%m%d}, daily: %{%y%m%d}, weekly: %{%yw%U}, monthly: %{%ym%m})
-  #   * supports expanding dot-delimited field names in {{ }}; e.g.,
-  #     - {{event.provider}}%{%y%m%d}
+
+  # Suffix used for network traffic indices
+  # Supports Ruby strftime strings in %{} (e.g., hourly: %{%y%m%dh%H}, daily: %{%y%m%d}, weekly: %{%yw%U}, monthly: %{%ym%m})
+  # Supports expanding dot-delimited field names in {{ }} (e.g., {{event.provider}}%{%y%m%d})
   malcolm_network_index_suffix: "%{%y%m%d}"
-  # Index pattern for other logs written via Logstash (e.g., nginx, beats, fluent-bit, etc.)
+
+  # Index pattern for other logs (e.g., nginx, Beats, Fluent Bit)
   malcolm_other_index_pattern: "malcolm_beats_*"
-  # Default time field to use for other logs in Logstash and Dashboards
+
+  # Default time field for other logs
   malcolm_other_index_time_field: "@timestamp"
-  # Suffix used to create index to which other logs are written (same rules as MALCOLM_NETWORK_INDEX_TIME_FIELD)
+
+  # Suffix for other logs (same rules as `malcolm_network_index_suffix`)
   malcolm_other_index_suffix: "%{%y%m%d}"
-  # Index pattern used specifically by Arkime (will probably match MALCOLM_NETWORK_INDEX_PATTERN, should probably be arkime_sessions3-*)
+
+  # Index pattern specifically used by Arkime (usually matches `malcolm_network_index_pattern`)
   arkime_network_index_pattern: "arkime_sessions3-*"
-  # Default time field used by for sessions in Arkime viewer
+
+  # Default time field for Arkime session indices
   arkime_network_index_time_field: "firstPacket"
-  # Allows user to add a default_pipeline to malcolm_template or malcolm_beat_template
+
+  # Optional: default pipeline for templates
   malcolm_template_default_pipeline: ""
   malcolm_beats_template_default_pipeline: ""
-  # Allow user to specify lifecycle parameters to malcolm_template or malcolm_beat_template
+
+  # Optional: lifecycle parameters for templates
   malcolm_template_lifecycle_name: ""
   malcolm_template_lifecycle_rollover_alias: ""
   malcolm_beats_template_lifecycle_name: ""
   malcolm_beats_template_lifecycle_rollover_alias: ""
 
 logstash:
-  # Note the number of logstash instances will be based on the number of nodes in your kubernetes cluster.
+  # Number of Logstash instances is determined by the number of nodes in your Kubernetes cluster.
   development:
+    # Java memory settings for Logstash (heap size and stack size)
     java_memory: -Xmx3g -Xms3g -Xss2048k
-    #See https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html for details on these parameters.
+
+    # Logstash pipeline tuning parameters
+    # See: https://www.elastic.co/guide/en/logstash/current/tuning-logstash.html
     workers: 2
     batch_delay: 50
     batch_size: 75
+
   production:
     java_memory: -Xmx16g -Xms16g -Xss2048k
     workers: 18
@@ -193,32 +235,50 @@ logstash:
     batch_size: 75
 
 netbox:
+  # Mode of NetBox integration. Options:
+  #   - `local`    : use the embedded NetBox instance
+  #   - `remote`   : connect to an external NetBox instance
+  #   - `disabled` : do not use NetBox
   mode: "local"
+
+  # Enable enrichment of data from NetBox
   enrichment: true
-  # Set these value for remote netbox instance only if mode is "remote", otherwise leave it blank
-  url: ""
-  netbox_remote_token: ""
-  # Set this this value to your reverse proxy url or leave it blank
-  csrf_trusted_origins: https://malcolm.vp.bigbang.dev
-  netbox_default_site: Cyberville
+  netbox_default_site: "Malcolm"
   netbox_auto_populate: true
   netbox_cache_size: "10000"
   netbox_cache_ttl: "300"
   netbox_auto_populate_subnets: ""
 
+  # URL of the remote NetBox instance (only used if `mode` is `remote`)
+  url: ""
+
+  # API token for the remote NetBox instance (only used if `mode` is `remote`)
+  netbox_remote_token: ""
+
+  # Reverse proxy URL for CSRF protection. Leave blank if not using a reverse proxy.
+  csrf_trusted_origins: https://malcolm.vp.bigbang.dev
 
 postgres:
   enabled: true
+
+  # Hostname of the PostgreSQL service
   host: postgres
+
+  # Default PostgreSQL password
   password: "ChangeMe"
+
+  # Database names for applications
   netbox_db_name: "netbox"
   keycloak_db_name: "keycloak"
-  # Set true if using custom database for netbox
+
+  # Set to `true` if using a custom database for NetBox
   is_custom: false
-  # Create extra secrets for custom database, empty attributes will be set to password key.
-  # The password will be same for all empty attributes.
+
+  # Create extra secrets for a custom database.
+  # The same password value will be used for empty attributes.
   extra_secrets: [{}]
-  # Example
+
+  # Example of extra secrets:
   # - postgresql-secret:
   #     username: netbox
   #     password: ""
@@ -227,14 +287,13 @@ postgres:
   #     adminPassword: ""
 
 storage:
-  # This helm chart requires a storage provisioner class it defaults to local-path provisioner
-  # If your kuberenetes cluster has a different storage provisioner please ensure you change this name.
-  # https://github.com/rancher/local-path-provisioner
+  # Default storage class is defined by `storage_class_name` above.
+  # Individual persistent volume claims can override the class using `classNameOverride`.
   development:
     pcap_claim:
-      # The size of the claim
+      # Size of the persistent volume claim
       size: 25Gi
-      # The kubernetes storage class name
+      # Optional override for the storage provisioner class
       classNameOverride: ""
     zeek_claim:
       size: 25Gi
@@ -284,7 +343,7 @@ storage:
       classNameOverride: ""
 
 ingress:
-  # Enable this to use the default nginx ingress controller
+  # Enable the default NGINX ingress controller
   enabled: true
   specRules:
     rules:
@@ -297,23 +356,24 @@ ingress:
               name: nginx-proxy
               port:
                 number: 443
-      # uncomment this line if you want to specify an ingress hostname with the path above
+      # Optional: specify an ingress hostname for the path above
       # host: "malcolm.malcolmhost.network.local"
 
 istio:
-  # Enable this if deploying in Kuberenetes environment leveraging istio service mesh
-  # Additionally, it is recommended to turn off tls everywhere when this is set to true and let istio handle all things tls :).
+  # Enable if deploying in a Kubernetes environment with Istio service mesh.
+  # When enabled, it is recommended to disable TLS everywhere and let Istio handle all TLS management.
   enabled: false
   gateway: istio-system/tenant
   virtualservicename: malcolm
   domain: vp.bigbang.dev
   istio_namespace: istio-system
 
-
-# Affects both the live and offline deployment of suricata
+# Configuration for Suricata, affecting both live and offline deployments
 suricata_env:
+  # Lua path for Suricata rules
   lua_path: "/opt/suricata/rules/?.lua;;"
   development:
+    # Memory caps for various Suricata components in development
     stream_memcap: "1gb"
     host_memcap: "32mb"
     defrag_memcap: "32mb"
@@ -321,6 +381,7 @@ suricata_env:
     stream_reassembly_memcap: "256mb"
     flow_memcap: "128mb"
   production:
+    # Memory caps for various Suricata components in production
     stream_memcap: "16gb"
     host_memcap: "32mb"
     defrag_memcap: "16gb"
@@ -328,16 +389,19 @@ suricata_env:
     stream_reassembly_memcap: "16gb"
     flow_memcap: "16gb"
 
-# Suricata live is enabled by default and will listen pcap_iface
-# Defined under pcap_capture_env
-# If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
-#https://docs.suricata.io/en/suricata-6.0.0/performance/tuning-considerations.html#af-packet AF_PACKET_RING_SIZE
+# Suricata live is enabled by default and will listen on `pcap_iface` defined under `pcap_capture_env`
+# If disabled, PCAPs can still be uploaded using the Malcolm offline upload functionality.
 suricata_live:
   suricata_stats_enabled: true
   suricata_log_path: /opt/suricata/logs
-  # Suricata live is a Daemonset but it will only schedule on kubernetes nodes that has following label
+
+  # Suricata live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
   nodeSelector:
     cnaps.io/suricata-capture: "true"
+
+  # Tuning parameters, see:
+  # - https://idaholab.github.io/Malcolm/docs/live-analysis.html#LiveAnalysisTuningSuricata
+  # - https://docs.suricata.io/en/suricata-6.0.0/performance/tuning-considerations.html#af-packet
 
   development:
     af_packet_iface_threads: 2
@@ -347,11 +411,10 @@ suricata_live:
     max_pending_packets: 1024
     eve_threaded: "true"
     eve_rotate_interval: "1h"
-    # Used if is production is set to true
+
   production:
     af_packet_iface_threads: 32
-    # Default is calculated threads * max-pending-packets (Default of max-pending-packets is 1024)
-    # This calculation was made with the assumtion that max-pending-packets is set to 1024
+    # Default is calculated threads * max_pending_packets (assumes max_pending_packets=1024)
     af_packet_ring_size: 131072
     af_packet_block_size: 1048576
     af_packet_block_timeout: 1000
@@ -375,18 +438,19 @@ suricata_offline:
     suricata_auto_analyze_pcap_threads: 0
     suricata_auto_analyze_pcap_processes: 10
 
-# Zeek live is enabled by default and will listen pcap_iface
-# Defined under pcap_capture_env
-# If you disable it, you will still be able to upload pcaps using the malcolm offline upload of pcaps functionality.
+# Zeek live is enabled by default and will listen on `pcap_iface` defined under `pcap_capture_env`
+# If disabled, PCAPs can still be uploaded using the Malcolm offline upload functionality.
 zeek_live:
   zeek_disable_stats: ""
   zeek_log_path: /opt/zeek/logs
-  # Zeek live is a Daemonset but it will only schedule on kubernetes nodes that has following label
+
+  # Zeek live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
   nodeSelector:
     cnaps.io/zeek-capture: "true"
-  # For adding additional configmap/secret based environment variables
+
+  # Add additional ConfigMap- or Secret-based environment variables
   extra_envFrom: []
-  # For adding additional enviornment variables
+  # Add additional individual environment variables
   extra_env: []
 
   development:
@@ -396,6 +460,7 @@ zeek_live:
     zeek_lb_method: "custom"
     zeek_af_packet_buffer_size: "67108864"
     zeek_pin_cpus_worker_1: ""
+
   production:
     zeek_lb_procs_worker_default: "8"
     zeek_lb_procs: "32"
@@ -405,27 +470,29 @@ zeek_live:
     zeek_pin_cpus_worker_1: ""
 
 
-# Only affects the zeek offline deployment
+# Only affects the Zeek offline deployment
 zeek_offline:
-  # The number of Zeek processes for analyzing uploaded PCAP files allowed
-  #   to run concurrently
-  zeek_intel_refresh_cron_expression: "0 */12 * * *"
+  # Refresh Zeek Intel data at startup
   zeek_intel_refresh_on_startup: "true"
+
+  # Cron expression for refreshing Zeek Intel data
+  zeek_intel_refresh_cron_expression: "0 */12 * * *"
+
+  # Number of Zeek processes analyzing uploaded PCAPs concurrently
   development:
     zeek_auto_analyze_pcap_threads: 1
   production:
     zeek_auto_analyze_pcap_threads: 3
 
-
-# Affects all zeek deployment live and offline
+# Affects all Zeek deployments (live and offline)
 zeek_env:
-  #Set to none, all or interesting.
-  # `none`: no file extraction
-  # `interesting`: extraction of files with mime types of common attack vectors
-  # `notcommtxt`: extraction of all files except common plain text files
-  # `mapped`: extraction of files with recognized mime types
-  # `known`: extraction of files for which any mime type can be determined
-  # `all`: extract all files
+  # Determines which files are extracted from network traffic by Zeek
+  # `none`       : no file extraction
+  # `interesting`: extract files with MIME types of common attack vectors
+  # `notcommtxt` : extract all files except common plain text files
+  # `mapped`     : extract files with recognized MIME types
+  # `known`      : extract files for which any MIME type can be determined
+  # `all`        : extract all files
   extract_mode: interesting
   extracted_file_enable_capa: true
   extracted_file_enable_clamav: true
@@ -434,29 +501,30 @@ zeek_env:
   extracted_file_http_server_enable: true
   extracted_file_http_server_recursive: true
   extracted_file_preservation: quarantined
-  # When querying a TAXII or MISP feed, only process threat indicators that have
-  #   been created or modified since the time represented by this value;
-  #   it may be either a fixed date/time (01/01/2021) or relative interval (30 days ago)
-  # valid value "72 hours ago" blank means its disabled
+
+
+  # When querying a TAXII or MISP feed, only process threat indicators
+  # created or modified since this value. Can be a fixed date/time (e.g., 01/01/2021)
+  # or a relative interval (e.g., 30 days ago). Blank disables filtering.
   zeek_intel_feed_since: ""
-  # Specifies the value for Zeek's Intel::item_expiration timeout (-1min to disable)
-  # -1min means intel items will never expire
+
+  # Value for Zeek's Intel::item_expiration timeout (-1min to disable)
+  # `-1min` means intel items will never expire
   zeek_intel_item_expiration: "-1min"
-  # Specifies a cron expression indicating the refresh interval for generating the
-  #   Zeek Intelligence Framework files ('' disables automatic refresh)
-  # Valid value woudl be "0 */12 * * *" which would pull every 12 hours  
+
   development:
     capa_max_requests: 4
     clamd_max_requests: 8
     yara_max_requests: 8
     extracted_file_max_bytes: "134217728"
     extracted_file_min_bytes: "64"
-    # Prune ./zeek-logs/extract_files/ when it exceeds this size...
+    # Prune ./zeek-logs/extract_files/ when it exceeds this size
     extracted_file_prune_threshold_max_size: 1TB
-    # ... or when the *total* disk usage exceeds this percentage
+    # ... or when the total disk usage exceeds this percentage
     extracted_file_prune_threshold_total_disk_usage_percent: 0
-    # Interval in seconds for checking whether to prune ./zeek-logs/extract_files/
+    # Interval (seconds) to check whether to prune ./zeek-logs/extract_files/
     extracted_file_prune_interval_seconds: 300
+
   production:
     capa_max_requests: 8
     clamd_max_requests: 16
@@ -471,35 +539,43 @@ maxmind:
   license_key: ""
   alternate_url: ""
 
-# Variables apply to both offline and live version of arkime
+# Configuration for Arkime, affecting both live and offline deployments
 arkime_env:
-  arkime_debug_level: "0"  
+  arkime_debug_level: "0"
+
   development:
     free_space_g: "10%"
     rotate_index: daily
-    # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
-    # Whether or not Arkime should perform index management
-    index_management_enabled: "true"
-    # Time in hours/days before moving to warm and force merge (number followed by h or d)
-    index_management_optimization_period: "30d"
-    # Time in hours/days before deleting index (number followed by h or d)
-    index_management_retention_time: "90d"
-    # Number of replicas for older sessions indices
-    index_management_older_session_replicas: "0"
-    # Number of weeks of history to retain
-    index_management_history_retention_weeks: "13"
-    # Number of segments to optimize sessions for
-    index_management_segments: "1"
-    # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
-    index_management_hot_warm_enabled: "false"
     spi_data_max_indices: "7"
     arkime_init_shards: "1"
     arkime_init_replicas: "1"
     arkime_init_refresh_sec: ""
     arkime_init_shards_per_node: ""
+
+    # Settings for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
+    # Enable or disable Arkime index management
+    index_management_enabled: "true"
+    # Time before moving indices to warm and performing force merge (e.g., "30d" for 30 days)
+    index_management_optimization_period: "30d"
+    # Time before deleting indices (e.g., "90d" for 90 days)
+    index_management_retention_time: "90d"
+    # Number of replicas for older session indices
+    index_management_older_session_replicas: "0"
+    # Number of weeks of history to retain
+    index_management_history_retention_weeks: "13"
+    # Number of segments to optimize sessions for
+    index_management_segments: "1"
+    # Enable or disable hot/warm index design (non-session data in warm index)
+    index_management_hot_warm_enabled: "false"
+
   production:
     free_space_g: "5%"
     rotate_index: daily
+    spi_data_max_indices: "-1"
+    arkime_init_shards: "2"
+    arkime_init_replicas: "1"
+    arkime_init_refresh_sec: ""
+    arkime_init_shards_per_node: ""
     index_management_enabled: "true"
     index_management_optimization_period: "30d"
     index_management_retention_time: "90d"
@@ -507,11 +583,6 @@ arkime_env:
     index_management_history_retention_weeks: "13"
     index_management_segments: "1"
     index_management_hot_warm_enabled: "false"
-    spi_data_max_indices: "-1"
-    arkime_init_shards: "2"
-    arkime_init_replicas: "1"
-    arkime_init_refresh_sec: ""
-    arkime_init_shards_per_node: ""
 
 arkime_live:
   enabled: true
@@ -526,6 +597,7 @@ arkime_live:
     arkime_tpacketv3_num_threads: "2"
     arkime_tpacketv3_block_size: "8388608"
   production:
+    # See: https://arkime.com/settings#high-performance-settings
     arkime_compression_type: none
     arkime_compression_level: "3"
     arkime_db_bulk_size: "15000000"
@@ -535,24 +607,24 @@ arkime_live:
     arkime_tpacketv3_num_threads: "2"
     arkime_tpacketv3_block_size: "8388608"
 
-  # Arkime live is a Daemonset but it will only schedule on kubernetes nodes that has following label
+  # Arkime live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
   nodeSelector:
     cnaps.io/arkime-capture: "true"
 
 pcap_live:
   enabled: false
 
-  # Pcap live is a Daemonset but it will only schedule on kubernetes nodes that has following label
+  # PCAP live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
   nodeSelector:
     cnaps.io/pcap-capture: "true"
 
-# Sets environment variables across multiple applications within Malcolm (IE: pcap capture, zeek and suricata)
-# pcap_iface can be comma separate values.
+# Sets environment variables across multiple live capture applications (e.g., PCAP capture, Zeek, Suricata)
 pcap_capture_env:
+  # `pcap_iface` can accept comma-separated values.
   pcap_iface: ens192
   pcap_filter: ""
-  # NOTE Net Sniff and tcpdump cannot be both true. Only one or the other can be running at a time.
-  net_sniff: false
+  # NOTE: netsniff and tcpdump cannot both be true. Only one can run at a time.
+  netsniff: false
   tcpdump: true
   pcap_rotate_megabytes: 4
   pcap_rotate_minutes: 10
@@ -560,30 +632,29 @@ pcap_capture_env:
   pcap_iface_tweak: true
   pcap_pipeline_verbosity: "-v"
 
-# Shared settings across all live capture type things (IE: Zeek live, Suricata live, and Pcap capture)
+# Shared settings across multiple live capture applications (e.g., PCAP capture, Zeek, Suricata)
 live_capture:
   tolerations: []
 
 upload_common_env:
-  extra_tags: "mykit1"
+  extra_tags: ""
   pcap_upload_max_file_gb: 50
 
-# Filebeat capture
+# Filebeat log monitoring
 filebeat:
   filebeat_clean_inactive: 180m
   filebeat_close_inactive: 120s
   filebeat_close_inactive_live: 90m
   filebeat_ignore_older: 120m
   filebeat_scan_frequency: 10s
-  # The age (in minutes) at which already-processed log files containing network traffic metadata should
-  #   be pruned from the filesystem
+  # Age (in minutes) at which already-processed log files containing network traffic metadata
+  # will be pruned from the filesystem
   log_cleanup_minutes: "60"
-  # The age (in minutes) at which the compressed archives containing already-processed log files should
-  #   be pruned from the filesystem
+  # Age (in minutes) at which compressed archives of already-processed log files
+  # will be pruned from the filesystem
   zip_cleanup_minutes: "90"
 
-
-# Default affinity ensures that the filebeat Daemonset is applied with anything that also has suricata or zeek live capture running on it.
+  # Default affinity ensures the Filebeat DaemonSet runs on nodes also running Suricata or Zeek live capture.
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
@@ -598,21 +669,20 @@ filebeat:
           values:
           - "true"
 
-# Sets GID and UID for each container
+# Sets the GID and UID for unprivileged processes in all containers
 process_env:
   pgid: 1000
   puid: 1000
 
-# Only set to true if you intend on mounting these specific folders yourself using a kustomize overlay.
+# Set to `true` only if you plan to mount rule folders manually via a Kustomize overlay.
 rule_mount_override:
   enabled: false
 
-# Sets and controls values specific to 26-pcap-processor.yml file
+# Settings specific to 26-pcap-processor.yml manifest
 pcap_processor_env:
   nodeSelector:
     cnaps.io/arkime-capture: "true"
   
-
 zeek_chart_overrides:
   serviceAccountName: ""
   sideCars: []
@@ -633,15 +703,15 @@ suricata_chart_overrides:
 
 kafka:
   enabled: "false"
-  # This is either the bootstrap IP:PORT or a comma separated list of broker IP:PORT (s)
+  # Bootstrap broker or a comma-separated list of broker values (IP:PORT in both cases)
   brokers: "kafka.local:9091"
   topic: "zeek"  
 
-# Below keycloak settings only apply when auth.mode is set to keycloak or keycloak_remote
+# Keycloak settings below apply only when `auth.mode` is `keycloak` or `keycloak_remote`
 keycloak:
   keycloak_auth_realm: "master"
   keycloak_auth_redirect_uri: "/index.html"
-  keycloak_auth_url: "http://malcolm.lan/keycloak"
+  keycloak_auth_url: ""
   keycloak_client_id: ""
   keycloak_client_secret: ""
   kc_cache: "local"
@@ -654,7 +724,6 @@ keycloak:
   kc_proxy_headers: "xforwarded"
   kc_bootstrap_admin_username: "vagrant"
   kc_bootstrap_admin_password: "vagrant"
-
 
 nginx:
   log_level: ""
