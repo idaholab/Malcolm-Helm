@@ -98,7 +98,7 @@ stringData:
   MAXMIND_GEOIP_DB_LICENSE_KEY: "{{ .Values.maxmind.license_key }}"
   # Alternate download URL for MaxMind MMDB tarballs
   MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL: "{{ .Values.maxmind.alternate_url }}"
-  # Password hash secret for Arkime viewer cluster (see https://arkime.com/settings)
+  # Password hash secret for Arkime viewer cluster (see https://arkime.com/settings#passwordSecret)
   ARKIME_PASSWORD_SECRET: "{{ .Values.auth.arkime_password }}"
   # If the Arkime WISE plugin is in use, this sets the configuration PIN for the WISE GUI
   # Users should change this value if using the WISE plugin GUI 
