@@ -89,9 +89,11 @@ spec:
             name: arkime-opensearch-curlrc-secret-volume
           - mountPath: "/data/pcap"
             name: arkime-pcap-volume
+          - mountPath: "/opt/arkime/etc/wise.ini.example"
+            name: wise-config
+            subPath: "wise.ini"
           - mountPath: "/opt/arkime/wiseini"
             name: arkime-config-volume
-            subPath: "arkime/wiseini"
           - mountPath: "/opt/arkime/lua/configmap"
             name: arkime-lua-volume
 {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
@@ -114,11 +116,16 @@ spec:
         env:
           - name: PUSER_MKDIR
             value: "/data/config:arkime/wiseini;/data/pcap:processed,arkime-live"
+          - name: PUSER_COPY
+            value: "/opt/arkime/etc/wise.ini.example:/opt/arkime/wiseini/wise.ini"
         volumeMounts:
           - name: arkime-pcap-volume
             mountPath: "/data/pcap"
           - name: arkime-config-volume
-            mountPath: "/data/config"
+            mountPath: "/opt/arkime/wiseini"
+          - name: wise-config
+            mountPath: "/opt/arkime/etc/wise.ini.example"
+            subPath: "wise.ini"
       volumes:
         - name: arkime-var-local-catrust-volume
           configMap:
@@ -126,9 +133,12 @@ spec:
         - name: arkime-lua-volume
           configMap:
             name: arkime-lua
+        - name: wise-config
+          configMap:
+            name: wise-config
         - name: arkime-config-volume
-          persistentVolumeClaim:
-            claimName: config-claim
+          emptyDir:
+            sizeLimit: 50Mi
         - name: arkime-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc

@@ -88,11 +88,9 @@ spec:
           - mountPath: /var/local/curlrc/secretmap
             name: arkime-live-opensearch-curlrc-secret-volume
           - mountPath: "/data/pcap"
-            name: arkime-live-pcap-volume
+            name: arkime-live-pcap-volume          
           - mountPath: "/opt/arkime/wiseini"
             name: arkime-live-config-volume
-            subPath: "arkime/wiseini"
-            readOnly: true
 {{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
           - name: elastic-cert
             mountPath: /usr/local/share/ca-certificates/elastic_ca.crt
@@ -112,10 +110,17 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/data/pcap:arkime-live"
+            value: "/data/pcap:arkime-live;/opt/arkime:wiseini"
+          - name: PUSER_COPY
+            value: "/opt/arkime/etc/wise.ini.example:/opt/arkime/wiseini/wise.ini"
         volumeMounts:
           - name: arkime-live-pcap-volume
             mountPath: "/data/pcap"
+          - name: arkime-live-config-volume
+            mountPath: "/opt/arkime/wiseini"
+          - name: wise-config
+            mountPath: "/opt/arkime/etc/wise.ini.example"
+            subPath: "wise.ini"
       volumes:
         - name: arkime-live-var-local-catrust-volume
           configMap:
@@ -126,9 +131,12 @@ spec:
         - name: arkime-live-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
+        - name: wise-config
+          configMap:
+            name: wise-config
         - name: arkime-live-config-volume
-          persistentVolumeClaim:
-            claimName: config-claim
+          emptyDir:
+            sizeLimit: 50Mi
         - name: arkime-live-pcap-volume
           hostPath:
             path: "{{ .Values.arkime_live.pcap_hostpath }}"
