@@ -477,6 +477,9 @@ zeek_live:
   nodeSelector:
     cnaps.io/zeek-capture: "true"
 
+  remoteNodeSelector:
+    cnaps.io/zeek-remote-capture: "true"
+
   # Add additional ConfigMap- or Secret-based environment variables
   extra_envFrom: []
   # Add additional individual environment variables
