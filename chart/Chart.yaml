@@ -12,11 +12,9 @@ description: A Helm chart for Deploying Malcolm in Kubernetes
 # pipeline. Library charts do not define any templates and therefore cannot be deployed.
 type: application
 
-# This is the chart version. It should match appVersion, with the addition
-# of a packaging revision, beginning at -0 and incrementing if there are
-# multiple revisions of the chart for a single Malcolm release
-# (e.g., 25.09.0-0, 25.09.0-1, etc.).
-version: 25.09.0-0
+# This is the chart version. It should *almost* match appVersion, although "converted"
+# to semver (e.g., appVersion 25.09.0 -> version 25.9.0)
+version: 25.9.0
 
 # This is the version number of the application being deployed. The application
 # version tracks the Malcolm release number (https://github.com/idaholab/Malcolm/releases),
