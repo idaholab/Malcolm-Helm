@@ -57,13 +57,15 @@ auth:
   username: vagrant
 
   # Password for HTTP basic auth login, generated with `openssl passwd -1 <your password>`
-  openssl_password: "$1$9akV05vU$JHFoK3C2dDquTFAMoz14x/"
+  # default openssl_password is "malcolm" 
+  openssl_password: "$1$xhZ5v90R$qQmoPuMUb1XAKitK0FoqO."
 
   # (The same) password for HTTP basic auth login, generated with `htpasswd -bnB <username> <password>`
-  htpass_cred: "vagrant:$2y$05$kaHZ2j2VDDQCBf9bEk1gMuJAPRs4q4rolPRbq3zXUb7j2JyGuc50a"
+  # default htpass_cred is malcolm:malcolm
+  htpass_cred: "malcolm:$2y$05$G68ph4JvfyQu77luvKG77OvuKgeEgwPPtJk07L5iqwkifrLxRo1qi"
 
   # Internal password hash secret for Arkime viewer cluster (see https://arkime.com/settings#passwordSecret)
-  arkime_password: vagrant
+  arkime_password: malcolm
 
   # Authentication mode for accessing services. Options:
   #   - `basic` : htadmin auth
