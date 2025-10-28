@@ -54,7 +54,7 @@ image:
   nginx_container_override: ""
 
 auth:
-  username: vagrant
+  username: malcolm
 
   # Password for HTTP basic auth login, generated with `openssl passwd -1 <your password>`
   # default openssl_password is "malcolm" 
