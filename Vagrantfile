@@ -152,7 +152,7 @@ Vagrant.configure("2") do |config|
     fi
     kubectl apply -f /tmp/sc.yaml
 
-    STERN_VERSION=1.33.0
+    STERN_VERSION=1.33.1
     LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
     STERN_URL="https://github.com/stern/stern/releases/download/v${STERN_VERSION}/stern_${STERN_VERSION}_linux_${LINUX_CPU}.tar.gz"
     cd /tmp
@@ -164,7 +164,7 @@ Vagrant.configure("2") do |config|
     rm -rf /tmp/stern*
 
 
-    K9S_VERSION=0.50.12
+    K9S_VERSION=0.50.16
     LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
     K9S_URL="https://github.com/derailed/K9S/releases/download/v${K9S_VERSION}/k9s_Linux_${LINUX_CPU}.tar.gz"
     cd /tmp
@@ -258,7 +258,7 @@ Vagrant.configure("2") do |config|
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      ISTIO_VERSION=1.27.1
+      ISTIO_VERSION=1.27.3
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
