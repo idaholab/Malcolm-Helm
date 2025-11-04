@@ -16,7 +16,6 @@ data:
   SURICATA_AUTO_ANALYZE_PCAP_PROCESSES: "{{ .suricata_auto_analyze_pcap_processes }}"
   {{- end }}
 {{- end }}
-  SURICATA_PCAP_PROCESSOR: "true"
   SURICATA_ROTATED_PCAP: "false"
 kind: ConfigMap
 metadata:
