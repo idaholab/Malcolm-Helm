@@ -22,6 +22,10 @@ Vagrant.configure("2") do |config|
   vm_name = ENV['VAGRANT_NAME'] || 'Malcolm-Helm'
   vm_gui = ENV['VAGRANT_GUI'] || 'true'
   vm_ssd = ENV['VAGRANT_SSD'] || 'on'
+  vm_nic = ENV['VAGRANT_NIC'] || 'enp0s8'
+  malcolm_username = ENV['MALCOLM_USERNAME'] || 'malcolm'
+  malcolm_password = ENV['MALCOLM_PASSWORD'] || 'malcolm'
+  malcolm_namespace = ENV['MALCOLM_NAMESPACE'] || 'malcolm'
 
   config.vm.define vm_name
   config.vm.box = vm_box
@@ -81,7 +85,7 @@ Vagrant.configure("2") do |config|
     set -euo pipefail
 
     apt-get update -y
-    apt-get install -y build-essential git iptables linux-headers-$(uname -m | sed 's/^x86_64$/amd64/') qemu-guest-agent
+    apt-get install -y build-essential git iptables linux-headers-$(uname -m | sed 's/^x86_64$/amd64/') qemu-guest-agent apache2-utils openssl
 
     ALL_DISKS=($(lsblk --nodeps --noheadings --output NAME --paths))
     for DISK in "${ALL_DISKS[@]}"; do
@@ -112,6 +116,7 @@ Vagrant.configure("2") do |config|
 
     # Configure promisc iface
     cp /vagrant/vagrant_dependencies/set-promisc.service /etc/systemd/system/set-promisc.service
+    sed -i "s/enp0s8/#{vm_nic}/g" /etc/systemd/system/set-promisc.service
     systemctl enable set-promisc.service
 
     # Setup RKE2
@@ -130,7 +135,8 @@ Vagrant.configure("2") do |config|
     cp /etc/rancher/rke2/rke2.yaml /root/.kube/config
     chmod 0600 /home/vagrant/.kube/config
     chmod 0600 /root/.kube/config
-    chown -R vagrant:vagrant /home/vagrant/.kube
+    touch /home/vagrant/.hushlogin
+    chown -R vagrant:vagrant /home/vagrant/.kube /home/vagrant/.hushlogin
 
     if [[ -n "${RKE2_DATA_DIR}" ]]; then
       find "${RKE2_DATA_DIR}"/data -type f -executable -name kubectl -print0 | head -z -n 1 | xargs -r -0 -I XXX ln -v -s "XXX" /usr/local/bin/kubectl
@@ -175,7 +181,7 @@ Vagrant.configure("2") do |config|
     chown root:root /usr/local/bin/k9s
     rm -rf /tmp/K9S*
 
-    grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/scripts/bash_convenience >> /home/vagrant/.bashrc
+    grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/vagrant_dependencies/bash_convenience >> /home/vagrant/.bashrc
 
     # Load specific settings sysctl settings needed for opensearch
     if [[ ! -f /etc/sysctl.d/performance.conf ]]; then
@@ -280,8 +286,17 @@ Vagrant.configure("2") do |config|
       # kubectl create -n istio-system secret tls tenant-cert --key=certs/istio.key --cert=certs/istio.crt
       kubectl create -n istio-system secret tls tenant-cert --key=certs/bigbang.vp.dev.key --cert=certs/chain.crt
 
+      echo "Installing Malcolm..." >&2
+      kubectl create namespace "#{malcolm_namespace}"
+
+      # create secret for auth
+      kubectl create secret generic -n "#{malcolm_namespace}" malcolm-auth \
+        --from-literal=username="#{malcolm_username}" \
+        --from-literal=openssl_password="$(openssl passwd -1 '#{malcolm_password}' | tr -d '\n' | base64 | tr -d '\n')" \
+        --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
+
       # Install Malcolm enabling istio
-      helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=enp0s8
+      helm install malcolm /vagrant/chart -n "#{malcolm_namespace}" --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic}
       # kubectl apply -f /vagrant/vagrant_dependencies/test-gateway.yml
       grep -qxF '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' /etc/hosts || echo '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' >> /etc/hosts
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
@@ -295,7 +310,18 @@ Vagrant.configure("2") do |config|
       done
       echo "rke2-ingress-nginx-controller-admission is present" >&2
       sleep 5
-      helm install malcolm /vagrant/chart -n malcolm --create-namespace --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=enp0s8
+
+      echo "Installing Malcolm..." >&2
+      kubectl create namespace "#{malcolm_namespace}"
+
+      # create secret for auth
+      kubectl create secret generic -n "#{malcolm_namespace}" malcolm-auth \
+        --from-literal=username="#{malcolm_username}" \
+        --from-literal=openssl_password="$(openssl passwd -1 '#{malcolm_password}' | tr -d '\n' | base64 | tr -d '\n')" \
+        --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
+
+      # Install Malcolm
+      helm install malcolm /vagrant/chart -n "#{malcolm_namespace}" --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic}
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
       hostname -I
     SHELL

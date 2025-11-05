@@ -53,8 +53,6 @@ spec:
               name: ssl-env
           - configMapRef:
               name: opensearch-env
-          - secretRef:
-              name: auth-env
           - configMapRef:
               name: upload-common-env
           - configMapRef:
@@ -68,6 +66,11 @@ spec:
         env:
           - name: VIRTUAL_HOST
             value: "arkime.malcolm.local"
+          - name: MALCOLM_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.auth.existingSecret | default "auth-env" }}
+                key: "{{ if .Values.auth.existingSecret }}{{ .Values.auth.usernameKey }}{{ else }}MALCOLM_USERNAME{{ end }}"
           - name: PCAP_NODE_NAME
             valueFrom:
               fieldRef:

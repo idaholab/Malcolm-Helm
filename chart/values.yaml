@@ -64,8 +64,23 @@ auth:
   # default htpass_cred is malcolm:malcolm
   htpass_cred: "malcolm:$2y$05$G68ph4JvfyQu77luvKG77OvuKgeEgwPPtJk07L5iqwkifrLxRo1qi"
 
+  # Optional: use an existing Kubernetes Secret instead of the default above, e.g.:
+  #     kubectl create secret generic -n malcolm malcolm-auth \
+  #       --from-literal=username="johndoe" \
+  #       --from-literal=openssl_password="$(openssl passwd -1 'SuperSecretPassword' | tr -d '\n' | base64 | tr -d '\n')" \
+  #       --from-literal=htpass_cred="$(htpasswd -bnB 'johndoe' 'SuperSecretPassword' | head -n1)"
+  # then set existingSecret: "malcolm-auth"
+  existingSecret: ""
+  usernameKey: "username"
+  opensslPassKey: "openssl_password"
+  htpassCredKey: "htpass_cred"
+
   # Internal password hash secret for Arkime viewer cluster (see https://arkime.com/settings#passwordSecret)
   arkime_password: malcolm
+
+  # If the Arkime WISE plugin is in use, this sets the configuration PIN for the WISE GUI
+  # Users should change this value if using the WISE plugin GUI
+  arkime_wise_pin: WISE2019
 
   # Authentication mode for accessing services. Options:
   #   - `basic` : htadmin auth

@@ -2,15 +2,6 @@
 {{- $nginx_image := .Values.image.nginx_container_override | default (printf "%s/nginx-proxy:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
-data:
-  htpasswd: {{ .Values.auth.htpass_cred | b64enc }}
-kind: Secret
-metadata:
-  name: etc-nginx-auth
-type: Opaque
-
----
-apiVersion: v1
 kind: Service
 metadata:
   name: nginx-proxy
@@ -156,7 +147,13 @@ spec:
           claimName: config-claim
       - name: nginx-etc-auth-default-secret-volume
         secret:
-          secretName: etc-nginx-auth
+          secretName: {{ .Values.auth.existingSecret | default "etc-nginx-auth" }}
+          items:
+            - key: "{{ if .Values.auth.existingSecret }}{{ .Values.auth.htpassCredKey }}{{ else }}htpasswd{{ end }}"
+              path: htpasswd
       - name: nginx-runtime-logs-volume
         persistentVolumeClaim:
           claimName: runtime-logs-claim
+
+
+
