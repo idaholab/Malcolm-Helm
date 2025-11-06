@@ -50,8 +50,6 @@ spec:
           - configMapRef:
               name: auth-common-env
         env:
-          - name: VIRTUAL_HOST
-            value: "htadmin.malcolm.local"
           - name: MALCOLM_USERNAME
             valueFrom:
               secretKeyRef:

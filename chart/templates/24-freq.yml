@@ -48,9 +48,6 @@ spec:
               name: ssl-env
           - configMapRef:
               name: lookup-common-env
-        env:
-          - name: VIRTUAL_HOST
-            value: "freq.malcolm.local"
         livenessProbe:
           exec:
             command:

@@ -70,8 +70,6 @@ spec:
           - configMapRef:
               name: opensearch-env
         env:
-          - name: VIRTUAL_HOST
-            value: "api.malcolm.local"
           - name: ARKIME_PORT
             value: "8005"
         livenessProbe:

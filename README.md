@@ -172,8 +172,8 @@ exporting 10.0.0.0/255.255.0.0:/exports
 Verify the exported directory by querying the NFS server with `showmount`.
 
 ```bash
-$ usr/sbin/showmount -e nfsserver.malcolm.local
-Export list for nfsserver.malcolm.local:
+$ usr/sbin/showmount -e nfsserver.example.org
+Export list for nfsserver.example.org:
 /exports 10.0.0.0/255.255.0.0
 ```
 
@@ -192,14 +192,14 @@ sudo apt install nfs-common -y
 
 The [nfs-subdir-exeternal-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) can be installed via [via Helm](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner?tab=readme-ov-file#with-helm) (as demonstrated below), with Kustomize, or manually via a set of YAML manifests.
 
-These steps require the NFS server's IP address or DNS host name as well as the NFS exported path from [above](#NFSServer). In the following example the server's DNS name is `nfsserver.malcolm.local` and the exported path on that server is `/exports/malcolm/nfs-subdir-provisioner`. Note that although the NFS server's export path is actually `/exports`, the nfs-subdir-external-provisioner can point to a sub-directory within the exported path (e.g., `/exports/malcolm/nfs-subdir-provisioner`) to keep the files created by Malcolm contained to that directory.
+These steps require the NFS server's IP address or DNS host name as well as the NFS exported path from [above](#NFSServer). In the following example the server's DNS name is `nfsserver.example.org` and the exported path on that server is `/exports/malcolm/nfs-subdir-provisioner`. Note that although the NFS server's export path is actually `/exports`, the nfs-subdir-external-provisioner can point to a sub-directory within the exported path (e.g., `/exports/malcolm/nfs-subdir-provisioner`) to keep the files created by Malcolm contained to that directory.
 
 Add the Helm repo, then install the provisioner with the server name and exported path as parameters:
  
 ```bash
 $ helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
 $ helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
-    --set nfs.server=nfsserver.malcolm.local \
+    --set nfs.server=nfsserver.example.org \
     --set nfs.path=/exports/malcolm/nfs-subdir-provisioner 
 ```
 

@@ -53,8 +53,6 @@ spec:
           - configMapRef:
               name: upload-common-env
         env:
-          - name: VIRTUAL_HOST
-            value: "upload.malcolm.local"
           - name: MALCOLM_USERNAME
             valueFrom:
               secretKeyRef:
