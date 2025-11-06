@@ -1,5 +1,6 @@
 {{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $file_monitor_image := .Values.image.file_monitor_container_override | default (printf "%s/file-monitor:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if eq .Values.capture_mode "live" }}
 ---
 apiVersion: v1
@@ -115,7 +116,7 @@ spec:
                 fieldPath: spec.nodeName
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: zeek-live-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: "/zeek/extract_files"
             name: zeek-live-zeek-volume
             subPath: "extract_files"
@@ -159,7 +160,7 @@ spec:
           - name: zeek-live-zeek-volume
             mountPath: "/data/zeek-shared"
       volumes:
-        - name: zeek-live-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: zeek-live-zeek-volume
@@ -266,7 +267,7 @@ spec:
             value: "none"
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: zeek-live-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: "/zeek/extract_files"
             name: zeek-live-zeek-volume
             subPath: "extract_files"
@@ -286,7 +287,71 @@ spec:
           {{- end }}
       {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
-      {{- end }}  
+      {{- end }}
+      - name: file-monitor-container
+        image: "{{ $file_monitor_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          # TODO we should not be using root here
+          runAsGroup: 0
+          runAsUser: 0
+        ports:
+          - name: clamav
+            containerPort: 3310
+            protocol: TCP
+          - name: filetopic
+            containerPort: 5987
+            protocol: TCP
+          - name: loggertopic
+            containerPort: 5988
+            protocol: TCP
+          - name: http
+            protocol: TCP
+            containerPort: 8440
+        envFrom:
+          - configMapRef:
+              name: dashboards-env
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: zeek-env
+          - configMapRef:
+              name: auth-common-env
+          - secretRef:
+              name: zeek-secret-env
+        env:
+          - name: VIRTUAL_HOST
+            value: "file-monitor.malcolm.local"
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume            
+          # - mountPath: "/zeek/extract_files"
+          #   name: file-monitor-zeek-volume
+          #   subPath: "extract_files"
+          # - mountPath: "/zeek/logs"
+          #   name: file-monitor-zeek-volume
+          #   subPath: "current"
+          - mountPath: "/zeek/extract_files"
+            name: zeek-live-zeek-volume
+            subPath: "extract_files"
+          - mountPath: "/zeek/live"
+            name: zeek-live-logs-volume
+            subPath: "live"
+          - mountPath: "/yara-rules/custom/configmap"
+            name: file-monitor-yara-rules-custom-volume  
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
@@ -312,10 +377,13 @@ spec:
             mountPath: "/zeek-live-logs"
           - name: zeek-live-zeek-volume
             mountPath: "/data/zeek-shared"
-      volumes:
-        - name: zeek-live-var-local-catrust-volume
+      volumes:        
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
+        - name: file-monitor-yara-rules-custom-volume
+          configMap:
+            name: yara-rules
         - name: zeek-live-zeek-volume          
           emptyDir:
             sizeLimit: 50Mi
