@@ -182,6 +182,7 @@ Vagrant.configure("2") do |config|
     rm -rf /tmp/K9S*
 
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/vagrant_dependencies/bash_convenience >> /home/vagrant/.bashrc
+    sed -i "s/KUBESPACE=malcolm/KUBESPACE=#{malcolm_namespace}/g" /home/vagrant/.bashrc
 
     # Load specific settings sysctl settings needed for opensearch
     if [[ ! -f /etc/sysctl.d/performance.conf ]]; then
