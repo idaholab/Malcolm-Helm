@@ -1,6 +1,6 @@
-# Malcolm Helm Chart
+# <a name="MalcolmHelm"></a>Malcolm Helm Chart
 
-The purpose of this project is to facilitate installing [Malcolm](https://idaholab.github.io/Malcolm/), with all of its server and sensor components, across a Kubernetes cluster.
+The purpose of this project is to facilitate installing [Malcolm](https://github.com/idaholab/Malcolm/), with all of its server and sensor components, across a Kubernetes cluster.
 
 For more information on Malcolm and its features, see:
 
@@ -8,11 +8,29 @@ For more information on Malcolm and its features, see:
 * [Malcolm learning tree](https://github.com/cisagov/Malcolm/wiki/Learning)
 * [Malcolm training tutorial videos](https://www.youtube.com/@malcolmnetworktrafficanalysis/videos)
 
-## Demonstration Using Vagrant
+### <a name="TableOfContents"></a>Table of Contents
+
+* [Demonstration Using Vagrant](#VagrantDemo)
+    - [Vagrant Quickstart (without Istio)](#VagrantQuickstart)
+    - [Vagrant Quickstart (with Istio)](#VagrantQuickstartIstio)
+    - [Listener NIC Setup](#NICSetup)
+* [Production Cluster Requirements](#ProductionReqs)
+* [Label requirements](#Labels)
+* [External Elasticsearch notes](#ElasticNodes)
+* [Production Installation Procedure](#ProductionInstall)
+* [Storage Provisioner Options](#StorageProvisioner)
+    - [Configure an NFS server](#NFSServer)
+    - [Install the nfs-client on all Kubernetes nodes](#NFSClient)
+    - [Install the nfs-subdir-external-provisioner](#NFSProvisioner)
+    - [Test the newly installed nfs-subdir-external-provisioner](#NFSTest)
+    - [Configure Malcolm-Helm to use the nfs-subdir-external-provisioner](#NFSMalcolmConfig)
+* [Updating Malcolm-Helm for a New Malcolm Release](#HelmChartUpdate)
+
+## <a name="VagrantDemo"></a>Demonstration Using Vagrant
 
 For the purposes of demonstration, this repository contains a Vagrantfile for quick creation of a virtualized single-node Kubernetes installation with the Malcolm Helm chart installed.
 
-It is [required](https://idaholab.github.io/Malcolm/docs/system-requirements.html#SystemRequirements) that your host machine has at least 8 CPU cores, 16 GB of RAM and 500GB of free space. The virtual machine's resources and other configuration options can be overriden via the following environment variables:
+It is [required](https://idaholab.github.io/Malcolm/docs/system-requirements.html#SystemRequirements) that the host system has at least 8 CPU cores, 16 GB of RAM and as much available storage as necessary for the amount of PCAP retention desired (at least 100GB). The virtual machine's resources and other configuration options can be overriden via the following environment variables:
 
 * `VAGRANT_SETUP_CHOICE` - `use_istio` to use the Istio service mesh, otherwise the RKE2 ingress is used
 * `VAGRANT_BOX` - the base VM image for Vagrant to use (default `bento/debian-13`)
@@ -38,7 +56,7 @@ kubectl create secret generic -n malcolm malcolm-auth \
 
 which is then indicated to the `helm install` command with `--set auth.existingSecret=malcolm-auth`.
 
-### Vagrant Quickstart (without Istio)
+### <a name="VagrantQuickstart"></a>Vagrant Quickstart (without Istio)
 
 1. [Download](https://www.virtualbox.org/wiki/Downloads) and install VirtualBox (virt-manager or VMware are also options)
 2. [Download](https://developer.hashicorp.com/vagrant/downloads) and install Vagrant
@@ -49,11 +67,11 @@ which is then indicated to the `helm install` command with `--set auth.existingS
 5. `vagrant up`
 6. Wait for installation to complete (signaled by the "You may now ssh to your kubernetes cluster..." message)
 7. Open a web browser and navigate to `http://localhost:8080` to display the Malcolm landing page.
-    * The default username/password is `malcolm`/`malcolm`, although it is preferred that users set their own credentials in the `MALCOLM_USERNAME` and `MALCOLM_PASSWORD` environment variables as described above
+    * The default username/password is `malcolm`/`malcolm`, although it is preferred that users set their own credentials in the `MALCOLM_USERNAME` and `MALCOLM_PASSWORD` environment variables as described [above](VagrantDemo)
     * It may take several minutes for all Malcolm's services to become available.
 8. If desired, SSH into the VM with `ssh -p 2222 vagrant@localhost` and the password `vagrant`
 
-### Vagrant Quickstart (with Istio)
+### <a name="VagrantQuickstartIstio"></a>Vagrant Quickstart (with Istio)
 
 To configure Kubernetes to use the Istio service mesh instead of using RKE2 ingress, follow the **Vagrant Quickstart** steps with the following adjustments:
 
@@ -63,9 +81,9 @@ To configure Kubernetes to use the Istio service mesh instead of using RKE2 ingr
 * Malcolm will be accessible at `https://malcolm.vp.bigbang.dev:8443`
     - If prompted with "Your connection is not private", either add the self-signed certificates to the browser's trusted store or, if using Chrome, click anywhere on the error page and type `thisisunsafe`.
 
-### Listener NIC Setup
+### <a name="NICSetup"></a>Listener NIC Setup
 
-For the Malcolm-Helm VM to be able to inspect network traffic on its virtual NIC, you may need to set it to "promiscuous mode." Doing this will vary depending on your virtualization platform, but for VirtualBox:
+For the Malcolm-Helm VM to be able to inspect network traffic on its virtual NIC it must be set to "promiscuous mode." Steps for doing this varies depending on the virtualization platform, but for VirtualBox:
 
 1. Open VirtualBox
 2. Right click the Malcolm-Helm VM and select **Settings**
@@ -78,7 +96,7 @@ For the Malcolm-Helm VM to be able to inspect network traffic on its virtual NIC
     * SSH into the VM with `ssh -p 2222 vagrant@localhost` and the password `vagrant`
     * run `tcpdump -i enp0s8` (or whatever the VM's NIC is) to ensure traffic is seen on the interface
 
-## Production Cluster Requirements
+## <a name="ProductionReqs"></a>Production Cluster Requirements
 
 For larger-scale production environments, the following requirements should be satisfied prior to installing the Helm chart. Other configurations may work but have not been tested.
 
@@ -88,7 +106,7 @@ For larger-scale production environments, the following requirements should be s
   * TODO: still need to convert OpenSearch to statefulset as well as postgreSQL for NetBox
 * [Istio service mesh](https://istio.io/latest/docs/setup/getting-started)
 
-### Label requirements
+### <a name="Labels"></a>Label requirements
 
 All primary server nodes should be labeled with `kubectl label nodes <node-name> cnaps.io/node-type=Tier-1`. Failure to do so will result in certain services (e.g., Logstash) not being provisioned.
 
@@ -97,17 +115,17 @@ All sensor nodes should be labeled with one or more of the following:
 * `kubectl label nodes <node-name> cnaps.io/suricata-capture=true` 
 * `kubectl label nodes <node-name> cnaps.io/zeek-capture=true`
 
-Failure to add any of the above labels will result in traffic capture pods not being provisioned on those nodes.
+Failure to add any of these labels will result in traffic capture pods not being provisioned on those nodes.
 
-The Vagrant demonstration discussed above handles and applies all these labels for you. 
+The [Vagrant demonstration](#VagrantDemo) above handles and applies all these labels automatically.
 
-## External Elasticsearch notes
+## <a name="ElasticNodes"></a>External Elasticsearch notes
 
 Elasticsearch requires TLS termination in order for it to support Single Sign On (SSO) functionality. The values file was updated to give the user of this Helm chart the ability to copy the certificate file from a different namespace into Malcolm namespace for usage.
 
 Furthermore, the Kibana interface (specified via `dashboards_url`) is still expected to remain unencrypted when using Istio service mesh.
 
-## Production Installation Procedure
+## <a name="ProductionInstall"></a>Production Installation Procedure
 
 Check the `chart/values.yaml` file for all the features that can be enabled, disabled, and tweaked prior to running the installation commands:
 
@@ -117,11 +135,11 @@ cd /path/to/Malcolm-Helm
 helm install malcolm chart/ -n malcolm
 ```
 
-## Storage Provisioner Options
+## <a name="StorageProvisioner"></a>Storage Provisioner Options
 
-Malcolm-Helm's `chart/values.yaml` file defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner which allocates storage from the Kubernetes nodes' local storage. As stated above, any storage provider that supports the `ReadWriteMany` access mode may be employed for Malcolm-Helm. This section provides an example of how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for enviroments with an NFS server available. 
+Malcolm-Helm's `chart/values.yaml` file defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner which allocates storage from the Kubernetes nodes' local storage. As stated [above](#ProductionReqs), any storage provider that supports the `ReadWriteMany` access mode may be employed for Malcolm-Helm. This section provides an example of how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for enviroments with an NFS server available.
 
-### Configure an NFS server
+### <a name="NFSServer"></a>Configure an NFS server
 
 [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) relies on an external NFS server to provide Kubernetes PersistentVolumes. The first step is to install an NFS server where the Kuberentes cluster can access the NFS shared volumes. For Debian-based systems (including Ubuntu) [this page](https://documentation.ubuntu.com/server/how-to/networking/install-nfs/index.html) details steps to install an NFS server with `apt`:
 
@@ -130,7 +148,7 @@ sudo apt install nfs-kernel-server
 sudo systemctl start nfs-kernel-server.service
 ```
 
-With the NFS service installed and running, a directory must be exported for use by the Kubernetes provisioner. In this example we export a directory for the nfs-subdir-provisioner by first creating a folder structure on the server's local filesystem, then add that path to `/etc/exports` on the NFS server. To verify everything works properly we will start with fully-open directory permissions.
+With the NFS service installed and running, a directory must be exported for use by the Kubernetes provisioner. In this example a directory is exported for the nfs-subdir-provisioner by first creating a folder structure on the server's local filesystem, then add that path to `/etc/exports` on the NFS server. To verify everything works properly, this example will start with fully open directory permissions.
 
 ```bash
 sudo mkdir -p /exports/malcolm/nfs-subdir-provisioner
@@ -138,20 +156,20 @@ sudo chown nobody:nogroup /exports
 sudo chmod -R 777 /exports/malcolm/nfs-subdir-provisioner/
 ```
 
-Add a new line to the NFS server's `/etc/exports` with the base path of our newly created `/exports` directory and an optional network subnet filter. In the following example we limit NFS access to IP addresses within the `10.0.0.0/16` subnet. This can also be replaced with an asterisk `*` symbol to disable subnet filtering.
+Add a new line to the NFS server's `/etc/exports` with the base path of our newly created `/exports` directory and an optional network subnet filter. In the following example NFS access is limited to IP addresses within the `10.0.0.0/16` subnet. This can also be replaced with an asterisk `*` symbol to disable subnet filtering.
 
 ```
 /exports 10.0.0.0/255.255.0.0(rw,sync,insecure,no_root_squash,no_subtree_check,crossmnt)
 ```
 
-Finally, apply the NFS configuration changes with the exportfs command
+Finally, apply the NFS configuration changes with the `exportfs` command:
 
 ```bash
 $ sudo exportfs -av
 exporting 10.0.0.0/255.255.0.0:/exports
 ```
 
-Optionally, we can verify the exported directory by querying the NFS server with `showmount`.
+Verify the exported directory by querying the NFS server with `showmount`.
 
 ```bash
 $ usr/sbin/showmount -e nfsserver.malcolm.local
@@ -159,22 +177,24 @@ Export list for nfsserver.malcolm.local:
 /exports 10.0.0.0/255.255.0.0
 ```
 
-Make note of your NFS server's IP address or DNS name and the exported path for use in the next steps.
+Make note of the NFS server's IP address or DNS name and the exported path for use in the next steps.
 
-### Install the nfs-client on all Kubernetes nodes
+### <a name="NFSClient"></a>Install the nfs-client on all Kubernetes nodes
 
-Since the Kubernetes pods will be making use of the NFS server export and the pods may run on any Kubernetes node we need the NFS client installed on all nodes. Connect to each machine and run the following commands:
+Since the Kubernetes pods will be making use of the NFS server export and the pods may run on any Kubernetes node, the NFS client must be installed on each node. Connect to each machine and run the following commands:
 
 ```bash
 sudo apt update
 sudo apt install nfs-common -y
 ```
 
-### Install the nfs-subdir-external-provisioner
+### <a name="NFSProvisioner"></a>Install the nfs-subdir-external-provisioner
 
 The [nfs-subdir-exeternal-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) can be installed via [via Helm](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner?tab=readme-ov-file#with-helm) (as demonstrated below), with Kustomize, or manually via a set of YAML manifests.
 
-For these steps we will need the NFS server's IP address or DNS host name as well as the NFS exported path from above. In the following example the server's DNS name is `nfsserver.malcolm.local` and the exported path on that server is `/exports/malcolm/nfs-subdir-provisioner`. Note that although the NFS server's export path is actually `/exports`, we can point the nfs-subdir-external-provisioner to a sub-directory within the exported path (e.g., `/exports/malcolm/nfs-subdir-provisioner`) to keep the files created by Malcolm contained to that directory. We start by adding the Helm repo, then install the provisioner with the server name and exported path as parameters.
+These steps require the NFS server's IP address or DNS host name as well as the NFS exported path from [above](#NFSServer). In the following example the server's DNS name is `nfsserver.malcolm.local` and the exported path on that server is `/exports/malcolm/nfs-subdir-provisioner`. Note that although the NFS server's export path is actually `/exports`, the nfs-subdir-external-provisioner can point to a sub-directory within the exported path (e.g., `/exports/malcolm/nfs-subdir-provisioner`) to keep the files created by Malcolm contained to that directory.
+
+Add the Helm repo, then install the provisioner with the server name and exported path as parameters:
  
 ```bash
 $ helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
@@ -183,7 +203,7 @@ $ helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/n
     --set nfs.path=/exports/malcolm/nfs-subdir-provisioner 
 ```
 
-Ensure the storage class was successfully deployed to your Kubernetes cluster:
+Ensure the storage class was successfully deployed:
 
 ```bash
 $ kubectl get sc -A
@@ -191,7 +211,7 @@ NAME                   PROVISIONER                                     RECLAIMPO
 nfs-client             cluster.local/nfs-subdir-external-provisioner   Delete          Immediate              true                   16s
 ```
 
-You will see a new `nfs-subdir-external-provisioner` running in the default namespace:
+A new `nfs-subdir-external-provisioner` should be running in the default namespace:
 
 ```bash
 $ kubectl get pods -A
@@ -199,7 +219,7 @@ NAMESPACE       NAME                                               READYs   STAT
 default         nfs-subdir-external-provisioner-7ff748465c-ssf7s   1/1     Running             0             32s
 ```
 
-### Test the newly installed nfs-subdir-external-provisioner
+### <a name="NFSTest"></a>Test the newly installed nfs-subdir-external-provisioner
 
 Two YAML files are needed to test the provisioner configuration. The [first](https://raw.githubusercontent.com/kubernetes-sigs/nfs-subdir-external-provisioner/master/deploy/test-claim.yaml) defines a PersistentVolumeClaim that leverages the nfs-subdir-external-provisioner.
 
@@ -246,7 +266,7 @@ spec:
         claimName: test-claim
 ```
 
-This Pod definition lists `test-claim` in the `volumes:`` section at the bottom of the file which matches the PersistentVolumeClaim's `name` field above and ties the two together.
+This pod definition lists `test-claim` in the `volumes:` section at the bottom of the file which matches the PersistentVolumeClaim's `name` field above and ties the two together.
 
 Both of these test files are avalabile as part of the nfs-subdir-external-provisioner source code and can be deployed directly from GitHub:
 
@@ -266,7 +286,8 @@ NAME         STATUS   VOLUME                                     CAPACITY   ACCE
 test-claim   Bound    pvc-49649079-ffc5-402e-a6da-b3be50978e02   1Mi        RWX            nfs-client     <unset>                 100s
 ```
 
-We test that the pod is running:
+Test that the pod is running:
+
 ```bash
 $ kubectl get pods -n default
 NAME                                               READY   STATUS      RESTARTS   AGE
@@ -274,7 +295,7 @@ nfs-subdir-external-provisioner-7ff748465c-q5hbl   1/1     Running     0        
 test-pod                                           0/1     Completed   0          7m31s
 ```
 
-The PerstentVolumeClaim should make a new directory in the NFS export and the Pod is designed to exit after creating a `SUCCESS` file in that directory. The test-pod shows a status of `Completed` because the pod already started, created the file, and exited. Check the NFS directory to verify a new directory has been created and it contains a file named `SUCCESS`.
+The PerstentVolumeClaim should make a new directory in the NFS export and the pod is designed to exit after creating a `SUCCESS` file in that directory. `test-pod` shows a status of `Completed` because the pod already started, created the file, and exited. Check the NFS directory to verify a new directory has been created and it contains a file named `SUCCESS`.
 
 ```bash
 $ ls -al
@@ -291,7 +312,7 @@ $ ls default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328
 SUCCESS
 ```
 
-Delete the pod and the PersistentVolumeClaim using the same YAML files we used to create them:
+Delete the pod and the PersistentVolumeClaim using the same YAML files used to create them:
 
 ```bash
 $ kubectl delete \
@@ -307,81 +328,25 @@ The NFS directory will be renamed as `archived-default-test-claim-pvc...` and ca
 rm -rf archived-default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328/
 ```
 
-### Configure Malcolm-Helm to use the nfs-subdir-external-provisioner
+### <a name="NFSMalcolmConfig"></a>Configure Malcolm-Helm to use the nfs-subdir-external-provisioner
 
-Now that we know the NFS server exports are configured correctly, and the Kubernetes nfs-subdir-external-provisioner is able to access those for PersistentVolumeClaims, we are ready to configure Malcolm-Helm for deployment. As stated above, the Malcolm-Helm [`values.yaml` file](https://github.com/idaholab/Malcolm-Helm/blob/main/chart/values.yaml) defaults to the [Rancher local-path](https://github.com/rancher/local-path-provisioner) storage provisioner. We will need to change all of those `values.yaml` entries to `nfs-client` to leverage the `nfs-subpath-external-provisioner` and the NFS server exports. The `storage:`` section of your `values.yaml` file should look like the following:
+With the NFS server exports configured correctly and the Kubernetes nfs-subdir-external-provisioner able to access them for PersistentVolumeClaims, Malcolm-Helm is ready to be configured for deployment. As stated [above](#StorageProvisioner), the Malcolm-Helm [`values.yaml` file](https://github.com/idaholab/Malcolm-Helm/blob/main/chart/values.yaml) defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner. This is defined at the top of `values.yaml` by `storage_class_name`, which can be changed to `nfs-client` to leverage the `nfs-subpath-external-provisioner` and the NFS server exports:
 
-```
-storage:
-  # This helm chart requires a storage provisioner class it defaults to local-path provisioner
-  # If your kubernetes cluster has a different storage provisioner please ensure you change this name.
-  # https://github.com/rancher/local-path-provisioner
-  development:
-    pcap_claim:
-      # The size of the claim
-      size: 25Gi
-      # The kubernetes storage class name
-      className: nfs-client
-    zeek_claim:
-      size: 25Gi
-      className: nfs-client
-    suricata_claim:
-      size: 25Gi
-      className: nfs-client
-    config_claim:
-      size: 25Gi
-      className: nfs-client
-    runtime_logs_claim:
-      size: 25Gi
-      className: nfs-client
-    opensearch_claim:
-      size: 25Gi
-      className: nfs-client
-    opensearch_backup_claim:
-      size: 25Gi
-      className: nfs-client
-    postgres_claim:
-      size: 15Gi
-      className: nfs-client
-  production:
-    pcap_claim:
-      size: 100Gi
-      className: nfs-client
-    zeek_claim:
-      size: 50Gi
-      className: nfs-client
-    suricata_claim:
-      size: 50Gi
-      className: nfs-client
-    config_claim:
-      size: 25Gi
-      className: nfs-client
-    runtime_logs_claim:
-      size: 25Gi
-      className: nfs-client
-    opensearch_claim:
-      size: 25Gi
-      className: nfs-client
-    opensearch_backup_claim:
-      size: 25Gi
-      className: nfs-client
-    postgres_claim:
-      size: 15Gi
-      className: nfs-client
-
+```yaml
+# The StorageClass used for persistent volumes. Defaults to `local-path` (Local Path Provisioner).
+# If your cluster doesn't support this, set `storage_class_name` to another class that supports
+# ReadWriteMany. You can also override it at install time, e.g.:
+#    helm install --set "storage_class_name=nfs-client"
+storage_class_name: nfs-client
 ```
 
-Now follow the [Installation procedures](#installation-procedures) section above to deploy the Malcolm-Helm chart into your cluser.
+If further customization were needed -- for example, using different storage classes for different claims -- it could be accomplished by overriding the individual claims with `classNameOverride` in the `storage` section of `values.yaml`.
 
-```
-1. `cd <project dir that contains chart foler>`
-2. `helm install malcolm chart/ -n malcolm --create-namespace`
-```
+Now, follow the [Installation procedures](#installation-procedures) section above to deploy the Malcolm-Helm chart into your cluser.
 
-returns:
-
-```
-```
+```bash
+$ cd /path/to/Malcolm-Helm
+$ helm install malcolm chart/ -n malcolm --create-namespace
 NAME: malcolm
 LAST DEPLOYED: Tue Jul 15 13:35:51 2025
 NAMESPACE: malcolm
@@ -389,12 +354,11 @@ STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 ```
-```
 
-The Malcolm-Helm pods should all be Running after a few minutes:
+The Malcolm-Helm pods should all be `Running` after a few minutes:
 
-```
-Malcolm-Helm$ kubectl get pods -n malcolm
+```bash
+$ kubectl get pods -n malcolm
 NAME                                           READY   STATUS    RESTARTS   AGE
 api-deployment-8685768bbd-8kr8x                1/1     Running   0          103s
 arkime-deployment-7dbf5f99c5-nrgxm             1/1     Running   0          103s
@@ -417,10 +381,10 @@ upload-deployment-6b458f89c7-k8hd8             1/1     Running   0          103s
 zeek-offline-deployment-57c548c646-d86lw       1/1     Running   0          102s
 ```
 
-The PersistenVolumeClaims should be bound:
+The PersistentVolumeClaims should be bound:
 
-```
-Malcolm-Helm$ kubectl get pvc -n malcolm
+```bash
+$ kubectl get pvc -n malcolm
 NAME                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
 config-claim                            Bound    pvc-90dd6987-12c3-45d5-8acb-516db28e1104   25Gi       RWX            nfs-client     <unset>                 3m12s
 opensearch-backup-claim-opensearch-0    Bound    pvc-b5534ea1-e370-4e71-b0fc-434773d34f9d   25Gi       RWO            nfs-client     <unset>                 3m12s
@@ -432,10 +396,10 @@ suricata-claim-offline                  Bound    pvc-5897418a-5801-4dac-9d4b-074
 zeek-claim                              Bound    pvc-c30307ae-41e2-4a02-aff2-8143a17128cb   25Gi       RWX            nfs-client     <unset>                 3m12s
 ```
 
-And you should see several sub-directories were created in the NFS server export directory:
+And several sub-directories will have been created under the NFS server's exported path:
 
-```
-nfs-subdir-provisioner$ ls -al
+```bash
+$ ls -al
 total 4
 drwxrwxrwx 11 1000  1000   4096 Jan 15 13:35 .
 drwxrwxrwx 10 1000  1000   213 Jan 18 08:02 ..
@@ -449,32 +413,43 @@ drwxrwxrwx  2 1000  1000   54 Jan 15 13:36 malcolm-suricata-claim-offline-pvc-58
 drwxrwxrwx  7 root  root   109 Jan 15 13:35 malcolm-zeek-claim-pvc-c30307ae-41e2-4a02-aff2-8143a17128cb
 ```
 
+## <a name="HelmChartUpdate"></a>Updating Malcolm-Helm for a New Malcolm Release
 
-## Upgrade procedures
+Upgrading Malcolm-Helm to a new version of Malcolm requires manually applying the changes between the current and desired versions. To find the current version of Malcolm used by Malcolm-Helm, check the `appVersion` in the `./chart/Chart.yaml` file.
 
-Upgrading Malcolm-Helm to a new version of Malcolm requires manually applying the changes between the current and desired versions. To find the current version of Malcolm used by Malcolm-Helm, check the `appVersion` in the `Malcolm-Helm/chart/Chart.yaml` file.
+Here’s a step-by-step guide for updating Malcolm-Helm to support a new version of Malcolm. The following example demonstrates updating from version `24.09.0` to `24.11.0`.
 
-Here’s a step-by-step guide for upgrading Malcolm-Helm to a new version of Malcolm. The following example demonstrates an upgrade from version `24.07.0` to `24.10.0`, which is the latest release on Malcolm/main at the time of writing.
+1. Visit Malcolm's [releases page](http://github.com/idaholab/Malcolm/releases) on GitHub and read the release notes for the new version of Malcolm, especially the section on **Configuration changes** towards the bottom if it is present.
 
-Step 1:
-Checkout the Malcolm-Helm branch containing the current version of Malcolm (24.07.0)
-Run the following command to checkout the relevant branch:
-`git checkout Malcolm-Helm/main`
+2. In a working copy of the Malcolm-Helm repository, check out the Malcolm-Helm branch containing the current version of the chart (e.g., `24.07.0`):
 
-Step 2:
-Checkout the Malcolm branch matching the current version in Malcolm-Helm (24.07.0)
-Use this command to align your Malcolm repo with the version used in Malcolm-Helm:
-`git checkout Malcolm/v24.07.0`
+```bash
+$ git checkout main
+git checkout main
+Your branch is up to date with 'idaholab/main'.
 
-Step 3:
-View the changes between the current version (v24.07.0) and the new desired version (main)
-Compare the changes between these two versions to understand what updates need to be applied:
-`git difftool -d v24.07.0..main`
+$ grep -Pi "^(app)?Version" chart/Chart.yaml
+version: 25.9.0
+appVersion: "25.09.0"
+```
 
-Step 4:
-Map changes to Malcolm-Helm files
-For each change identified in Step 3, modify the corresponding files in Malcolm-Helm to reflect the updates. Ensure that all changes are accurately mirrored.
+3. In a working copy of the [Malcolm repository](https://github.com/idaholab/Malcolm), check out the Malcolm branch matching the current version supported by Malcolm-Helm (e.g., `24.09.0`):
 
-Step 5:
-Test the updated Malcolm-Helm configuration
-After mapping all changes, launch Dataplane's Malcolm instance to verify the upgrade. Ensure there are no breaking changes and that everything functions as expected.
+```bash
+$ git checkout v25.09.0
+Note: switching to 'v25.09.0'.
+
+...
+
+HEAD is now at b77e3eb3 Merge branch 'staging' of https://github.com/idaholab/Malcolm
+```
+
+4. View the changes between the current version (`v25.09.0`) and the new desired version (`v25.11.0`) and make note of any changes that may need to be reflected in the Helm chart.
+    * This can be done either of two ways:
+        - Using `git difftool` (e.g., `git difftool -d v25.09.0..v25.11.0`)
+        - Using a web browser using GitHub's `compare` tool with a URL like [https://github.com/idaholab/Malcolm/compare/**v25.09.0**...**v25.11.0**?files#files_bucket](https://github.com/idaholab/Malcolm/compare/v25.09.0...v25.11.0?files#files_bucket)
+    * Make particular note of changes to the [environment variable files in `./config`](https://github.com/idaholab/Malcolm/tree/main/config) as they will most likely need to be modified accordingly in the Helm chart.
+
+5. For each relevant change identified in step 4, modify the corresponding files in Malcolm-Helm to reflect the updates. Ensure that all necessary changes are accurately mirrored.
+
+6. Launch an instance of Malcolm-Helm to verify the upgrade, ensuring there are no breaking changes and that the system functions as expected.
