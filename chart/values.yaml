@@ -362,6 +362,8 @@ storage:
 ingress:
   # Enable the default NGINX ingress controller
   enabled: true
+  # Enable annotations bypassing proxy buffering
+  proxyBufferBypass: true
   # Optional: specify additional annotations for the ingress
   # additionalAnnotations:
   #   cert-manager.io/cluster-issuer: "local-ca-issuer"
