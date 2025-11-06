@@ -362,19 +362,29 @@ storage:
 ingress:
   # Enable the default NGINX ingress controller
   enabled: true
+  # Optional: specify additional annotations for the ingress
+  # additionalAnnotations:
+  #   cert-manager.io/cluster-issuer: local-ca-issuer
+  additionalAnnotations: {}
   specRules:
     rules:
-    - http:
-        paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: nginx-proxy
-              port:
-                number: 443
-      # Optional: specify an ingress hostname for the path above
-      # host: "malcolm.malcolmhost.network.local"
+      - http:
+          paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: nginx-proxy
+                  port:
+                    number: 443
+        # Optional: specify an ingress hostname for the path above
+        # host: malcolm.malcolmhost.network.local
+  # Optional: specify ingress TLS settings
+  # specTls:
+  #   tls:
+  #     - hosts:
+  #         - malcolm.malcolmhost.network.local
+  #       secretName: malcolm-tls
 
 istio:
   # Enable if deploying in a Kubernetes environment with Istio service mesh.
