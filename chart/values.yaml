@@ -364,7 +364,7 @@ ingress:
   enabled: true
   # Optional: specify additional annotations for the ingress
   # additionalAnnotations:
-  #   cert-manager.io/cluster-issuer: local-ca-issuer
+  #   cert-manager.io/cluster-issuer: "local-ca-issuer"
   additionalAnnotations: {}
   specRules:
     rules:
