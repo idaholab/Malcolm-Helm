@@ -326,6 +326,10 @@ spec:
             value: "file-monitor.malcolm.local"
           - name: ZEEK_LOG_DIRECTORY
             value: "/zeek/current"
+          - name: EXTRACTED_FILE_HTTP_SERVER_ENABLE
+            value: "false"
+          - name: EXTRACTED_FILE_PRESERVATION
+            value: "none"
         livenessProbe:
           exec:
             command:
