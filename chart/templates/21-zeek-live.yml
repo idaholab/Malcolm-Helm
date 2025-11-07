@@ -263,8 +263,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          - name: ZEEK_EXTRACTOR_MODE
-            value: "none"
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: var-local-catrust-volume
@@ -349,7 +347,7 @@ spec:
           - mountPath: "/zeek/extract_files"
             name: zeek-live-zeek-volume
             subPath: "extract_files"
-          - mountPath: "/zeek"
+          - mountPath: "/zeek/current"
             name: zeek-live-logs-volume
             subPath: "current"
           - mountPath: "/yara-rules/custom/configmap"
