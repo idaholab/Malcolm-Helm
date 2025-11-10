@@ -93,7 +93,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: dashboards-helper-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: dashboards-helper-opensearch-curlrc-secret-volume
 {{- if .Values.siem_env.logstash_override.enabled }}
@@ -108,7 +108,7 @@ spec:
             subPath: malcolm_beats_template.json
 {{- end }}
       volumes:
-        - name: dashboards-helper-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: dashboards-helper-opensearch-curlrc-secret-volume

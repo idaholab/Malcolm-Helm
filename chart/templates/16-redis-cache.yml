@@ -67,9 +67,9 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: redis-cache-var-local-catrust-volume
+            name: var-local-catrust-volume
       volumes:
-        - name: redis-cache-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
 {{- end }}

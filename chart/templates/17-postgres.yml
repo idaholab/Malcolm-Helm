@@ -103,7 +103,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: postgres-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/lib/postgresql/data
             name: postgres-claim
             subPath: postgres
@@ -126,7 +126,7 @@ spec:
           - name: postgres-claim
             mountPath: "/data/config"
       volumes:
-        - name: postgres-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
 {{- end }}

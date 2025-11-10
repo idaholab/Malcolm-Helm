@@ -117,7 +117,7 @@ spec:
                 fieldPath: spec.nodeName
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: suricata-live-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/log/suricata
             name: suricata-live-suricata-logs-volume
           {{- if ne (len .Values.suricata_chart_overrides.live_volumeMounts) 0 }}
@@ -150,7 +150,7 @@ spec:
           - name: suricata-live-suricata-logs-volume
             mountPath: "/data/suricata-logs"
       volumes:
-        - name: suricata-live-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: suricata-live-suricata-logs-volume

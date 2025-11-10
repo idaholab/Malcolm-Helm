@@ -56,11 +56,11 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: dashboards-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: dashboards-opensearch-curlrc-secret-volume
       volumes:
-        - name: dashboards-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: dashboards-opensearch-curlrc-secret-volume

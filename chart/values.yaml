@@ -472,10 +472,14 @@ suricata_offline:
 zeek_live:
   zeek_disable_stats: ""
   zeek_log_path: /opt/zeek/logs
+  zeek_extracted_path: /opt/zeek/extracted
 
   # Zeek live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
   nodeSelector:
     cnaps.io/zeek-capture: "true"
+
+  remoteNodeSelector:
+    cnaps.io/zeek-remote-capture: "true"
 
   # Add additional ConfigMap- or Secret-based environment variables
   extra_envFrom: []

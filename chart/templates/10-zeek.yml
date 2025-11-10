@@ -80,7 +80,7 @@ spec:
         #   failureThreshold: 50
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: zeek-offline-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: "/pcap"
             name: zeek-offline-pcap-volume
           - mountPath: "/zeek/extract_files"
@@ -126,7 +126,7 @@ spec:
           - name: zeek-offline-zeek-volume
             mountPath: "/data/zeek-logs"
       volumes:
-        - name: zeek-offline-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: zeek-offline-pcap-volume

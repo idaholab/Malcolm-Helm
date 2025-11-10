@@ -112,7 +112,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: filebeat-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: filebeat-opensearch-curlrc-secret-volume
           - mountPath: "/suricata"
@@ -145,7 +145,7 @@ spec:
           - name: zeek-live-logs-volume
             mountPath: /zeek
       volumes:
-        - name: filebeat-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: filebeat-opensearch-curlrc-secret-volume
@@ -223,7 +223,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: filebeat-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: filebeat-opensearch-curlrc-secret-volume
           - mountPath: "/zeek"
@@ -252,7 +252,7 @@ spec:
           - name: filebeat-nginx-runtime-logs-volume
             mountPath: "/data/runtime-logs"
       volumes:
-        - name: filebeat-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: filebeat-opensearch-curlrc-secret-volume

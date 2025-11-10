@@ -548,3 +548,30 @@ metadata:
 data:
   __load__.zeek: |
     # This is a blank file
+
+---
+apiVersion: v1
+data:
+  wise.ini: |
+    # Arkime WISE data source config file
+    # See also https://arkime.com/wise
+    #          https://github.com/arkime/arkime/blob/main/release/wise.ini.sample
+    #
+
+    [wiseService]
+    port=8081
+    wiseHost=0.0.0.0
+    excludeDomains=*.bl.barracudabrts.com;*.zen.spamhaus.org;*.in-addr.arpa;*.avts.mcafee.com;*.avqs.mcafee.com;*.bl.barracuda.com;*.lbl8.mailshell.net;*.dnsbl.sorbs.net;*.s.sophosxl.net;*.metric.gstatic.com;*.ip6.arpa
+    authMode=header
+    usersElasticsearch=http://opensearch:9200
+    elasticsearch=http://opensearch:9200
+    authMode=header
+    userAuthIps=::,0.0.0.0/0
+    userNameHeader=x-forwarded-user
+    webBasePath=/wise/
+
+    [malcolm]
+    key=enabled 
+kind: ConfigMap
+metadata:
+  name: wise-config

@@ -74,7 +74,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: upload-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: "/var/www/upload/server/php/chroot/files"
             name: upload-pcap-volume
             subPath: "upload"
@@ -97,7 +97,7 @@ spec:
           - name: upload-pcap-volume
             mountPath: "/data/pcap"
       volumes:
-        - name: upload-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: upload-pcap-volume

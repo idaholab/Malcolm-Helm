@@ -94,7 +94,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: file-monitor-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: "/zeek/extract_files"
             name: file-monitor-zeek-volume
             subPath: "extract_files"
@@ -122,7 +122,7 @@ spec:
           - name: file-monitor-zeek-volume
             mountPath: "/data/zeek-logs"
       volumes:
-        - name: file-monitor-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: file-monitor-zeek-volume
