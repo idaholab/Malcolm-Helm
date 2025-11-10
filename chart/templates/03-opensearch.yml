@@ -136,9 +136,6 @@ spec:
               name: opensearch-env
           - configMapRef:
               name: auth-common-env
-        env:
-          - name: VIRTUAL_HOST
-            value: "os.malcolm.local"
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: opensearch-var-local-catrust-volume

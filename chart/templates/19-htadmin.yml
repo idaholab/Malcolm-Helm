@@ -47,13 +47,14 @@ spec:
               name: process-env
           - configMapRef:
               name: ssl-env
-          - secretRef:
-              name: auth-env
           - configMapRef:
               name: auth-common-env
         env:
-          - name: VIRTUAL_HOST
-            value: "htadmin.malcolm.local"
+          - name: MALCOLM_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.auth.existingSecret | default "auth-env" }}
+                key: "{{ if .Values.auth.existingSecret }}{{ .Values.auth.usernameKey }}{{ else }}MALCOLM_USERNAME{{ end }}"
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: htadmin-var-local-catrust-volume

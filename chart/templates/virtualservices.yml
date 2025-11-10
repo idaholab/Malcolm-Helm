@@ -12,7 +12,7 @@ spec:
   http:
   - route:
     - destination:
-        host: nginx-proxy.malcolm.svc.cluster.local
+        host: nginx-proxy.{{ .Release.Namespace }}.svc.cluster.local
         port:
           number: 443
 {{- end }}

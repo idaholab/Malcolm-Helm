@@ -52,8 +52,6 @@ spec:
               name: ssl-env
           - configMapRef:
               name: opensearch-env
-          - secretRef:
-              name: auth-env
           - configMapRef:
               name: upload-common-env
           - configMapRef:
@@ -65,8 +63,6 @@ spec:
           - secretRef:
               name: arkime-secret-env
         env:
-          - name: VIRTUAL_HOST
-            value: "arkime.malcolm.local"
           - name: PCAP_NODE_NAME
             valueFrom:
               fieldRef:
