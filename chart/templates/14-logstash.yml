@@ -133,7 +133,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: logstash-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: logstash-opensearch-curlrc-secret-volume
           - name: logstash-config-persist-volume
@@ -163,7 +163,7 @@ spec:
           - name: logstash-config-persist-volume
             mountPath: "/data/config"
       volumes:
-        - name: logstash-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: logstash-opensearch-curlrc-secret-volume

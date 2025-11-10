@@ -83,7 +83,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: netbox-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /opt/netbox-custom-plugins
             name: netbox-custom-plugins-volume
           - mountPath: /opt/netbox/netbox/media
@@ -108,7 +108,7 @@ spec:
           - name: netbox-media-volume
             mountPath: "/data/config"
       volumes:
-        - name: netbox-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: netbox-custom-plugins-volume

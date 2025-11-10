@@ -80,7 +80,7 @@ spec:
           - mountPath: "/opt/arkime/lua/configmap"
             name: arkime-live-lua-volume
           - mountPath: /var/local/ca-trust/configmap
-            name: arkime-live-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: arkime-live-opensearch-curlrc-secret-volume
           - mountPath: "/data/pcap"
@@ -118,7 +118,7 @@ spec:
             mountPath: "/opt/arkime/etc/wise.ini.example"
             subPath: "wise.ini"
       volumes:
-        - name: arkime-live-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: arkime-live-lua-volume

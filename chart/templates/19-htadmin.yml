@@ -57,7 +57,7 @@ spec:
                 key: "{{ if .Values.auth.existingSecret }}{{ .Values.auth.usernameKey }}{{ else }}MALCOLM_USERNAME{{ end }}"
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: htadmin-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/www/htadmin/auth
             name: htadmin-config-volume
             subPath: "auth"
@@ -92,7 +92,7 @@ spec:
           - name: htadmin-config-volume
             mountPath: "/data/config"
       volumes:
-        - name: htadmin-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: htadmin-config-volume

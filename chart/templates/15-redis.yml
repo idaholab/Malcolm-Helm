@@ -67,7 +67,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: redis-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /data
             name: redis-volume
             subPath: redis
@@ -90,7 +90,7 @@ spec:
           - name: redis-volume
             mountPath: "/data/config"
       volumes:
-        - name: redis-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: redis-volume

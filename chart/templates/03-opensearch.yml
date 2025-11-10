@@ -138,7 +138,7 @@ spec:
               name: auth-common-env
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: opensearch-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: opensearch-opensearch-curlrc-secret-volume
           - mountPath: "/usr/share/opensearch/data"
@@ -171,7 +171,7 @@ spec:
           - name: opensearch-claim
             mountPath: "/data/config"
       volumes:
-        - name: opensearch-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: opensearch-opensearch-curlrc-secret-volume

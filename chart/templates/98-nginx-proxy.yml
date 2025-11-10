@@ -100,7 +100,7 @@ spec:
         volumeMounts:
         - name: nginx-etc-nginx-secret-volume
           mountPath: /etc/nginx/secretmap
-        - name: nginx-var-local-catrust-volume
+        - name: var-local-catrust-volume
           mountPath: /var/local/ca-trust/configmap
         - name: nginx-opensearch-curlrc-secret-volume
           mountPath: /var/local/curlrc/secretmap
@@ -136,7 +136,7 @@ spec:
       - name: nginx-etc-nginx-secret-volume
         secret:
           secretName: etc-nginx
-      - name: nginx-var-local-catrust-volume
+      - name: var-local-catrust-volume
         configMap:
           name: var-local-catrust
       - name: nginx-opensearch-curlrc-secret-volume

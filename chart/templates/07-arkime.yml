@@ -85,7 +85,7 @@ spec:
           timeoutSeconds: 30
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: arkime-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: arkime-opensearch-curlrc-secret-volume
           - mountPath: "/data/pcap"
@@ -128,7 +128,7 @@ spec:
             mountPath: "/opt/arkime/etc/wise.ini.example"
             subPath: "wise.ini"
       volumes:
-        - name: arkime-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: arkime-lua-volume

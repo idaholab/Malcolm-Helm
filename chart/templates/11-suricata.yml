@@ -74,7 +74,7 @@ spec:
           failureThreshold: 10
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
-            name: suricata-offline-var-local-catrust-volume
+            name: var-local-catrust-volume
           - mountPath: "/data/pcap"
             name: suricata-offline-pcap-volume
           - mountPath: "/var/log/suricata"
@@ -109,7 +109,7 @@ spec:
           - name: suricata-offline-pcap-volume
             mountPath: "/data/pcap"
       volumes:
-        - name: suricata-offline-var-local-catrust-volume
+        - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
         - name: suricata-offline-pcap-volume
