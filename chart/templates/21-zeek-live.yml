@@ -321,9 +321,7 @@ spec:
               name: auth-common-env
           - secretRef:
               name: zeek-secret-env
-        env:
-          - name: VIRTUAL_HOST
-            value: "file-monitor.malcolm.local"
+        env:          
           - name: ZEEK_LOG_DIRECTORY
             value: "/zeek/current"
           - name: EXTRACTED_FILE_HTTP_SERVER_ENABLE
