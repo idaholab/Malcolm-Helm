@@ -382,9 +382,10 @@ spec:
         - name: file-monitor-yara-rules-custom-volume
           configMap:
             name: yara-rules
-        - name: zeek-live-zeek-volume          
-          emptyDir:
-            sizeLimit: 50Mi
+        - name: zeek-live-zeek-volume
+          hostPath:
+            path: "{{ .Values.zeek_live.zeek_extracted_path }}"
+            type: DirectoryOrCreate            
         - name: zeek-live-intel-preseed-volume
           configMap:
             name: zeek-intel-preseed
