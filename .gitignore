@@ -1,0 +1,21 @@
+# OS files
+.DS_Store          # macOS
+Thumbs.db          # Windows
+desktop.ini        # Windows
+*.swp              # vim swap files
+.envrc
+
+# Editor/IDE files
+.idea/             # JetBrains IDEs
+.vscode/           # VS Code
+*.sublime-workspace
+*.sublime-project
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*.orig             # often from merges
+
+# Local helm cache (if someone runs `helm package` locally)
+.helm/
