@@ -62,7 +62,7 @@ REVISION: 1
 TEST SUITE: None
 ```
 
-# Packaging and Publishing Malcolm-Helm release
+# Packaging and Publishing a Malcolm-Helm release
 
 ```bash
 $ git clone --branch helm-repo https://github.com/idaholab/Malcolm-Helm Malcolm-Helm-repo
