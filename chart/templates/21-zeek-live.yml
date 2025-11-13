@@ -263,6 +263,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: ZEEK_INTEL_REFRESH_CRON_EXPRESSION
+            value: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
+          - name: ZEEK_INTEL_REFRESH_ON_STARTUP
+            value: "{{ .Values.zeek_offline.zeek_intel_refresh_on_startup }}"
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: var-local-catrust-volume
@@ -277,8 +281,8 @@ spec:
           - mountPath: "/opt/zeek/share/zeek/site/intel"
             name: zeek-intel-volume
             subPath: "zeek/intel"
-          {{- if ne (len .Values.zeek_chart_overrides.live_volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_chart_overrides.live_volumeMounts | nindent 10 }}
+          {{- if ne (len .Values.zeek_chart_overrides.live_remote_volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_chart_overrides.live_remote_volumeMounts | nindent 10 }}
           {{- else }}
           - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
             name: zeek-custom-volume
@@ -396,8 +400,8 @@ spec:
           hostPath:
             path: "{{ .Values.zeek_live.zeek_log_path }}"
             type: DirectoryOrCreate
-        {{- if ne (len .Values.zeek_chart_overrides.live_volumes) 0 }}
-        {{- toYaml .Values.zeek_chart_overrides.live_volumes | nindent 8 }}
+        {{- if ne (len .Values.zeek_chart_overrides.live_remote_volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.live_remote_volumes | nindent 8 }}
         {{- else }}
         - name: zeek-custom-volume
           configMap:
