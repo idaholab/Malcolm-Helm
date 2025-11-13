@@ -725,6 +725,8 @@ zeek_chart_overrides:
   offline_upload_volumeMounts: []
   live_volumes: []
   live_volumeMounts: []
+  live_remote_volumes: []
+  live_remote_volumeMounts: []
   extra_init_containers: []
   live_extra_volumes: []  
   

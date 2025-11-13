@@ -281,8 +281,8 @@ spec:
           - mountPath: "/opt/zeek/share/zeek/site/intel"
             name: zeek-intel-volume
             subPath: "zeek/intel"
-          {{- if ne (len .Values.zeek_chart_overrides.live_volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_chart_overrides.live_volumeMounts | nindent 10 }}
+          {{- if ne (len .Values.zeek_chart_overrides.live_remote_volumeMounts) 0 }}
+          {{- toYaml .Values.zeek_chart_overrides.live_remote_volumeMounts | nindent 10 }}
           {{- else }}
           - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
             name: zeek-custom-volume
