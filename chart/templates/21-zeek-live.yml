@@ -400,8 +400,8 @@ spec:
           hostPath:
             path: "{{ .Values.zeek_live.zeek_log_path }}"
             type: DirectoryOrCreate
-        {{- if ne (len .Values.zeek_chart_overrides.live_volumes) 0 }}
-        {{- toYaml .Values.zeek_chart_overrides.live_volumes | nindent 8 }}
+        {{- if ne (len .Values.zeek_chart_overrides.live_remote_volumes) 0 }}
+        {{- toYaml .Values.zeek_chart_overrides.live_remote_volumes | nindent 8 }}
         {{- else }}
         - name: zeek-custom-volume
           configMap:
