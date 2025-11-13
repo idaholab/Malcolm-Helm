@@ -78,7 +78,7 @@ Update the list of available charts in the newly added repository.
 
 Verify the list of available charts in a repository with the helm search repo command
 
-~[Screen shot of output from helm search repo command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_search_helm_repo.png)
+![Screen shot of output from helm search repo command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_search_helm_repo.png)
 
 Running vagrant with istio service mesh example instead of using RKE2 ingress.
 
