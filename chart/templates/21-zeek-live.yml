@@ -263,6 +263,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: ZEEK_INTEL_REFRESH_CRON_EXPRESSION
+            value: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
+          - name: ZEEK_INTEL_REFRESH_ON_STARTUP
+            value: "{{ .Values.zeek_offline.zeek_intel_refresh_on_startup }}"
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: var-local-catrust-volume

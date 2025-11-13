@@ -117,9 +117,6 @@ spec:
             name: filebeat-opensearch-curlrc-secret-volume
           - mountPath: "/suricata"
             name: filebeat-suricata-live-volume
-          - name: filebeat-nginx-runtime-logs-volume
-            mountPath: /nginx
-            subPath: "nginx"
           - mountPath: "/zeek"
             name: zeek-live-logs-volume
       initContainers:
@@ -159,9 +156,6 @@ spec:
           hostPath:
             path: "{{ .Values.zeek_live.zeek_log_path }}"
             type: DirectoryOrCreate
-        - name: filebeat-nginx-runtime-logs-volume
-          persistentVolumeClaim:
-            claimName: runtime-logs-claim
 
 ---
 apiVersion: apps/v1

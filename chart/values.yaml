@@ -504,6 +504,8 @@ zeek_live:
 
 
 # Only affects the Zeek offline deployment
+# NOTE: the zeek_intel_refresh_on_startup and zeek_intel_refresh_cron_expression 
+#       is also applied to the zeek remote live sensors.
 zeek_offline:
   # Refresh Zeek Intel data at startup
   zeek_intel_refresh_on_startup: "true"
