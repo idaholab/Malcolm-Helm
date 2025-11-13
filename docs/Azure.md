@@ -72,6 +72,14 @@ Verify the addition was successful by listing available helm repositories
 
 ![Screen shot of output from helm repo list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_list_helm_repos.png)
 
+Update the list of available charts in the newly added repository.
+
+![Screen shot of output from helm repo update command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_list_helm_repos.png)
+
+Verify the list of available charts in a repository with the helm search repo command
+
+~[Screen shot of output from helm search repo command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_search_helm_repo.png)
+
 Running vagrant with istio service mesh example instead of using RKE2 ingress.
 
 1. Follow steps 1 through 5 in vagrant quickstart
