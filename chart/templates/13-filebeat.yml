@@ -134,11 +134,7 @@ spec:
         env:
           - name: PUSER_CHOWN
             value: /zeek
-          - name: PUSER_MKDIR
-            value: "/data/runtime-logs:nginx"
         volumeMounts:
-          - name: filebeat-nginx-runtime-logs-volume
-            mountPath: "/data/runtime-logs"
           - name: zeek-live-logs-volume
             mountPath: /zeek
       volumes:
