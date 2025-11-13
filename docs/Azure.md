@@ -62,7 +62,15 @@ The output will include the k8s-extension along with a few others. (Note: The ex
 
 Now that we have confirmed access to the Azure environement and the Cloud Shell tools we can begin adding the necessary services
 
-### Vagrant Quickstart with istio
+### Add the Malcolm Helm Chart repository
+
+Malcolm can be installed via the Helm Chart. First we need to add the repository to the local helm configuration.
+
+![Screen shot of output from helm repo add command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_add_helm_repo.png)
+
+Verify the addition was successful by listing available helm repositories
+
+![Screen shot of output from helm repo list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_list_helm_repos.png)
 
 Running vagrant with istio service mesh example instead of using RKE2 ingress.
 
