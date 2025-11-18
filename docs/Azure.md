@@ -90,7 +90,7 @@ Update the list of available charts in the newly added repository.
 helm repo update
 ```
 
-You should see an "Update Complete" message when complete
+You should see an "Update Complete" message when finished
 
 ![Screen shot of output from helm repo update command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_update_helm_repos.png)
 
@@ -104,16 +104,34 @@ A list with the latest chart version should be displayed
 
 ![Screen shot of output from helm search repo command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_search_helm_repo.png)
 
-Running vagrant with istio service mesh example instead of using RKE2 ingress.
 
-1. Follow steps 1 through 5 in vagrant quickstart
-2. run `VAGRANT_SETUP_CHOICE=use_istio vagrant up`
-3. If using Windows edit C:\Windows\System32\drivers\etc\hosts with notepad as administrator
-4. If using linx run `sudo vim /etc/hosts`
-5. Add the entry `127.0.0.1 localhost malcolm.vp.bigbang.dev`
-6. Open chrome and navigate to https://malcolm.vp.bigbang.dev:8443/readme
-7. If the browser does not allow you to access the page. Either add the ca.crt generated to the webrowser or just click on the webbrowser and type `thisisunsafe`
+### Setup the Azure environment for running Malcolm
 
+First we need to create an Azure Resource Group for the new Malcolm instance.  
+
+```
+az group create --location westus --resource-group MalcolmRG
+```
+
+The output will show the unique identifier for the newly created group along with other parameters
+
+![Screen shot of output from az group create command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_create_resource_group_command.png)
+
+Verify the group was created by listing available groups
+
+```
+az group list
+```
+
+The output will show the default "NetworkWatcherRG" automatically created by Azure as well as the newly created group
+
+![Screen shot of output from az group listcommand in Cloud Shell](images/screenshots/Azure_Cloud_Shell_resource_group_list_command.png)
+
+Now we can create a new Kubernetes cluster in the new resouce group
+
+```
+az aks create -n MalcolmCluster -g MalcolmRG --node-vm-size Standard_B4als_v2 –node-count 3 --enable-blob-driver --ssh-key-value ~/.ssh/id_rsa.pub
+```
 ## Listener NIC setup
 
 If you want all the host traffic to be seen by the Malcolm-Helm VM running on your host machine execute the following instructions:
