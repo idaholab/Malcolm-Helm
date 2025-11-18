@@ -66,17 +66,41 @@ Now that we have confirmed access to the Azure environement and the Cloud Shell 
 
 Malcolm can be installed via the Helm Chart. First we need to add the repository to the local helm configuration.
 
+```
+helm repo add malcolm https://raw.githubusercontent.com/idaholab/Malcolm-Helm/refs/heads/helm-repo/
+```
+
+The output will verify the name of the newly added reposioty
+
 ![Screen shot of output from helm repo add command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_add_helm_repo.png)
 
 Verify the addition was successful by listing available helm repositories
+
+```
+helm repo list
+```
+
+You should see the repository name and the URL we just provided
 
 ![Screen shot of output from helm repo list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_list_helm_repos.png)
 
 Update the list of available charts in the newly added repository.
 
-![Screen shot of output from helm repo update command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_list_helm_repos.png)
+```
+helm repo update
+```
+
+You should see an "Update Complete" message when complete
+
+![Screen shot of output from helm repo update command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_update_helm_repos.png)
 
 Verify the list of available charts in a repository with the helm search repo command
+
+```
+helm search repo malcolm
+```
+
+A list with the latest chart version should be displayed
 
 ![Screen shot of output from helm search repo command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_search_helm_repo.png)
 
