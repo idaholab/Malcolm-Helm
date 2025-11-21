@@ -125,13 +125,28 @@ az group list
 
 The output will show the default "NetworkWatcherRG" automatically created by Azure as well as the newly created group
 
-![Screen shot of output from az group listcommand in Cloud Shell](images/screenshots/Azure_Cloud_Shell_resource_group_list_command.png)
+![Screen shot of output from az group list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_create_resource_group_command.png)
 
 Now we can create a new Kubernetes cluster in the new resouce group
 
 ```
 az aks create -n MalcolmCluster -g MalcolmRG --node-vm-size Standard_B4als_v2 –node-count 3 --enable-blob-driver --ssh-key-value ~/.ssh/id_rsa.pub
 ```
+
+This will take a few minutes while the output displays messages like "InProgress.." and "CreatingAgentPools: 0/3". When the cluster creation is complete a large amount of JSON information about the cluster properites will be displayed.
+
+![Screen shot of output from az create cluster command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_create_cluster_command.png)
+
+Next we need to get the authentication credentials from the newly created cluster so we can interact with it
+
+```
+az aks get-credentials --resource-group MalcolmRG --name MalcolmCluster
+```
+
+The output will show where a config file with the credentials has been written
+
+![Screen shot of output from az aks get-credentials command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_aks_get_credentials_command.png)
+
 ## Listener NIC setup
 
 If you want all the host traffic to be seen by the Malcolm-Helm VM running on your host machine execute the following instructions:
