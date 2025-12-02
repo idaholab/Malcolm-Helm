@@ -147,19 +147,35 @@ The output will show where a config file with the credentials has been written
 
 ![Screen shot of output from az aks get-credentials command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_aks_get_credentials_command.png)
 
-## Listener NIC setup
+Finally, use the kubectl command to verify all of the Kuberenetes system pods are running before continuing with the Helm install
 
-If you want all the host traffic to be seen by the Malcolm-Helm VM running on your host machine execute the following instructions:
+```
+kubectl get pods -A
+```
 
-1. Open virtualbox 
-2. Right click Malcolm-Helm VM and select settings
-3. Select Network on the left colum
-4. Select `Adapter 2` tab
-5. Change Attached to `Bridged Adapter`
-6. Select the Advanced drop down
-7. Ensure Promisc mode is set to `Allow all` 
-8. run `ssh -p 2222 vagrant@localhost` and login using vagrant as the password.
-9. run `tcpdump -i enp0s8` to ensure traffic is getting piped through the iface.
+The output will list the Kuberenetes pods and their status. When all pods have a status of "Running" we can continue.
+
+![Screen shot of output from kubectl get pods command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_kubectl_get_pods_command.png)
+
+
+## Install Malcolm using Helm
+
+We are now ready to install malcolm using the newly configured Helm Repository. This requires tweaking the storage class to leverage a compatible Azure storage provider with the "--set" option. We will create a new Kubernetes namespace named "malcolm" to and have Helm create that automatically.
+
+```
+helm install malcolm malcolm/malcolm -n malcolm --create-namespace --set "storage_class_name=azureblob-nfs-premium"
+```
+
+![Screen shot of output from helm install malcolm command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_helm_install_malcolm_command.png)
+
+The Malcolm pods will be created and List the newly created pods with:
+
+```
+kubectl get pods -n malcolm
+```
+
+![Screen shot of output from kubectl get pods malcolm namespace command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_kubectl_get_pods_malcolm_command.png)
+
 
 ## Production Cluster Requirements
 
