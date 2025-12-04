@@ -93,6 +93,8 @@ spec:
           - configMapRef:
               name: beats-common-env
           - configMapRef:
+              name: netbox-common-env
+          - configMapRef:
               name: filebeat-env
         env:
           - name: PCAP_NODE_NAME
