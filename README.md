@@ -95,7 +95,7 @@ Changes to be committed:
     modified:   index.yaml
     modified:   malcolm-25.x.x/malcolm-25.11.0.tgz
 
-$ git commit -s -m "Packag Malcolm-Helm v25.11.0"
+$ git commit -s -m "Package Malcolm-Helm v25.11.0"
 [helm-repo 600dbeef] Packaged v25.11.0 for release
  2 files changed, 4 insertions(+), 4 deletions(-)
 
