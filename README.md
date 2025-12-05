@@ -2,65 +2,7 @@ Please review the [**Malcolm-Helm README**](https://github.com/idaholab/Malcolm-
 
 # Using the Malcolm-Helm repository
 
-* Add the repository:
-
-```bash
-$ helm repo add malcolm \
-    https://raw.githubusercontent.com/idaholab/Malcolm-Helm/refs/heads/helm-repo/
-"malcolm" has been added to your repositories
-
-$ helm repo update
-Hang tight while we grab the latest from your chart repositories...
-...Successfully got an update from the "malcolm" chart repository
-Update Complete. ⎈Happy Helming!⎈
-
-$ helm search repo malcolm
-NAME               CHART VERSION   APP VERSION DESCRIPTION                                     
-malcolm/malcolm    25.11.0         25.11.0     A Helm chart for Deploying Malcolm in Kubernetes
-```
-
-* Optionally, create [`values.yaml`](https://github.com/idaholab/Malcolm-Helm/blob/main/chart/values.yaml) and modify as necessary:
-
-```bash
-$ helm show values malcolm/malcolm > values.yaml
-$ vi ./values.yaml
-…
-```
-
-* Deploy the Helm chart to the cluster:
-
-```bash
-$ export MALCOLM_NAMESPACE=malcolm
-
-$ kubectl create namespace $MALCOLM_NAMESPACE
-namespace/malcolm created
-
-$ ( command -v openssl >/dev/null 2>/dev/null && command -v htpasswd >/dev/null 2>/dev/null ) && \
-    kubectl create secret generic -n $MALCOLM_NAMESPACE malcolm-auth \
-        --from-literal=username="johndoe" \
-        --from-literal=openssl_password="$(openssl passwd -1 'SuperSecretPassword' | tr -d '\n' | base64 | tr -d '\n')" \
-        --from-literal=htpass_cred="$(htpasswd -bnB 'johndoe' 'SuperSecretPassword' | head -n1)" || \
-    echo "openssl and htpasswd are needed to create password hashes" >&2
-secret/malcolm-auth created
-
-# Use `--values ./values.yaml` if it was created in the previous step.
-# Specify value overrides with `--set` as needed.
-# For example:
-$ helm install malcolm malcolm/malcolm \
-    --values ./values.yaml \
-    --namespace $MALCOLM_NAMESPACE \
-    --set is_production=true \
-    --set auth.existingSecret=malcolm-auth \
-    --set istio.enabled=true \
-    --set ingress.enabled=false \
-    --set pcap_capture_env.pcap_iface=eth0
-NAME: malcolm
-LAST DEPLOYED: Wed Nov 12 14:20:18 2025
-NAMESPACE: malcolm
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-```
+See [**Installation From Helm Repository**](https://github.com/idaholab/Malcolm-Helm?tab=readme-ov-file#HelmRepoQuickstart) in the [**Malcolm-Helm README**](https://github.com/idaholab/Malcolm-Helm).
 
 # Packaging and Publishing a Malcolm-Helm release
 
