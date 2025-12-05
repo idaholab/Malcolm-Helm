@@ -28,7 +28,7 @@ For more information on Malcolm and its features, see:
 
 ## <a name="HelmRepoQuickstart"></a>Installation From Helm Repository
 
-Ensure you understand the [**Production Cluster Requirements**](#ProductionReqs) and [**Label Requirements**](#Labels) before proceeding.
+Ensure you understand the [Production Cluster Requirements](#ProductionReqs) and [Label Requirements](#Labels) before proceeding.
 
 * Add the repository:
 
@@ -176,8 +176,10 @@ All primary server nodes should be labeled with `kubectl label nodes <node-name>
 
 All sensor nodes should be labeled with one or more of the following:
 
+* `kubectl label nodes <node-name> cnaps.io/arkime-capture=true` 
 * `kubectl label nodes <node-name> cnaps.io/suricata-capture=true` 
 * `kubectl label nodes <node-name> cnaps.io/zeek-capture=true`
+* `kubectl label nodes <node-name> cnaps.io/zeek-remote-capture=true`
 
 Failure to add any of these labels will result in traffic capture pods not being provisioned on those nodes.
 
