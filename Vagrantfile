@@ -119,7 +119,7 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.34.1+rke2r1 sh -
+    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.34.2+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
     [[ -n "${RKE2_DATA_DIR}" ]] && echo "data-dir: ${RKE2_DATA_DIR}" >> /etc/rancher/rke2/config.yaml
@@ -264,7 +264,7 @@ Vagrant.configure("2") do |config|
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      ISTIO_VERSION=1.27.3
+      ISTIO_VERSION=1.28.1
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system

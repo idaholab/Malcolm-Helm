@@ -14,11 +14,11 @@ type: application
 
 # This is the chart version. It should *almost* match appVersion, although "converted"
 # to semver (e.g., appVersion 25.09.0 -> version 25.9.0)
-version: 25.11.0
+version: 25.12.0
 
 # This is the version number of the application being deployed. The application
 # version tracks the Malcolm release number (https://github.com/idaholab/Malcolm/releases),
 # which follows calendar versioning (https://calver.org/), e.g., 25.09.0.
 # This variable is also used to determine the tag of the Malcolm container
 # images pulled (unless overridden in values.yaml).
-appVersion: "25.11.0"
+appVersion: "25.12.0"

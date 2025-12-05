@@ -458,6 +458,10 @@ dashboards_helper_env:
   dashboards_dark_mode: true
   dashboards_timepicker_from: "now-7d"
   dashboards_timepicker_to: "now"
+  # The base URL of the Malcolm instance (e.g., https://malcolm.home.arpa), only used
+  # where a remote Kibana instance needs absolute paths to request, for example, an extracted
+  # file download or some other Malcolm-hosted asset.
+  malcolm_url: https://malcolm.vp.bigbang.dev
 
 suricata_offline:
   development:
