@@ -12,6 +12,10 @@ enable_network_policies: false
 # or `pipeline` to have Zeek and Suricata ingest PCAP data streamed from Arkime.
 capture_mode: live
 
+cluster:
+  # Set to a CIDR mask that covers all the cluster nodes.
+  node_cidr: "10.0.0.0/8"
+
 # Label used by the _helpers.tpl scaling function to count nodes.
 # The total number of nodes with this label determines the number of replicas.
 # WARNING: If no nodes have this label, logstash replicas will be set to 0.
