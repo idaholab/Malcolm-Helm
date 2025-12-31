@@ -275,12 +275,12 @@ Renders only if .Values.caTrustBundle.configMapName is defined.
 
 {{/*
 Reusable Volume Mount for the CA Trust Bundle
-Renders only if .Values.caTrustBundle.configMapName is defined.
+Mounts to a generic name 'sys-ca-bundle.crt' to avoid Symlink collisions
 */}}
 {{- define "malcolm.ca_volume_mount" -}}
 {{- if and .Values.caTrustBundle .Values.caTrustBundle.configMapName }}
 - name: ca-trust-vol
-  mountPath: /etc/ssl/certs/ca-certificates.crt
+  mountPath: /etc/ssl/certs/sys-ca-bundle.crt
   subPath: ca-certificates.crt
   readOnly: true
 {{- end }}
@@ -288,13 +288,13 @@ Renders only if .Values.caTrustBundle.configMapName is defined.
 
 {{/*
 Reusable Environment Variables for SSL Trust
-Sets standard variables to point to the location where we mount the bundle.
+Points the apps to the new side-loaded file path
 */}}
 {{- define "malcolm.ca_env_var" -}}
 {{- if and .Values.caTrustBundle .Values.caTrustBundle.configMapName }}
 - name: SSL_CERT_FILE
-  value: /etc/ssl/certs/ca-certificates.crt
+  value: /etc/ssl/certs/sys-ca-bundle.crt
 - name: REQUESTS_CA_BUNDLE
-  value: /etc/ssl/certs/ca-certificates.crt
+  value: /etc/ssl/certs/sys-ca-bundle.crt
 {{- end }}
 {{- end }}
