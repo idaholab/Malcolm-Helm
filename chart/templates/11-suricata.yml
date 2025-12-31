@@ -63,6 +63,7 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          {{- include "malcolm.ca_env_var" . | indent 10 }}
         livenessProbe:
           exec:
             command:
@@ -87,6 +88,7 @@ spec:
           - mountPath: "/opt/suricata/include-configs/configmap"
             name: suricata-custom-configs-volume
           {{- end }}
+          {{- include "malcolm.ca_volume_mount" . | indent 10 }}
       {{- if ne (len .Values.suricata_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
@@ -128,3 +130,4 @@ spec:
           configMap:
             name: suricata-configs
         {{- end }}
+        {{- include "malcolm.ca_volume" . | indent 8 }}

@@ -73,6 +73,7 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          {{- include "malcolm.ca_env_var" . | indent 10 }}
         livenessProbe:
           failureThreshold: 10
           httpGet:
@@ -101,6 +102,7 @@ spec:
           - name: elastic-cert
             mountPath: /usr/local/share/ca-certificates/elastic_ca.crt
             subPath: elastic_ca.crt
+          {{- include "malcolm.ca_volume_mount" . | indent 10 }}
 {{- end }}
       initContainers:
       - name: arkime-dirinit-container
@@ -151,3 +153,4 @@ spec:
           secret:
             secretName: {{ .Values.external_elasticsearch.elastic_cert_name }}
 {{- end }}
+        {{- include "malcolm.ca_volume" . | indent 8 }}

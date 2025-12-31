@@ -72,6 +72,7 @@ spec:
         env:
           - name: ARKIME_PORT
             value: "8005"
+          {{- include "malcolm.ca_env_var" . | indent 10 }}
         livenessProbe:
           exec:
             command:
@@ -86,6 +87,7 @@ spec:
             name: var-local-catrust-volume
           - mountPath: /var/local/curlrc/secretmap
             name: api-opensearch-curlrc-secret-volume
+          {{- include "malcolm.ca_volume_mount" . | indent 10 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:
@@ -93,3 +95,4 @@ spec:
         - name: api-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
+        {{- include "malcolm.ca_volume" . | indent 8 }}

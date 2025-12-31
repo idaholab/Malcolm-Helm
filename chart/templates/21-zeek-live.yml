@@ -114,6 +114,7 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          {{- include "malcolm.ca_env_var" . | indent 10 }}
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: var-local-catrust-volume
@@ -134,6 +135,7 @@ spec:
           - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
             name: zeek-custom-volume
           {{- end }}
+          {{- include "malcolm.ca_volume_mount" . | indent 10 }}
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
@@ -183,6 +185,7 @@ spec:
           configMap:
             name: zeek-custom
         {{- end }}
+        {{- include "malcolm.ca_volume" . | indent 8 }}
 
 ---
 apiVersion: apps/v1
@@ -267,6 +270,7 @@ spec:
             value: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
           - name: ZEEK_INTEL_REFRESH_ON_STARTUP
             value: "{{ .Values.zeek_offline.zeek_intel_refresh_on_startup }}"
+          {{- include "malcolm.ca_env_var" . | indent 10 }}
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: var-local-catrust-volume
@@ -287,6 +291,7 @@ spec:
           - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
             name: zeek-custom-volume
           {{- end }}
+          {{- include "malcolm.ca_volume_mount" . | indent 10 }}
       {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
@@ -328,6 +333,7 @@ spec:
             value: "false"
           - name: EXTRACTED_FILE_PRESERVATION
             value: "none"
+          {{- include "malcolm.ca_env_var" . | indent 10 }}
         livenessProbe:
           exec:
             command:
@@ -347,7 +353,8 @@ spec:
             name: zeek-live-logs-volume
             subPath: "current"
           - mountPath: "/yara-rules/custom/configmap"
-            name: file-monitor-yara-rules-custom-volume  
+            name: file-monitor-yara-rules-custom-volume
+          {{- include "malcolm.ca_volume_mount" . | indent 10 }}
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
@@ -403,4 +410,5 @@ spec:
           configMap:
             name: zeek-custom
         {{- end }}
+        {{- include "malcolm.ca_volume" . | indent 8 }}
 {{- end }}
