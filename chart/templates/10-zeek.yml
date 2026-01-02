@@ -66,6 +66,7 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          {{- include "malcolm.ca_env_var" . | indent 10 }}
         # TODO commented it out for now because sometimes it takes a really log time for the container to pull all the misp data and I dont want it restarting. We should move this logic to a separate kubernetes job and cronjob
         # livenessProbe:
         #   exec:
@@ -100,6 +101,7 @@ spec:
           - mountPath: "/opt/zeek/share/zeek/site/custom/configmap"
             name: zeek-custom-volume
           {{- end }}
+          {{- include "malcolm.ca_volume_mount" . | indent 10 }}
       {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
@@ -148,3 +150,4 @@ spec:
           configMap:
             name: zeek-custom
         {{- end }}
+        {{- include "malcolm.ca_volume" . | indent 8 }}
