@@ -77,6 +77,9 @@ spec:
           successThreshold: 1
           failureThreshold: 10
         volumeMounts:
+          - name: uds-trust-bundle
+            mountPath: /etc/ssl/certs/ca-certificates.crt
+            subPath: ca-bundle.pem
           - mountPath: "/opt/arkime/lua/configmap"
             name: arkime-live-lua-volume
           - mountPath: /var/local/ca-trust/configmap
@@ -118,6 +121,9 @@ spec:
             mountPath: "/opt/arkime/etc/wise.ini.example"
             subPath: "wise.ini"
       volumes:
+        - name: uds-trust-bundle  # FIXME: For testing only.
+          configMap:
+            name: uds-trust-bundle
         - name: var-local-catrust-volume
           configMap:
             name: var-local-catrust
