@@ -262,23 +262,23 @@ data:
 
 {{/*
 Reusable Volume definition for the CA Trust Bundle
-Renders only if .Values.caTrustBundle.configMapName is defined.
+Renders only if .Values.ca_trust_bundle.configmap_name is defined.
 */}}
 {{- define "malcolm.ca_volume" -}}
-{{- if and .Values.caTrustBundle .Values.caTrustBundle.configMapName }}
+{{- if and .Values.ca_trust_bundle .Values.ca_trust_bundle.configmap_name }}
 - name: ca-trust-vol
   configMap:
-    name: {{ .Values.caTrustBundle.configMapName }}
-    optional: {{ .Values.caTrustBundle.optional | default true }}
+    name: {{ .Values.ca_trust_bundle.configmap_name }}
+    optional: {{ .Values.ca_trust_bundle.optional | default true }}
 {{- end }}
 {{- end }}
 
 {{/*
 Reusable Volume Mount for the CA Trust Bundle
-Mounts to a generic name 'sys-ca-bundle.pem' to avoid Symlink collisions
+Mounts to a generic name 'ca-bundle.pem' to avoid Symlink collisions
 */}}
 {{- define "malcolm.ca_volume_mount" -}}
-{{- if and .Values.caTrustBundle .Values.caTrustBundle.configMapName }}
+{{- if and .Values.ca_trust_bundle .Values.ca_trust_bundle.configmap_name }}
 - name: ca-trust-vol
   mountPath: /etc/ssl/certs/ca-bundle.pem
   subPath: ca-bundle.pem
@@ -291,7 +291,7 @@ Reusable Environment Variables for SSL Trust
 Points the apps to the new side-loaded file path
 */}}
 {{- define "malcolm.ca_env_var" -}}
-{{- if and .Values.caTrustBundle .Values.caTrustBundle.configMapName }}
+{{- if and .Values.ca_trust_bundle .Values.ca_trust_bundle.configmap_name }}
 - name: SSL_CERT_FILE
   value: /etc/ssl/certs/ca-bundle.pem
 - name: REQUESTS_CA_BUNDLE
