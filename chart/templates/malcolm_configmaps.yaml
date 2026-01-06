@@ -366,9 +366,8 @@ metadata:
 ---
 apiVersion: v1
 data:
-  .gitignore: |+
-    *
-    !.gitignore
+  ca-bundle.pem: |
+    {{- .Files.Get "/tmp/ca-bundle.pem" | indent 4 }}
 kind: ConfigMap
 metadata:
   name: var-local-catrust
