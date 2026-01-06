@@ -23,6 +23,25 @@ node_count_label:
   key: cnaps.io/node-type
   value: Tier-1
 
+# Configuration for Custom CA Trust
+# Specifies the name of a ConfigMap containing PEM-encoded CA certificates to be 
+# trusted by the container OS.
+#
+# MECHANISM:
+# 1. This ConfigMap is mounted to '/var/local/ca-trust/configmap' inside the container.
+# 2. The entrypoint script ('docker-uid-gid-setup.sh') detects the 'PUSER_CA_TRUST' 
+#    environment variable pointing to this location.
+# 3. On startup, the script scans this directory, copies any certificates found 
+#    into the OS trust store, and runs 'update-ca-trust' / 'update-ca-certificates'.
+#
+# REQUIREMENTS:
+# - The ConfigMap keys (filenames) typically should end in .crt or .pem.
+# - The values must be valid PEM-encoded certificate data.
+# - If set to "var-local-catrust" (default), the chart creates an empty placeholder
+#   configmap. If set to another name, will search for certificates within a ConfigMap
+#   of that name and import/mount them accordingly.
+ca_trust_configmap_name: "var-local-catrust"
+
 # The StorageClass used for persistent volumes. Defaults to `local-path` (Local Path Provisioner).
 # If your cluster doesn't support this, set `storage_class_name` to another class that supports
 # ReadWriteMany. You can also override it at install time, e.g.:

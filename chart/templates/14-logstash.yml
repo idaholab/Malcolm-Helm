@@ -165,7 +165,7 @@ spec:
       volumes:
         - name: var-local-catrust-volume
           configMap:
-            name: var-local-catrust
+            name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
         - name: logstash-opensearch-curlrc-secret-volume
           secret:
             secretName: opensearch-curlrc
