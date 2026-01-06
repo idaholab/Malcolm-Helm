@@ -367,7 +367,7 @@ metadata:
 apiVersion: v1
 data:
   ca-bundle.pem: |
-    {{- .Files.Get "/tmp/ca-bundle.pem" | indent 4 }}
+    {{- .Files.Get "ca-bundle.pem" | indent 4 }}
 kind: ConfigMap
 metadata:
   name: var-local-catrust
