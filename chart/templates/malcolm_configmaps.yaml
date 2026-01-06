@@ -363,6 +363,7 @@ kind: ConfigMap
 metadata:
   name: upload-common-env
 
+{{- if eq ( .Values.ca_trust_configmap_name | default "var-local-catrust" ) "var-local-catrust" }}
 ---
 apiVersion: v1
 data:
@@ -372,6 +373,7 @@ data:
 kind: ConfigMap
 metadata:
   name: var-local-catrust
+{{- end }}
 
 ---
 apiVersion: v1
