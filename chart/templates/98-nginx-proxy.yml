@@ -8,7 +8,7 @@ metadata:
 spec:
   # use "type: ClusterIP" if using Ingress-NGINX as illustrated in 99-ingress-nginx.yml.example
   # use "type: LoadBalancer" if using AWS Load Balancer as illustrated in 99-ingress-alb.yml.example
-  type: ClusterIP
+  type: "{{ .Values.nginx.type | default "ClusterIP" }}"
   ports:
     - port: 443
       protocol: TCP
