@@ -27,7 +27,7 @@ spec:
       containers:
       - name: arkime-live-container
         image: "{{ $arkime_image }}"
-        imagePullPolicy: Always
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true        
         securityContext:

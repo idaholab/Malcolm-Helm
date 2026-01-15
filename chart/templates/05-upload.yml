@@ -38,6 +38,9 @@ spec:
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
         ports:
           - name: sftp
             protocol: TCP
