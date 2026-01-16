@@ -34,6 +34,9 @@ spec:
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
         env:
           - name: PCAP_NODE_NAME
             valueFrom:
