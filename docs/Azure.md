@@ -1,7 +1,7 @@
 # Deploying Malcolm-Helm on Azure
 
-Microsoft Azure is a comprehensive cloud computing platform and infrastructure created by Microsoft. It offers a wide range of cloud services, including those for computing, analytics, storage, and networking. Users can pick and choose from these services to develop and scale new applications, or run existing applications in the public cloud. Azure is designed to help businesses manage their cloud infrastructure, ensuring scalability, reliability, and security. It supports 
-multiple programming languages, tools, and frameworks including the Microsoft Azure Kubernetes Service (AKS) where Malcolm-Helm can be deployed. 
+Azure is a comprehensive cloud computing platform and infrastructure created by Microsoft. It offers a wide range of cloud services including those for computing, analytics, storage, and networking. Users can pick and choose from these services to develop and scale new applications or run existing applications in the public cloud. Azure is designed to help businesses manage their cloud infrastructure ensuring scalability, reliability, and security. It supports 
+multiple programming languages, tools, and frameworks including the Microsoft Azure Kubernetes Service (AKS) where we will deploy Malcolm-Helm. 
 
 ## Connect to the Azure portal
 
@@ -12,7 +12,7 @@ You should be prompted to login:
 
 ![Screen shot of the Azure login page](./images/screenshots/Azure_Portal_Login-09112025.png)
 
-After authenticating you should see your Azure services home page with a list of resources, your subscription type and links to the various services available.
+After authenticating you should see your Azure services home page with a list of resources, your subscription type, and links to the various services available.
 
 ![Screen shot of the Azure landing page](images/screenshots/Azure_Landing_Page-09112025.png)
 
@@ -40,7 +40,7 @@ Save the newly generated key file to /home/{user}/.ssh/id_rsa (or just hit enter
 
 ![Screen shot of output from running ssh-keygen in Cloud Shell](images/screenshots/Azure_Cloud_Shell_ssh-keygen_command-09112025.png)
 
-There is also one extension we will need to add to the Azure "az" command for working with kubernetes with the following command:
+There is also one extension we will need to add to the Azure "az" command for working with kubernetes by issuing the following command:
 
 ```
 az extension add -n k8s-extension
@@ -56,25 +56,25 @@ You can verify which extensions are installed with:
 az extension list
 ```
 
-The output will include the k8s-extension along with a few others. (Note: The extension is only installed on this instance of Cloud Shell and will. You may need to re-install each time you open a new Cloud Shell instance and start working with Malcolm-Helm)
+The output will include the k8s-extension along with a few others. (Note: The extension is only installed on this instance of Cloud Shell and will need to be re-install each time you open a new Cloud Shell instance and start working with Malcolm-Helm)
 
 ![Screen shot of output from az extension list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_extension_list_command-09112025.png)
 
-Now that we have confirmed access to the Azure environement and the Cloud Shell tools we can begin adding the necessary services
+Now that we have confirmed access to the Azure environement and the Cloud Shell tools we can begin adding the necessary services.
 
 ### Add the Malcolm Helm Chart repository
 
-Malcolm can be installed via the Helm Chart. First we need to add the repository to the local helm configuration.
+Malcolm will be installed via the Helm Chart. First we need to add the repository to the local helm configuration with:
 
 ```
 helm repo add malcolm https://raw.githubusercontent.com/idaholab/Malcolm-Helm/refs/heads/helm-repo/
 ```
 
-The output will verify the name of the newly added reposioty
+The output will verify the name of the newly added repository
 
 ![Screen shot of output from helm repo add command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_add_helm_repo.png)
 
-Verify the addition was successful by listing available helm repositories
+Verify the addition was successful by listing available helm repositories:
 
 ```
 helm repo list
@@ -84,7 +84,7 @@ You should see the repository name and the URL we just provided
 
 ![Screen shot of output from helm repo list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_list_helm_repos.png)
 
-Update the list of available charts in the newly added repository.
+Update the catalog of available charts in the newly added repository.
 
 ```
 helm repo update
@@ -94,7 +94,7 @@ You should see an "Update Complete" message when finished
 
 ![Screen shot of output from helm repo update command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_update_helm_repos.png)
 
-Verify the list of available charts in a repository with the helm search repo command
+Verify the list of available charts in a repository with the helm search repo command:
 
 ```
 helm search repo malcolm
@@ -117,13 +117,13 @@ The output will show the unique identifier for the newly created group along wit
 
 ![Screen shot of output from az group create command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_create_resource_group_command.png)
 
-Verify the group was created by listing available groups
+Verify the group was created by listing available groups.
 
 ```
 az group list
 ```
 
-The output will show the default "NetworkWatcherRG" automatically created by Azure as well as the newly created group
+The output will show the default "NetworkWatcherRG" automatically created by Azure as well as the newly created group.
 
 ![Screen shot of output from az group list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_resource_group_list_command.png)
 
@@ -137,13 +137,13 @@ This will take a few minutes while the output displays messages like "InProgress
 
 ![Screen shot of output from az create cluster command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_create_cluster_command.png)
 
-Next we need to get the authentication credentials from the newly created cluster so we can interact with it
+Next we need to get the authentication credentials from the newly created cluster so we can interact with it.
 
 ```
 az aks get-credentials --resource-group MalcolmRG --name MalcolmCluster
 ```
 
-The output will show where a config file with the credentials has been written
+The output will show where a config file with the credentials has been written.
 
 ![Screen shot of output from az aks get-credentials command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_aks_get_credentials_command.png)
 
@@ -160,7 +160,7 @@ The output will list the Kuberenetes pods and their status. When all pods have a
 
 ## Install Malcolm using Helm
 
-We are now ready to install malcolm using the newly configured Helm Repository. This requires tweaking the storage class to leverage a compatible Azure storage provider as well as specifying the creation of a LoadBalancer, rather than an ingress component, for external access using the "--set" options. We will request a new Kubernetes namespace named "malcolm" and have Helm create that automatically. We have also limited the OpenSearch component to 5GB of Java memory to fit within the limits of the Azure Standard_B4as_v3 node selected in the cluster creation above. If your node size is not limited by your Azure account this can be tweaked or omitted.
+We are now ready to install Malcolm using the newly configured Helm Repository. This requires tweaking the storage class to leverage a compatible Azure storage provider as well as specifying the creation of a LoadBalancer, rather than an ingress, for external access with the "--set" options. We will request a new Kubernetes namespace named "malcolm" and have Helm create that automatically. We have also limited the OpenSearch component to 5GB of Java memory to fit within the limits of the Azure Standard_B4as_v3 node selected in the cluster creation above. If your node size is not limited by your Azure account this can be modified or omitted.
 
 ```
 helm install malcolm malcolm/malcolm -n malcolm --create-namespace --set "storage_class_name=azureblob-nfs-premium" --set "nginx.type=LoadBalancer" --set "ingress.enabled=false" --set opensearch.development.java_memory="-Xmx5g -Xms5g -Xss256k"
@@ -168,7 +168,7 @@ helm install malcolm malcolm/malcolm -n malcolm --create-namespace --set "storag
 
 ![Screen shot of output from helm install malcolm command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_helm_install_malcolm_command.png)
 
-The Malcolm pods will be created and List the newly created pods with:
+The Malcolm pods will be created. We can check their status with:
 
 ```
 kubectl get pods -n malcolm
