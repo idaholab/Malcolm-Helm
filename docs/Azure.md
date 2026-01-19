@@ -125,7 +125,7 @@ az group list
 
 The output will show the default "NetworkWatcherRG" automatically created by Azure as well as the newly created group
 
-![Screen shot of output from az group list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_create_resource_group_command.png)
+![Screen shot of output from az group list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_resource_group_list_command.png)
 
 Now we can create a new Kubernetes cluster in the new resouce group. For those with a limited Azure account, like those included with a Visual Studio subscription, we select a smaller node-vm-size that will fit within the account limits. Feel free to select a larger node size or more nodes if available.
 
