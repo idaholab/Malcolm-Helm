@@ -491,6 +491,15 @@ appVersion: "25.09.0"
 
 3. In a working copy of the [Malcolm repository](https://github.com/idaholab/Malcolm), check out the Malcolm branch matching the current version supported by Malcolm-Helm (e.g., `24.09.0`):
 
+```bash
+$ git checkout v25.09.0
+Note: switching to 'v25.09.0'.
+
+...
+
+HEAD is now at b77e3eb3 Merge branch 'staging' of https://github.com/idaholab/Malcolm
+```
+
 4. View the changes between the current version (`v25.09.0`) and the new desired version (`v25.11.0`) and make note of any changes that may need to be reflected in the Helm chart.
     * This can be done either of two ways:
         - Using `git difftool` (e.g., `git difftool -d v25.09.0..v25.11.0`)
