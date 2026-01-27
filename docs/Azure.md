@@ -3,7 +3,7 @@
 Azure is a comprehensive cloud computing platform and infrastructure created by Microsoft. It offers a wide range of cloud services including those for computing, analytics, storage, and networking. Users can pick and choose from these services to develop and scale new applications or run existing applications in the public cloud. Azure is designed to help businesses manage their cloud infrastructure ensuring scalability, reliability, and security. It supports 
 multiple programming languages, tools, and frameworks including the Microsoft Azure Kubernetes Service (AKS) where we will deploy Malcolm-Helm. 
 
-## Connect to the Azure portal
+## Connect to the Azure Portal
 
 We will assume you already have a Microsoft Azure account setup and funding in place to run cloud instances. If you have active Visual Studio subscription it may include [free credits](https://learn.microsoft.com/en-us/visualstudio/subscriptions/vs-azure-eligibility) to test Malcom-Helm in Azure AKS. 
 
@@ -40,7 +40,7 @@ Save the newly generated key file to /home/{user}/.ssh/id_rsa (or just hit enter
 
 ![Screen shot of output from running ssh-keygen in Cloud Shell](images/screenshots/Azure_Cloud_Shell_ssh-keygen_command-09112025.png)
 
-There is also one extension we will need to add to the Azure "az" command for working with kubernetes by issuing the following command:
+There is also one extension we will need to add to the Azure "az" command for working with Kubernetes by issuing the following command:
 
 ```
 az extension add -n k8s-extension
@@ -60,7 +60,7 @@ The output will include the k8s-extension along with a few others. (Note: The ex
 
 ![Screen shot of output from az extension list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_extension_list_command-09112025.png)
 
-Now that we have confirmed access to the Azure environement and the Cloud Shell tools we can begin adding the necessary services.
+Now that we have confirmed access to the Azure environment and the Cloud Shell tools we can begin adding the necessary services.
 
 ### Add the Malcolm Helm Chart repository
 
@@ -127,13 +127,13 @@ The output will show the default "NetworkWatcherRG" automatically created by Azu
 
 ![Screen shot of output from az group list command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_resource_group_list_command.png)
 
-Now we can create a new Kubernetes cluster in the new resouce group. For those with a limited Azure account, like those included with a Visual Studio subscription, we select a smaller node-vm-size that will fit within the account limits. Feel free to select a larger node size or more nodes if available.
+Now we can create a new Kubernetes cluster in the new resource group. For those with a limited Azure account, like those included with a Visual Studio subscription, we select a smaller node-vm-size that will fit within the account limits. Feel free to select a larger node size or more nodes if available.
 
 ```
 az aks create -n MalcolmCluster -g MalcolmRG --node-vm-size Standard_B4as_v2 --node-count 3 --enable-blob-driver --ssh-key-value ~/.ssh/id_rsa.pub
 ```
 
-This will take a few minutes while the output displays messages like "InProgress.." and "CreatingAgentPools: 0/3". When the cluster creation is complete a large amount of JSON information about the cluster properites will be displayed.
+This will take a few minutes while the output displays messages like "InProgress.." and "CreatingAgentPools: 0/3". When the cluster creation is complete a large amount of JSON information about the cluster properties will be displayed.
 
 ![Screen shot of output from az create cluster command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_create_cluster_command.png)
 
@@ -143,7 +143,7 @@ Next we need to get the authentication credentials from the newly created cluste
 az aks get-credentials --resource-group MalcolmRG --name MalcolmCluster
 ```
 
-The output will show where a config file with the credentials has been written.
+The output will show where a configuration file has been written with the credentials.
 
 ![Screen shot of output from az aks get-credentials command in Cloud Shell](images/screenshots/Azure_Cloud_Shell_aks_get_credentials_command.png)
 
@@ -196,18 +196,18 @@ Replace the "20.245.132.124" IP address with the output from your "kubectl get s
 
 ![Screen shot of the Malcolm login prompt in a browser](images/screenshots/Malcolm_browser_login_prompt.png)
 
-Successfully logging in will take you to the Malcolm landing page with liks to the various components like OpenSearch Dashboads, Arkime, NetBox and CyberChef
+Successfully logging in will take you to the Malcolm landing page with links to the various components like OpenSearch Dashboads, Arkime, NetBox and CyberChef
 
 ![Screen shot of the Malcolm landing page in a browser](images/screenshots/Malcolm_browser_landing_page.png)
 
-It may take some time for the OpenSearch component to initalize. Everything should be up and running when the dashboards switch to the dark theme with a navigation pane for the various visualizations.
+It may take some time for the OpenSearch component to initialize. Everything should be up and running when the dashboards switch to the dark theme with a navigation pane for the various visualizations.
 
 ![Screen shot of the Malcolm dashboard page in a browser](images/screenshots/Malcolm_browser_dashboards_page.png)
 
 
 ## Un-Install Malcolm using Helm
 
-When finished Malcom can be uninstalled with the following helm command:
+When finished, Malcolm can be uninstalled with the following helm command:
 
 ```
 helm delete malcolm -n malcolm
