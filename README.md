@@ -509,3 +509,11 @@ HEAD is now at b77e3eb3 Merge branch 'staging' of https://github.com/idaholab/Ma
 5. For each relevant change identified in step 4, modify the corresponding files in Malcolm-Helm to reflect the updates. Ensure that all necessary changes are accurately mirrored.
 
 6. Launch an instance of Malcolm-Helm to verify the upgrade, ensuring there are no breaking changes and that the system functions as expected.
+
+
+## Deploying Malcolm-Helm on Cloud Service Providers
+
+Please see the documentation pages for each cloud service provider below:
+
+  [**Deploying Malcolm-Helm on Azure**](docs/Azure.md)
+
