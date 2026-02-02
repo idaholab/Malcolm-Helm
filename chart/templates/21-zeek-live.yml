@@ -1,8 +1,9 @@
 {{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $filescan_image := .Values.image.filescan_container_override | default (printf "%s/filescan:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $strelka_frontend_image := .Values.image.strelka_frontend_container_override | default (printf "%s/strelka-frontend:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $redis_image := .Values.image.redis_container_override | default (printf "%s/redis:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $strelka_backend_image := .Values.image.strelka_backend_container_override | default (printf "%s/strelka-backend:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $strelka_frontend_image := .Values.image.strelka_frontend_container_override | default (printf "%s/strelka-frontend:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $strelka_manager_image := .Values.image.strelka_manager_container_override | default (printf "%s/strelka-manager:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if eq .Values.capture_mode "live" }}
 ---
@@ -451,6 +452,82 @@ spec:
             name: var-local-catrust-volume
           - mountPath: "/etc/strelka/configmap"
             name: strelka-manager-live-config-volume
+      - name: redis-container
+        image: "{{ $redis_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        command: ["/sbin/tini"]
+        args: ["--",
+               "/usr/local/bin/docker-uid-gid-setup.sh",
+               "/usr/local/bin/service_check_passthrough.sh",
+               "-s",
+               "redis",
+               "sh",
+               "-c",
+               "redis-server --dir /data --appendonly yes --requirepass $(REDIS_PASSWORD)"]
+        ports:
+          - name: redis
+            protocol: TCP
+            containerPort: 6379
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - secretRef:
+              name: redis-env
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 45
+          periodSeconds: 60
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume
+          - name: filescan-live-redis-data-path
+            mountPath: /data
+      - name: redis-cache-container
+        image: "{{ $redis_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        command: ["/sbin/tini"]
+        args: ["--",
+               "/usr/local/bin/docker-uid-gid-setup.sh",
+               "/usr/local/bin/service_check_passthrough.sh",
+               "-s",
+               "redis",
+               "sh",
+               "-c",
+               "--save '' --appendonly no --maxmemory-policy allkeys-lru --requirepass $(REDIS_PASSWORD)"]
+        ports:
+          - name: redis-cache
+            protocol: TCP
+            containerPort: 6379
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - secretRef:
+              name: redis-env
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 45
+          periodSeconds: 60
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
@@ -498,7 +575,11 @@ spec:
             type: DirectoryOrCreate
         - name: filescan-live-logs-volume
           hostPath:
-            path: "{{ .Values.filescan_live.filescan_log_path }}"
+            path: "{{ .Values.zeek_live.filescan_log_path }}"
+            type: DirectoryOrCreate
+        - name: filescan-live-redis-data-path
+          hostPath:
+            path: "{{ .Values.zeek_live.filescan_redis_data_path }}"
             type: DirectoryOrCreate
         - name: strelka-frontend-live-config-volume
           configMap:

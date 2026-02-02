@@ -510,6 +510,8 @@ zeek_live:
   zeek_disable_stats: ""
   zeek_log_path: /opt/zeek/logs
   zeek_extracted_path: /opt/zeek/extracted
+  filescan_log_path: /filescan
+  filescan_redis_data_path: /redis
 
   # Zeek live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
   nodeSelector:
@@ -575,9 +577,6 @@ filescan_env:
     extracted_file_prune_threshold_total_disk_usage_percent: 0
     extracted_file_prune_interval_seconds: 300
     backend_procs: 4
-
-filescan_live:
-  filescan_log_path: /filescan
 
 # Affects all Zeek deployments (live and offline)
 zeek_env:
