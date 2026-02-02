@@ -511,7 +511,6 @@ zeek_live:
   zeek_log_path: /usr/local/zeek/logs
   zeek_extracted_path: /usr/local/zeek/extracted
   filescan_log_path: /filescan
-  filescan_redis_data_path: /redis
 
   # Zeek live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
   nodeSelector:

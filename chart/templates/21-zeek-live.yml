@@ -452,45 +452,6 @@ spec:
             name: var-local-catrust-volume
           - mountPath: "/etc/strelka/configmap"
             name: strelka-manager-live-config-volume
-      - name: redis-container
-        image: "{{ $redis_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        command: ["/sbin/tini"]
-        args: ["--",
-               "/usr/local/bin/docker-uid-gid-setup.sh",
-               "/usr/local/bin/service_check_passthrough.sh",
-               "-s",
-               "redis",
-               "sh",
-               "-c",
-               "redis-server --dir /data --appendonly yes --requirepass $(REDIS_PASSWORD)"]
-        ports:
-          - name: redis
-            protocol: TCP
-            containerPort: 6379
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - secretRef:
-              name: redis-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 45
-          periodSeconds: 60
-          timeoutSeconds: 15
-          successThreshold: 1
-          failureThreshold: 10
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - name: filescan-live-redis-data-path
-            mountPath: /data
       - name: redis-cache-container
         image: "{{ $redis_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
@@ -576,10 +537,6 @@ spec:
         - name: filescan-live-logs-volume
           hostPath:
             path: "{{ .Values.zeek_live.filescan_log_path }}"
-            type: DirectoryOrCreate
-        - name: filescan-live-redis-data-path
-          hostPath:
-            path: "{{ .Values.zeek_live.filescan_redis_data_path }}"
             type: DirectoryOrCreate
         - name: strelka-frontend-live-config-volume
           configMap:

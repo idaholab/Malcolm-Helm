@@ -118,5 +118,3 @@ spec:
           persistentVolumeClaim:
             claimName: runtime-logs-claim
 
-
-

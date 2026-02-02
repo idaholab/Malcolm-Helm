@@ -243,9 +243,12 @@ spec:
             name: filebeat-opensearch-curlrc-secret-volume
           - mountPath: "/zeek"
             name: filebeat-zeek-volume
+          - mountPath: "/filescan"
+            name: filebeat-runtime-logs-volume
+            subPath: "filescan"
           - mountPath: "/suricata-offline"
             name: filebeat-suricata-offline-volume
-          - name: filebeat-nginx-runtime-logs-volume
+          - name: filebeat-runtime-logs-volume
             mountPath: /nginx
             subPath: "nginx"
       initContainers:
@@ -262,9 +265,9 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/data/runtime-logs:nginx"
+            value: "/data/runtime-logs:nginx,filescan"
         volumeMounts:
-          - name: filebeat-nginx-runtime-logs-volume
+          - name: filebeat-runtime-logs-volume
             mountPath: "/data/runtime-logs"
       volumes:
         - name: var-local-catrust-volume
@@ -279,6 +282,6 @@ spec:
         - name: filebeat-suricata-offline-volume
           persistentVolumeClaim:
             claimName: suricata-claim-offline
-        - name: filebeat-nginx-runtime-logs-volume
+        - name: filebeat-runtime-logs-volume
           persistentVolumeClaim:
             claimName: runtime-logs-claim
