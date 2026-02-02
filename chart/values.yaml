@@ -562,6 +562,8 @@ filescan_env:
   extracted_file_http_server_enable: true
   extracted_file_http_server_recursive: true
   extracted_file_http_server_magic: false
+  extracted_file_http_server_zip: false
+  extracted_file_http_server_encrypt_password: ""
   extracted_file_preservation: quarantined
   development:
     # Prune ./zeek-logs/extract_files/ when it exceeds this size

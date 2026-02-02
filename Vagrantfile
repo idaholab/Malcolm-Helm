@@ -185,6 +185,17 @@ Vagrant.configure("2") do |config|
     chown root:root /usr/local/bin/k9s
     rm -rf /tmp/K9S*
 
+    KUBECONFORM_VERSION=0.7.0
+    LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+    KUBECONFORM_URL="https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-${LINUX_CPU}.tar.gz"
+    cd /tmp
+    mkdir -p ./KUBECONFORM
+    curl -L "${KUBECONFORM_URL}" | tar xzf - -C ./KUBECONFORM
+    mv ./K9S/kubeconform /usr/local/bin/kubeconform
+    chmod 755 /usr/local/bin/kubeconform
+    chown root:root /usr/local/bin/kubeconform
+    rm -rf /tmp/KUBECONFORM*
+
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/vagrant_dependencies/bash_convenience >> /home/vagrant/.bashrc
     sed -i "s/KUBESPACE=malcolm/KUBESPACE=#{malcolm_namespace}/g" /home/vagrant/.bashrc
 

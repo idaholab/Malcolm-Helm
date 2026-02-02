@@ -23,7 +23,7 @@ data:
   # Whether or not to serve the directory containing Zeek-extracted over HTTP at ./extracted-files/
   FILESCAN_HTTP_SERVER_ENABLE: "{{ .Values.filescan_env.extracted_file_http_server_enable }}"
   # Whether or not Zeek-extracted files served over HTTP will be archived in a Zip file
-  FILESCAN_HTTP_SERVER_ENABLE: "false"
+  FILESCAN_HTTP_SERVER_ZIP: "{{ .Values.filescan_env.extracted_file_http_server_zip }}"
   # Whether or not to use libmagic to show MIME types for Zeek-extracted files served
   FILESCAN_HTTP_SERVER_MAGIC: "{{ .Values.filescan_env.extracted_file_http_server_magic }}"
   FILESCAN_HTTP_SERVER_RECURSIVE: "{{ .Values.filescan_env.extracted_file_http_server_recursive }}"

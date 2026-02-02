@@ -1,6 +1,7 @@
 apiVersion: v2
 name: malcolm
 description: A Helm chart for Deploying Malcolm in Kubernetes
+icon: https://raw.githubusercontent.com/idaholab/Malcolm/main/docs/images/icon/icon.png
 
 # A chart can be either an 'application' or a 'library' chart.
 #
