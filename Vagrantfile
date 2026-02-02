@@ -314,7 +314,7 @@ Vagrant.configure("2") do |config|
       helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
       kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2
       rm -f /tmp/malcolm_rendered.yaml
-      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic} || echo "Helm install --dry-run failed!" >&2
+      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic} >/dev/null || echo "Helm install --dry-run failed!" >&2
       # helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       grep -qxF '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' /etc/hosts || echo '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' >> /etc/hosts
@@ -344,7 +344,7 @@ Vagrant.configure("2") do |config|
       helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
       kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2
       rm -f /tmp/malcolm_rendered.yaml
-      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic} || echo "Helm install --dry-run failed!" >&2
+      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic} >/dev/null || echo "Helm install --dry-run failed!" >&2
       # helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
