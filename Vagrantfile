@@ -23,6 +23,10 @@ Vagrant.configure("2") do |config|
   vm_gui = ENV['VAGRANT_GUI'] || 'true'
   vm_ssd = ENV['VAGRANT_SSD'] || 'on'
   vm_nic = ENV['VAGRANT_NIC'] || 'enp0s8'
+  libvirt_machine_arch = ENV['VAGRANT_LIBVIRT_MACHINE_ARCH'] || 'x86_64'
+  libvirt_machine_type = ENV['VAGRANT_LIBVIRT_MACHINE_TYPE'] || 'q35'
+  libvirt_ovmf_code = ENV['VAGRANT_LIBVIRT_LOADER'] || ''
+  libvirt_ovmf_vars = ENV['VAGRANT_LIBVIRT_NVRAM'] || ''
   malcolm_username = ENV['MALCOLM_USERNAME'] || 'malcolm'
   malcolm_password = ENV['MALCOLM_PASSWORD'] || 'malcolm'
   malcolm_namespace = ENV['MALCOLM_NAMESPACE'] || 'malcolm'
@@ -55,8 +59,10 @@ Vagrant.configure("2") do |config|
     libvirt.driver = "kvm"
     libvirt.cpus = vm_cpus.to_i
     libvirt.memory = vm_memory.to_i
-    libvirt.machine_arch = 'x86_64'
-    libvirt.machine_type = "q35"
+    libvirt.machine_arch = libvirt_machine_arch
+    libvirt.machine_type = libvirt_machine_type
+    libvirt.loader = libvirt_ovmf_code if libvirt_ovmf_code && !libvirt_ovmf_code.empty?
+    libvirt.nvram  = libvirt_ovmf_vars if libvirt_ovmf_vars && !libvirt_ovmf_vars.empty?
     libvirt.nic_model_type = "virtio"
     libvirt.cpu_mode = 'host-model'
     libvirt.cpu_fallback = 'forbid'
