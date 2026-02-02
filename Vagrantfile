@@ -191,7 +191,7 @@ Vagrant.configure("2") do |config|
     cd /tmp
     mkdir -p ./KUBECONFORM
     curl -L "${KUBECONFORM_URL}" | tar xzf - -C ./KUBECONFORM
-    mv ./K9S/kubeconform /usr/local/bin/kubeconform
+    mv ./KUBECONFORM/kubeconform /usr/local/bin/kubeconform
     chmod 755 /usr/local/bin/kubeconform
     chown root:root /usr/local/bin/kubeconform
     rm -rf /tmp/KUBECONFORM*
@@ -310,6 +310,11 @@ Vagrant.configure("2") do |config|
         --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
 
       # Install Malcolm enabling istio (commented out for dev/testing so I can deploy it manually)
+      helm lint /vagrant/chart || echo "Helm linting failed!" >&2
+      helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
+      kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2
+      rm -f /tmp/malcolm_rendered.yaml
+      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic} || echo "Helm install --dry-run failed!" >&2
       # helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       grep -qxF '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' /etc/hosts || echo '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' >> /etc/hosts
@@ -335,6 +340,11 @@ Vagrant.configure("2") do |config|
         --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
 
       # Install Malcolm (commented out for dev/testing so I can deploy it manually)
+      helm lint /vagrant/chart || echo "Helm linting failed!" >&2
+      helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
+      kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2
+      rm -f /tmp/malcolm_rendered.yaml
+      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic} || echo "Helm install --dry-run failed!" >&2
       # helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
