@@ -508,8 +508,8 @@ suricata_offline:
 # If disabled, PCAPs can still be uploaded using the Malcolm offline upload functionality.
 zeek_live:
   zeek_disable_stats: ""
-  zeek_log_path: /opt/zeek/logs
-  zeek_extracted_path: /opt/zeek/extracted
+  zeek_log_path: /usr/local/zeek/logs
+  zeek_extracted_path: /usr/local/zeek/extracted
   filescan_log_path: /filescan
   filescan_redis_data_path: /redis
 
