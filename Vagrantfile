@@ -191,9 +191,9 @@ Vagrant.configure("2") do |config|
       echo 'fs.inotify.max_user_instances=8192' >> /etc/sysctl.d/performance.conf
       echo 'fs.inotify.max_user_watches=131072' >> /etc/sysctl.d/performance.conf
       echo 'kernel.dmesg_restrict=0' >> /etc/sysctl.d/performance.conf
-      echo 'vm.dirty_background_ratio=40' >> /etc/sysctl.d/performance.conf
-      echo 'vm.dirty_ratio=80' >> /etc/sysctl.d/performance.conf
-      echo 'vm.max_map_count=262144' >> /etc/sysctl.d/performance.conf
+      echo 'vm.dirty_background_ratio=5' >> /etc/sysctl.d/performance.conf
+      echo 'vm.dirty_ratio=10' >> /etc/sysctl.d/performance.conf
+      echo 'vm.max_map_count=524288' >> /etc/sysctl.d/performance.conf
       echo 'vm.swappiness=0' >> /etc/sysctl.d/performance.conf
       sysctl -p
     fi
