@@ -39,12 +39,9 @@ spec:
           runAsGroup: 0
           runAsUser: 0
         ports:
-          - name: health
-            containerPort: 8001
+          - name: enqueue
+            containerPort: 57314
             protocol: TCP
-          - name: files
-            protocol: TCP
-            containerPort: 8006
         envFrom:
           - configMapRef:
               name: process-env
