@@ -576,6 +576,9 @@ filescan_env:
     extracted_file_prune_interval_seconds: 300
     backend_procs: 4
 
+filescan_live:
+  filescan_log_path: /filescan
+
 # Affects all Zeek deployments (live and offline)
 zeek_env:
   # Determines which files are extracted from network traffic by Zeek

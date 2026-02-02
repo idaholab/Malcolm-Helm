@@ -112,6 +112,8 @@ spec:
                 fieldPath: spec.nodeName
           - name: FILEBEAT_ZEEK_LOG_LIVE_PATH
             value: "/zeek/live"
+          - name: FILEBEAT_FILESCAN_LOG_PATH
+            value: "/filescan"
         livenessProbe:
           exec:
             command:
@@ -130,6 +132,8 @@ spec:
             name: filebeat-suricata-live-volume
           - mountPath: "/zeek"
             name: zeek-live-logs-volume
+          - mountPath: "/filescan"
+            name: filescan-live-logs-volume
       initContainers:
       - name: filebeat-dirinit-container
         image: "{{ $dirinit_image }}"
@@ -144,10 +148,12 @@ spec:
               name: process-env
         env:
           - name: PUSER_CHOWN
-            value: /zeek
+            value: "/zeek;/filescan"
         volumeMounts:
           - name: zeek-live-logs-volume
             mountPath: /zeek
+          - name: filescan-live-logs-volume
+            mountPath: /filescan
       volumes:
         - name: var-local-catrust-volume
           configMap:
@@ -162,6 +168,10 @@ spec:
         - name: zeek-live-logs-volume
           hostPath:
             path: "{{ .Values.zeek_live.zeek_log_path }}"
+            type: DirectoryOrCreate
+        - name: filescan-live-logs-volume
+          hostPath:
+            path: "{{ .Values.filescan_live.filescan_log_path }}"
             type: DirectoryOrCreate
 
 ---

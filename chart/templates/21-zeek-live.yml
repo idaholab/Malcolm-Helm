@@ -1,6 +1,9 @@
 {{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $filescan_image := .Values.image.filescan_container_override | default (printf "%s/filescan:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $strelka_frontend_image := .Values.image.strelka_frontend_container_override | default (printf "%s/strelka-frontend:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $strelka_backend_image := .Values.image.strelka_backend_container_override | default (printf "%s/strelka-backend:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $strelka_manager_image := .Values.image.strelka_manager_container_override | default (printf "%s/strelka-manager:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if eq .Values.capture_mode "live" }}
 ---
 apiVersion: v1
@@ -149,7 +152,7 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/zeek-live-logs:live/logs;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload"
+            value: "/zeek-live-logs:live/logs;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/filescan,live,processed,upload"
         volumeMounts:
           - name: zeek-intel-volume
             mountPath: "/data/config"
@@ -296,16 +299,10 @@ spec:
           runAsGroup: 0
           runAsUser: 0
         ports:
-          - name: clamav
-            containerPort: 3310
+          - name: health
+            containerPort: 8001
             protocol: TCP
-          - name: filetopic
-            containerPort: 5987
-            protocol: TCP
-          - name: loggertopic
-            containerPort: 5988
-            protocol: TCP
-          - name: http
+          - name: files
             protocol: TCP
             containerPort: 8006
         envFrom:
@@ -314,13 +311,21 @@ spec:
           - configMapRef:
               name: ssl-env
           - configMapRef:
+              name: auth-common-env
+          - configMapRef:
               name: zeek-env
+          - configMapRef:
+              name: pipeline-env
+          - secretRef:
+              name: redis-env
+          - secretRef:
+              name: filescan-secret-env
+          - configMapRef:
+              name: filescan-env
         env:          
-          - name: ZEEK_LOG_DIRECTORY
-            value: "/zeek/current"
-          - name: EXTRACTED_FILE_HTTP_SERVER_ENABLE
+          - name: FILESCAN_HTTP_SERVER_ENABLE
             value: "false"
-          - name: EXTRACTED_FILE_PRESERVATION
+          - name: FILESCAN_PRESERVATION
             value: "none"
         livenessProbe:
           exec:
@@ -337,11 +342,115 @@ spec:
           - mountPath: "/zeek/extract_files"
             name: zeek-live-zeek-volume
             subPath: "extract_files"
-          - mountPath: "/zeek/current"
-            name: zeek-live-logs-volume
-            subPath: "current"
+          - mountPath: "/filescan/data/files"
+            name: zeek-live-zeek-volume
+            subPath: "extract_files/filescan"
+            readOnly: true
+          - name: filescan-live-logs-volume
+            mountPath: /filescan/data/logs
+            subPath: "filescan"
+      - name: strelka-frontend-container
+        image: "{{ $strelka_frontend_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          # TODO we should not be using root here
+          runAsGroup: 0
+          runAsUser: 0
+        ports:
+          - name: enqueue
+            containerPort: 57314
+            protocol: TCP
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - secretRef:
+              name: redis-env
+          - configMapRef:
+              name: pipeline-env
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume
+          - mountPath: "/etc/strelka/configmap"
+            name: strelka-frontend-live-config-volume
+      - name: strelka-backend-container
+        image: "{{ $strelka_backend_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          # TODO we should not be using root here
+          runAsGroup: 0
+          runAsUser: 0
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - secretRef:
+              name: redis-env
+          - configMapRef:
+              name: pipeline-env
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume
+          - mountPath: "/etc/strelka/configmap"
+            name: strelka-backend-live-config-volume
           - mountPath: "/yara-rules/custom/configmap"
-            name: filescan-yara-rules-custom-volume
+            name: strelka-backend-yara-rules-custom-volume
+      - name: strelka-manager-container
+        image: "{{ $strelka_manager_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          # TODO we should not be using root here
+          runAsGroup: 0
+          runAsUser: 0
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - secretRef:
+              name: redis-env
+          - configMapRef:
+              name: pipeline-env
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume
+          - mountPath: "/etc/strelka/configmap"
+            name: strelka-manager-live-config-volume
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
@@ -361,7 +470,7 @@ spec:
           - name: PUSER_CHOWN
             value: /data/zeek-shared
           - name: PUSER_MKDIR
-            value: "/zeek-live-logs:current,live/logs;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/preserved,extract_files/quarantine,live,processed,upload;/data/zeek-shared:preserved,quarantine"
+            value: "/zeek-live-logs:current,live/logs;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/filescan,live,processed,upload;/data/zeek-shared:filescan"
         volumeMounts:
           - name: zeek-intel-volume
             mountPath: "/data/config"
@@ -373,9 +482,6 @@ spec:
         - name: var-local-catrust-volume
           configMap:
             name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
-        - name: filescan-yara-rules-custom-volume
-          configMap:
-            name: yara-rules
         - name: zeek-live-zeek-volume
           hostPath:
             path: "{{ .Values.zeek_live.zeek_extracted_path }}"
@@ -390,6 +496,22 @@ spec:
           hostPath:
             path: "{{ .Values.zeek_live.zeek_log_path }}"
             type: DirectoryOrCreate
+        - name: filescan-live-logs-volume
+          hostPath:
+            path: "{{ .Values.filescan_live.filescan_log_path }}"
+            type: DirectoryOrCreate
+        - name: strelka-frontend-live-config-volume
+          configMap:
+            name: strelka-frontend-config
+        - name: strelka-backend-live-config-volume
+          configMap:
+            name: strelka-backend-config
+        - name: strelka-backend-yara-rules-custom-volume
+          configMap:
+            name: yara-rules
+        - name: strelka-manager-live-config-volume
+          configMap:
+            name: strelka-manager-config
         {{- if ne (len .Values.zeek_chart_overrides.live_remote_volumes) 0 }}
         {{- toYaml .Values.zeek_chart_overrides.live_remote_volumes | nindent 8 }}
         {{- else }}
