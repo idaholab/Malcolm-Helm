@@ -1,0 +1,74 @@
+{{- $strelka_backend_image := .Values.image.strelka_backend_container_override | default (printf "%s/strelka-backend:%s" .Values.image.repository .Chart.AppVersion) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: yara-rules
+data:
+  .gitignore: |+
+    *
+    !.gitignore
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strelka-backend-deployment
+spec:
+  selector:
+    matchLabels:
+      name: strelka-backend-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: strelka-backend-deployment
+    spec:
+      containers:
+      - name: strelka-backend-container
+        image: "{{ $strelka_backend_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        securityContext:
+          # TODO we should not be using root here
+          runAsGroup: 0
+          runAsUser: 0
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - secretRef:
+              name: redis-env
+          - configMapRef:
+              name: pipeline-env
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume
+          - mountPath: "/etc/strelka/configmap"
+            name: strelka-backend-config-volume
+          - mountPath: "/yara-rules/custom/configmap"
+            name: strelka-backend-yara-rules-custom-volume
+      volumes:
+        - name: var-local-catrust-volume
+          configMap:
+            name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
+        - name: strelka-backend-config-volume
+          configMap:
+            name: strelka-backend-config
+        - name: strelka-backend-yara-rules-custom-volume
+          configMap:
+            name: yara-rules
+
+
+

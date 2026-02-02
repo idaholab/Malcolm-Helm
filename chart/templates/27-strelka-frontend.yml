@@ -1,39 +1,36 @@
-{{- $filescan_image := .Values.image.filescan_container_override | default (printf "%s/filescan:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $strelka_frontend_image := .Values.image.strelka_frontend_container_override | default (printf "%s/strelka-frontend:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: filescan
+  name: strelka-frontend
 spec:
   ports:
-    - port: 8001
+    - port: 57314
       protocol: TCP
-      name: health
-    - port: 8006
-      protocol: TCP
-      name: files
+      name: enqueue
   selector:
-    name: filescan-deployment
+    name: strelka-frontend-deployment
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: filescan-deployment
+  name: strelka-frontend-deployment
 spec:
   selector:
     matchLabels:
-      name: filescan-deployment
+      name: strelka-frontend-deployment
   replicas: 1
   template:
     metadata:
       labels:
-        name: filescan-deployment
+        name: strelka-frontend-deployment
     spec:
       containers:
-      - name: filescan-container
-        image: "{{ $filescan_image }}"
+      - name: strelka-frontend-container
+        image: "{{ $strelka_frontend_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -53,18 +50,10 @@ spec:
               name: process-env
           - configMapRef:
               name: ssl-env
-          - configMapRef:
-              name: auth-common-env
-          - configMapRef:
-              name: zeek-env
-          - configMapRef:
-              name: pipeline-env
           - secretRef:
               name: redis-env
-          - secretRef:
-              name: filescan-secret-env
           - configMapRef:
-              name: filescan-env
+              name: pipeline-env
         livenessProbe:
           exec:
             command:
@@ -77,18 +66,13 @@ spec:
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: var-local-catrust-volume
-          - mountPath: "/zeek/extract_files"
-            name: filescan-zeek-volume
-            subPath: "extract_files"
-          - name: filescan-logs-volume
-            mountPath: /filescan/data/logs
-            subPath: "filescan"
-          - mountPath: "/filescan/data/files"
-            name: filescan-zeek-volume
-            subPath: "extract_files/filescan"
-            readOnly: true
+          - mountPath: "/etc/strelka/configmap"
+            name: strelka-frontend-config-volume
+          - name: strelka-frontend-logs-volume
+            mountPath: /var/log/strelka
+            subPath: "strelka-frontend"
       initContainers:
-      - name: filescan-live-dirinit-container
+      - name: strelka-frontend-live-dirinit-container
         image: "{{ $dirinit_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -101,20 +85,18 @@ spec:
               name: process-env
         env:
           - name: PUSER_MKDIR
-            value: "/data/zeek-logs:extract_files/filescan;/data/runtime-logs:filescan"
+            value: "/data/runtime-logs:strelka-frontend"
         volumeMounts:
-          - name: filescan-zeek-volume
-            mountPath: "/data/zeek-logs"
-          - name: filescan-logs-volume
+          - name: strelka-frontend-logs-volume
             mountPath: "/data/runtime-logs"
       volumes:
         - name: var-local-catrust-volume
           configMap:
             name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
-        - name: filescan-zeek-volume
-          persistentVolumeClaim:
-            claimName: zeek-claim
-        - name: filescan-logs-volume
+        - name: strelka-frontend-config-volume
+          configMap:
+            name: strelka-frontend-config
+        - name: strelka-frontend-logs-volume
           persistentVolumeClaim:
             claimName: runtime-logs-claim
 
