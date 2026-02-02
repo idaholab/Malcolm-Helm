@@ -57,8 +57,6 @@ spec:
               name: upload-common-env
           - configMapRef:
               name: zeek-env
-          - secretRef:
-              name: zeek-secret-env
           - configMapRef:
               name: zeek-offline-env
         env:

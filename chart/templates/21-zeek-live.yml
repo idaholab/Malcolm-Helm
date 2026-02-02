@@ -1,6 +1,6 @@
 {{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $file_monitor_image := .Values.image.file_monitor_container_override | default (printf "%s/file-monitor:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $filescan_image := .Values.image.filescan_container_override | default (printf "%s/filescan:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if eq .Values.capture_mode "live" }}
 ---
 apiVersion: v1
@@ -89,8 +89,6 @@ spec:
           - configMapRef:
               name: kafka-config
           {{- end }}
-          - secretRef:
-              name: zeek-secret-env
           - configMapRef:
               name: zeek-live-env
           - configMapRef:
@@ -238,8 +236,6 @@ spec:
           - configMapRef:
               name: kafka-config
           {{- end }}
-          - secretRef:
-              name: zeek-secret-env
           - configMapRef:
               name: zeek-live-env
           - configMapRef:
@@ -290,8 +286,8 @@ spec:
       {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
-      - name: file-monitor-container
-        image: "{{ $file_monitor_image }}"
+      - name: filescan-container
+        image: "{{ $filescan_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
@@ -319,8 +315,6 @@ spec:
               name: ssl-env
           - configMapRef:
               name: zeek-env
-          - secretRef:
-              name: zeek-secret-env
         env:          
           - name: ZEEK_LOG_DIRECTORY
             value: "/zeek/current"
@@ -347,7 +341,7 @@ spec:
             name: zeek-live-logs-volume
             subPath: "current"
           - mountPath: "/yara-rules/custom/configmap"
-            name: file-monitor-yara-rules-custom-volume  
+            name: filescan-yara-rules-custom-volume
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
@@ -379,7 +373,7 @@ spec:
         - name: var-local-catrust-volume
           configMap:
             name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
-        - name: file-monitor-yara-rules-custom-volume
+        - name: filescan-yara-rules-custom-volume
           configMap:
             name: yara-rules
         - name: zeek-live-zeek-volume

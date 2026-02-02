@@ -256,6 +256,7 @@ data:
   path.repo: /opt/opensearch/backup
   node.roles: ingest,data,remote_cluster_client,cluster_manager
   discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
+  MALCOLM_INDEX_MAX_RESULT_WINDOW: "{{ .Values.siem_env.malcolm_index_max_result_window }}"
   MALCOLM_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_network_index_pattern }}"
   MALCOLM_NETWORK_INDEX_ALIAS: "{{ .Values.siem_env.logstash_override.search_alias }}"
   MALCOLM_NETWORK_INDEX_DEFAULT_PIPELINE: "{{ .Values.siem_env.malcolm_template_default_pipeline }}"
@@ -380,59 +381,20 @@ apiVersion: v1
 data:
   {{- if .Values.is_production }}
     {{- with .Values.zeek_env.production }}
-  CAPA_MAX_REQUESTS: "{{ .capa_max_requests }}"
-  CLAMD_MAX_REQUESTS: "{{ .clamd_max_requests }}"
-  YARA_MAX_REQUESTS: "{{ .yara_max_requests }}"
   EXTRACTED_FILE_MAX_BYTES: "{{ .extracted_file_max_bytes }}"
-  EXTRACTED_FILE_MIN_BYTES: "{{ .extracted_file_min_bytes }}"
-  # Prune ./zeek-logs/extract_files/ when it exceeds this size...
-  EXTRACTED_FILE_PRUNE_THRESHOLD_MAX_SIZE: "{{ .extracted_file_prune_threshold_max_size }}"
-  # ... or when the *total* disk usage exceeds this percentage
-  EXTRACTED_FILE_PRUNE_THRESHOLD_TOTAL_DISK_USAGE_PERCENT: "{{ .extracted_file_prune_threshold_total_disk_usage_percent }}"
-  # Interval in seconds for checking whether to prune ./zeek-logs/extract_files/
-  EXTRACTED_FILE_PRUNE_INTERVAL_SECONDS: "{{ .extracted_file_prune_interval_seconds }}"
     {{- end }}
   {{- else }}
     {{- with .Values.zeek_env.development }}
-  CAPA_MAX_REQUESTS: "{{ .capa_max_requests }}"
-  CLAMD_MAX_REQUESTS: "{{ .clamd_max_requests }}"
-  YARA_MAX_REQUESTS: "{{ .yara_max_requests }}"
   EXTRACTED_FILE_MAX_BYTES: "{{ .extracted_file_max_bytes }}"
-  EXTRACTED_FILE_MIN_BYTES: "{{ .extracted_file_min_bytes }}"
-  # Prune ./zeek-logs/extract_files/ when it exceeds this size...
-  EXTRACTED_FILE_PRUNE_THRESHOLD_MAX_SIZE: "{{ .extracted_file_prune_threshold_max_size }}"
-  # ... or when the *total* disk usage exceeds this percentage
-  EXTRACTED_FILE_PRUNE_THRESHOLD_TOTAL_DISK_USAGE_PERCENT: "{{ .extracted_file_prune_threshold_total_disk_usage_percent }}"
-  # Interval in seconds for checking whether to prune ./zeek-logs/extract_files/
-  EXTRACTED_FILE_PRUNE_INTERVAL_SECONDS: "{{ .extracted_file_prune_interval_seconds }}"
     {{- end }}
   {{- end }}
-  EXTRACTED_FILE_CAPA_VERBOSE: "false"
-  EXTRACTED_FILE_ENABLE_CAPA: "{{ .Values.zeek_env.extracted_file_enable_capa }}"
-  EXTRACTED_FILE_ENABLE_CLAMAV: "{{ .Values.zeek_env.extracted_file_enable_clamav }}"
-  EXTRACTED_FILE_ENABLE_VTOT: "{{ .Values.zeek_env.extracted_file_enable_vtot }}"
-  EXTRACTED_FILE_ENABLE_YARA: "{{ .Values.zeek_env.extracted_file_enable_yara }}"
-  EXTRACTED_FILE_HTTP_SERVER_ENABLE: "{{ .Values.zeek_env.extracted_file_http_server_enable }}"
-  EXTRACTED_FILE_HTTP_SERVER_ZIP: "false"
-  # Whether or not to use libmagic to show MIME types for Zeek-extracted files served
-  EXTRACTED_FILE_HTTP_SERVER_MAGIC: "false"
-  EXTRACTED_FILE_HTTP_SERVER_RECURSIVE: "{{ .Values.zeek_env.extracted_file_http_server_encrypt }}"
-  EXTRACTED_FILE_IGNORE_EXISTING: "false"
-  EXTRACTED_FILE_PIPELINE_VERBOSITY: ""
-  EXTRACTED_FILE_PRESERVATION: {{ .Values.zeek_env.extracted_file_preservation }}
-  EXTRACTED_FILE_UPDATE_RULES: "false"
-  EXTRACTED_FILE_WATCHER_POLLING: "true"
-  EXTRACTED_FILE_WATCHER_POLLING_ASSUME_CLOSED_SEC: "10"
-  EXTRACTED_FILE_YARA_CUSTOM_ONLY: "false"
   # Adjust how often the JA4SSH hash is calculated
   ZEEK_JA4SSH_PACKET_COUNT: "200"
   # for zeek-long-connections plugin
   ZEEK_LONG_CONN_REPEAT_LAST_DURATION: "true"
   ZEEK_LONG_CONN_DO_NOTICE: "true"
   ZEEK_LONG_CONN_DURATIONS: "600,1800,3600,43200,86400"
-  VTOT_REQUESTS_PER_MINUTE: "4"
   ZEEK_DISABLE_BEST_GUESS_ICS: ""
-  ZEEK_DISABLE_HASH_ALL_FILES: ""
   ZEEK_DISABLE_ICS_ALL: ""
   ZEEK_DISABLE_ICS_BACNET: ""
   ZEEK_DISABLE_ICS_BSAP: ""
@@ -472,6 +434,7 @@ data:
   ZEEK_DISABLE_SSL_VALIDATE_CERTS: ""
   ZEEK_DISABLE_TRACK_ALL_ASSETS: ""
   ZEEK_EXTRACTOR_MODE: {{ .Values.zeek_env.extract_mode }}
+  ZEEK_EXTRACTOR_PATH: "/zeek/extract_files"
   ZEEK_ENIP_PORTS: ""
   ZEEK_GENISYS_PORTS: ""
   ZEEK_INTEL_FEED_SINCE: "{{ .Values.zeek_env.zeek_intel_feed_since }}"

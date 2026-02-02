@@ -293,8 +293,8 @@ Vagrant.configure("2") do |config|
         --from-literal=openssl_password="$(openssl passwd -1 '#{malcolm_password}' | tr -d '\n' | base64 | tr -d '\n')" \
         --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
 
-      # Install Malcolm enabling istio
-      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic}
+      # Install Malcolm enabling istio (commented out for dev/testing so I can deploy it manually)
+      # helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       grep -qxF '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' /etc/hosts || echo '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' >> /etc/hosts
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
@@ -318,8 +318,8 @@ Vagrant.configure("2") do |config|
         --from-literal=openssl_password="$(openssl passwd -1 '#{malcolm_password}' | tr -d '\n' | base64 | tr -d '\n')" \
         --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
 
-      # Install Malcolm
-      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic}
+      # Install Malcolm (commented out for dev/testing so I can deploy it manually)
+      # helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
       hostname -I
