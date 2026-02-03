@@ -42,7 +42,16 @@ spec:
                "redis",
                "sh",
                "-c",
-               "redis-server --dir /data --appendonly yes --requirepass $(REDIS_PASSWORD)"]
+               {{- if .Values.is_production }}
+                 {{- with .Values.redis_env.production }}
+                 "--dir /data --appendonly yes --appendfsync everysec --no-appendfsync-on-rewrite yes --auto-aof-rewrite-percentage 100 --auto-aof-rewrite-min-size 64mb --save '' --maxmemory {{ .max_memory }} --maxmemory-policy {{ .max_memory_policy }} --requirepass $(REDIS_PASSWORD)"
+                 {{- end }}
+               {{- else }}
+                 {{- with .Values.redis_env.development }}
+                 "--dir /data --appendonly yes --appendfsync everysec --no-appendfsync-on-rewrite yes --auto-aof-rewrite-percentage 100 --auto-aof-rewrite-min-size 64mb --save '' --maxmemory {{ .max_memory }} --maxmemory-policy {{ .max_memory_policy }} --requirepass $(REDIS_PASSWORD)"
+                 {{- end }}
+               {{- end }}
+             ]
         ports:
           - name: redis
             protocol: TCP

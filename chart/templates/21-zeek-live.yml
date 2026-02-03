@@ -318,7 +318,7 @@ spec:
           - configMapRef:
               name: pipeline-env
           - secretRef:
-              name: redis-env
+              name: redis-remotesensor-env
           - secretRef:
               name: filescan-secret-env
           - configMapRef:
@@ -369,7 +369,7 @@ spec:
           - configMapRef:
               name: ssl-env
           - secretRef:
-              name: redis-env
+              name: redis-remotesensor-env
           - configMapRef:
               name: pipeline-env
         livenessProbe:
@@ -401,7 +401,7 @@ spec:
           - configMapRef:
               name: ssl-env
           - secretRef:
-              name: redis-env
+              name: redis-remotesensor-env
           - configMapRef:
               name: pipeline-env
         livenessProbe:
@@ -435,7 +435,7 @@ spec:
           - configMapRef:
               name: ssl-env
           - secretRef:
-              name: redis-env
+              name: redis-remotesensor-env
           - configMapRef:
               name: pipeline-env
         livenessProbe:
@@ -452,7 +452,7 @@ spec:
             name: var-local-catrust-volume
           - mountPath: "/etc/strelka/configmap"
             name: strelka-manager-live-config-volume
-      - name: redis-cache-container
+      - name: redis-remotesensor-container
         image: "{{ $redis_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -465,9 +465,18 @@ spec:
                "redis",
                "sh",
                "-c",
-               "--save '' --appendonly no --maxmemory-policy allkeys-lru --requirepass $(REDIS_PASSWORD)"]
+               {{- if .Values.is_production }}
+                 {{- with .Values.redis_env.production }}
+                 "--dir /data --appendonly yes --appendfsync everysec --no-appendfsync-on-rewrite yes --auto-aof-rewrite-percentage 100 --auto-aof-rewrite-min-size 64mb --save '' --maxmemory {{ .max_memory }} --maxmemory-policy {{ .max_memory_policy }} --requirepass $(REDIS_PASSWORD)"
+                 {{- end }}
+               {{- else }}
+                 {{- with .Values.redis_env.development }}
+                 "--dir /data --appendonly yes --appendfsync everysec --no-appendfsync-on-rewrite yes --auto-aof-rewrite-percentage 100 --auto-aof-rewrite-min-size 64mb --save '' --maxmemory {{ .max_memory }} --maxmemory-policy {{ .max_memory_policy }} --requirepass $(REDIS_PASSWORD)"
+                 {{- end }}
+               {{- end }}
+              ]
         ports:
-          - name: redis-cache
+          - name: redis-remotesensor-container
             protocol: TCP
             containerPort: 6379
         envFrom:
@@ -476,7 +485,56 @@ spec:
           - configMapRef:
               name: ssl-env
           - secretRef:
-              name: redis-env
+              name: redis-remotesensor-env
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 45
+          periodSeconds: 60
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume
+          - mountPath: "/data"
+            name: redis-remotesensor-volume
+            subPath: "data"
+      - name: redis-cache-remotesensor-container
+        image: "{{ $redis_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        command: ["/sbin/tini"]
+        args: ["--",
+               "/usr/local/bin/docker-uid-gid-setup.sh",
+               "/usr/local/bin/service_check_passthrough.sh",
+               "-s",
+               "redis",
+               "sh",
+               "-c",
+               {{- if .Values.is_production }}
+                 {{- with .Values.redis_env.production }}
+                 "--save '' --appendonly no --maxmemory {{ .cache_max_memory }} --maxmemory-policy {{ .cache_max_memory_policy }} --maxmemory-samples 10 --lazyfree-lazy-eviction yes --timeout 300 --tcp-keepalive 60 --requirepass $(REDIS_PASSWORD)"
+                 {{- end }}
+               {{- else }}
+                 {{- with .Values.redis_env.development }}
+                 "--save '' --appendonly no --maxmemory {{ .cache_max_memory }} --maxmemory-policy {{ .cache_max_memory_policy }} --maxmemory-samples 10 --lazyfree-lazy-eviction yes --timeout 300 --tcp-keepalive 60 --requirepass $(REDIS_PASSWORD)"
+                 {{- end }}
+               {{- end }}
+             ]
+        ports:
+          - name: redis-cache-remotesensor-container
+            protocol: TCP
+            containerPort: 6380
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - secretRef:
+              name: redis-remotesensor-env
         livenessProbe:
           exec:
             command:
@@ -508,7 +566,7 @@ spec:
           - name: PUSER_CHOWN
             value: /data/zeek-shared
           - name: PUSER_MKDIR
-            value: "/zeek-live-logs:current,live/logs;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/filescan,live,processed,upload;/data/zeek-shared:filescan"
+            value: "/zeek-live-logs:current,live/logs;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/zeek-logs:current,extract_files/filescan,live,processed,upload;/data/zeek-shared:filescan;/redis:data"
         volumeMounts:
           - name: zeek-intel-volume
             mountPath: "/data/config"
@@ -516,6 +574,8 @@ spec:
             mountPath: "/zeek-live-logs"
           - name: zeek-live-zeek-volume
             mountPath: "/data/zeek-shared"
+          - name: redis-remotesensor-volume
+            mountPath: "/redis"
       volumes:        
         - name: var-local-catrust-volume
           configMap:
@@ -523,7 +583,11 @@ spec:
         - name: zeek-live-zeek-volume
           hostPath:
             path: "{{ .Values.zeek_live.zeek_extracted_path }}"
-            type: DirectoryOrCreate            
+            type: DirectoryOrCreate
+        - name: redis-remotesensor-volume
+          hostPath:
+            path: "{{ .Values.zeek_live.redis_persistence_path }}"
+            type: DirectoryOrCreate
         - name: zeek-live-intel-preseed-volume
           configMap:
             name: zeek-intel-preseed

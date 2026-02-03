@@ -42,7 +42,16 @@ spec:
                "redis",
                "sh",
                "-c",
-               "--save '' --appendonly no --maxmemory-policy allkeys-lru --requirepass $(REDIS_PASSWORD)"]
+               {{- if .Values.is_production }}
+                 {{- with .Values.redis_env.production }}
+                 "--save '' --appendonly no --maxmemory {{ .cache_max_memory }} --maxmemory-policy {{ .cache_max_memory_policy }} --maxmemory-samples 10 --lazyfree-lazy-eviction yes --timeout 300 --tcp-keepalive 60 --requirepass $(REDIS_PASSWORD)"
+                 {{- end }}
+               {{- else }}
+                 {{- with .Values.redis_env.development }}
+                 "--save '' --appendonly no --maxmemory {{ .cache_max_memory }} --maxmemory-policy {{ .cache_max_memory_policy }} --maxmemory-samples 10 --lazyfree-lazy-eviction yes --timeout 300 --tcp-keepalive 60 --requirepass $(REDIS_PASSWORD)"
+                 {{- end }}
+               {{- end }}
+             ]
         ports:
           - name: redis
             protocol: TCP

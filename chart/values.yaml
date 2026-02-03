@@ -511,6 +511,7 @@ zeek_live:
   zeek_log_path: /usr/local/zeek/logs
   zeek_extracted_path: /usr/local/zeek/extracted
   filescan_log_path: /filescan
+  redis_persistence_path: /redis
 
   # Zeek live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
   nodeSelector:
@@ -578,6 +579,21 @@ filescan_env:
     extracted_file_prune_threshold_total_disk_usage_percent: 0
     extracted_file_prune_interval_seconds: 300
     backend_procs: 4
+
+redis_env:
+  # TODO: I have no idea what to base the max_memory/cache_max_memory numbers on, so for
+  # now I'm setting them to "0" which is the same as the redis default, which means
+  # "don't evict based on memory."
+  development:
+    max_memory: 0
+    max_memory_policy: allkeys-lru
+    cache_max_memory: 0
+    cache_max_memory_policy: allkeys-lru
+  production:
+    max_memory: 0
+    max_memory_policy: allkeys-lru
+    cache_max_memory: 0
+    cache_max_memory_policy: allkeys-lru
 
 # Affects all Zeek deployments (live and offline)
 zeek_env:
