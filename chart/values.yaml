@@ -747,20 +747,23 @@ filebeat:
   # will be pruned from the filesystem
   zip_cleanup_minutes: "90"
 
-  # Default affinity ensures the Filebeat DaemonSet runs on nodes also running Suricata or Zeek live capture.
-  nodeAffinity:
+  # Default affinity ensures the Filebeat DaemonSet runs on nodes also running Suricata or Zeek live capture. However,
+  # for zeek-remote-capture nodes, the Filebeat container is part of zeek-live-daemonset-remotesensor, hence DoesNotExist here.
+  daemonsetNodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
       - matchExpressions:
         - key: cnaps.io/suricata-capture
           operator: In
-          values:
-          - "true"
+          values: ["true"]
+        - key: cnaps.io/zeek-remote-capture
+          operator: DoesNotExist
       - matchExpressions:
         - key: cnaps.io/zeek-capture
           operator: In
-          values:
-          - "true"
+          values: ["true"]
+        - key: cnaps.io/zeek-remote-capture
+          operator: DoesNotExist
 
 # Sets the GID and UID for unprivileged processes in all containers
 process_env:

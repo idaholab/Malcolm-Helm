@@ -1,5 +1,6 @@
 {{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
+{{- $filebeat_image := .Values.image.filebeat_container_override | default (printf "%s/filebeat-oss:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $filescan_image := .Values.image.filescan_container_override | default (printf "%s/filescan:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $redis_image := .Values.image.redis_container_override | default (printf "%s/redis:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $strelka_backend_image := .Values.image.strelka_backend_container_override | default (printf "%s/strelka-backend:%s" .Values.image.repository .Chart.AppVersion) }}
@@ -452,7 +453,7 @@ spec:
             name: var-local-catrust-volume
           - mountPath: "/etc/strelka/configmap"
             name: strelka-manager-live-config-volume
-      - name: redis-remotesensor-container
+      - name: redis-container
         image: "{{ $redis_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -501,7 +502,7 @@ spec:
           - mountPath: "/data"
             name: redis-remotesensor-volume
             subPath: "data"
-      - name: redis-cache-remotesensor-container
+      - name: redis-cache-container
         image: "{{ $redis_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
@@ -547,6 +548,64 @@ spec:
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: var-local-catrust-volume
+      - name: filebeat-container
+        image: "{{ $filebeat_image }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        stdin: false
+        tty: true
+        envFrom:
+          - configMapRef:
+              name: process-env
+          - configMapRef:
+              name: ssl-env
+          - configMapRef:
+              name: nginx-env
+          - secretRef:
+              name: redis-remotesensor-env
+          - configMapRef:
+              name: zeek-env
+          - configMapRef:
+              name: opensearch-env
+          - configMapRef:
+              name: upload-common-env
+          - configMapRef:
+              name: beats-common-env
+          - configMapRef:
+              name: netbox-common-env
+          - configMapRef:
+              name: filebeat-env
+        env:
+          - name: PCAP_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: FILEBEAT_ZEEK_LOG_LIVE_PATH
+            value: "/zeek/live"
+          - name: FILEBEAT_SURICATA_LOG_PATH
+            value: "/suricata"
+          - name: FILEBEAT_FILESCAN_LOG_PATH
+            value: "/filescan"
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 10
+        volumeMounts:
+          - mountPath: /var/local/ca-trust/configmap
+            name: var-local-catrust-volume
+          - mountPath: /var/local/curlrc/secretmap
+            name: filebeat-opensearch-curlrc-secret-volume
+          - mountPath: "/suricata"
+            name: filebeat-suricata-live-volume
+          - mountPath: "/zeek"
+            name: zeek-live-logs-volume
+          - name: filescan-live-logs-volume
+            mountPath: "/filescan"
+            subPath: "filescan"
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
@@ -598,6 +657,13 @@ spec:
           hostPath:
             path: "{{ .Values.zeek_live.zeek_log_path }}"
             type: DirectoryOrCreate
+        - name: filebeat-suricata-live-volume
+          hostPath:
+            path: "{{ .Values.suricata_live.suricata_log_path }}"
+            type: DirectoryOrCreate
+        - name: filebeat-opensearch-curlrc-secret-volume
+          secret:
+            secretName: opensearch-curlrc
         - name: filescan-live-logs-volume
           hostPath:
             path: "{{ .Values.zeek_live.filescan_log_path }}"
