@@ -1,6 +1,5 @@
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $pcap_monitor_image := .Values.image.pcap_monitor_container_override | default (printf "%s/pcap-monitor:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $zeek_image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $suricata_image := .Values.image.suricata_container_override | default (printf "%s/suricata:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if eq .Values.capture_mode "pipeline" }}
 ---
@@ -87,68 +86,24 @@ spec:
           name: pcap-volume
         - mountPath: "/zeek"
           name: zeek-volume
-# Start of the ZEEK container
-      - name: zeek-container
-        image: "{{ $zeek_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: upload-pcap-offline-env
-          - configMapRef:
-              name: zeek-env
-          - configMapRef:
-              name: zeek-offline-env
-          {{- if .Values.kafka.enabled }}
-          - configMapRef:
-              name: kafka-config
-          {{- end }}
-        env:
-          - name: PCAP_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-          - name: PCAP_PROCESSED_DIRECTORY
-            value: "/pcap/arkime-live"
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 120
-          periodSeconds: 30
-          timeoutSeconds: 15
-          successThreshold: 1
-          failureThreshold: 10
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: "/pcap"
-            name: pcap-volume
-          - mountPath: "/zeek/extract_files"
-            name: extract-zeek-volume
-            subPath: "extract_files"
-          - mountPath: "/zeek/upload"
-            name: zeek-volume
-            subPath: "upload"
-          - mountPath: "/usr/local/zeek/share/zeek/site/intel-preseed/configmap"
-            name: zeek-offline-intel-preseed-volume
-          - mountPath: "/usr/local/zeek/share/zeek/site/intel"
-            name: zeek-intel-volume
-            subPath: "zeek/intel"
-          {{- if ne (len .Values.zeek_chart_overrides.offline_upload_volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_chart_overrides.offline_upload_volumeMounts | nindent 10 }}
-          {{- else }}
-          - mountPath: "/usr/local/zeek/share/zeek/site/custom/configmap"
-            name: zeek-custom-volume
-          {{- end }}
+      {{ include "malcolm.zeek.container" (dict
+           "root" $
+           "mode" "pcapProcessor"
+           "name" "zeek-container"
+           "securityContext" (dict "runAsGroup" 0 "runAsUser" 0)
+           "env" (list
+             (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
+             (dict "name" "PCAP_PROCESSED_DIRECTORY" "value" "/pcap/arkime-live")
+           )
+           "baseVolumeMounts" (list
+             (dict "mountPath" "/var/local/ca-trust/configmap" "name" "var-local-catrust-volume")
+             (dict "mountPath" "/pcap" "name" "pcap-volume")
+             (dict "mountPath" "/zeek/extract_files" "name" "extract-zeek-volume" "subPath" "extract_files")
+             (dict "mountPath" "/zeek/upload" "name" "zeek-volume" "subPath" "upload")
+             (dict "mountPath" "/usr/local/zeek/share/zeek/site/intel-preseed/configmap" "name" "zeek-offline-intel-preseed-volume")
+             (dict "mountPath" "/usr/local/zeek/share/zeek/site/intel" "name" "zeek-intel-volume" "subPath" "zeek/intel")
+           )
+         ) | nindent 6 }}
       {{ include "malcolm.suricata.container" (dict
            "root" $
            "mode" "pcapProcessor"

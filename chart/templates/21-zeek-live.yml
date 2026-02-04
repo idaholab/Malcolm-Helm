@@ -1,4 +1,3 @@
-{{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $filebeat_image := .Values.image.filebeat_container_override | default (printf "%s/filebeat-oss:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $filescan_image := .Values.image.filescan_container_override | default (printf "%s/filescan:%s" .Values.image.repository .Chart.AppVersion) }}
@@ -64,78 +63,25 @@ spec:
 {{ toYaml . | indent 6 }}
 {{- end }}
       containers:
-      - name: zeek-container
-        image: "{{ $image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          capabilities:
-            add:
-              # NET_ADMIN and NET_RAW - to turn on promiscuous mode and capture raw packets
-              - NET_ADMIN
-              - NET_RAW
-              # SYS_NICE - to set process nice values, real-time scheduling policies, I/O scheduling
-              - SYS_NICE
-        envFrom:
-          {{- if ne (len .Values.zeek_live.extra_envFrom) 0 }}
-          {{- toYaml .Values.zeek_live.extra_envFrom | nindent 10 }}
-          {{- end }}
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: upload-common-env
-          - configMapRef:
-              name: zeek-env
-          {{- if .Values.kafka.enabled }}
-          - configMapRef:
-              name: kafka-config
-          {{- end }}
-          - configMapRef:
-              name: zeek-live-env
-          - configMapRef:
-              name: pcap-capture-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 600
-          periodSeconds: 60
-          timeoutSeconds: 30
-          successThreshold: 1
-          failureThreshold: 3
-        env:
-          {{- if ne (len .Values.zeek_live.extra_env) 0 }}
-          {{- toYaml .Values.zeek_live.extra_env | nindent 10 }}
-          {{- end }}
-          - name: ZEEK_DISABLED
-            value: "false"
-          - name: PCAP_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: "/zeek/extract_files"
-            name: zeek-live-zeek-volume
-            subPath: "extract_files"
-          - mountPath: "/zeek/live"
-            name: zeek-live-logs-volume
-            subPath: "live"
-          - mountPath: "/usr/local/zeek/share/zeek/site/intel-preseed/configmap"
-            name: zeek-live-intel-preseed-volume
-          - mountPath: "/usr/local/zeek/share/zeek/site/intel"
-            name: zeek-intel-volume
-            subPath: "zeek/intel"
-          {{- if ne (len .Values.zeek_chart_overrides.live_volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_chart_overrides.live_volumeMounts | nindent 10 }}
-          {{- else }}
-          - mountPath: "/usr/local/zeek/share/zeek/site/custom/configmap"
-            name: zeek-custom-volume
-          {{- end }}
+      {{ include "malcolm.zeek.container" (dict
+           "root" $
+           "mode" "live"
+           "securityContext" (dict "capabilities" (dict "add" (list "NET_ADMIN" "NET_RAW" "SYS_NICE")))
+           "env" (concat
+             (.Values.zeek_live.extra_env | default (list))
+             (list
+               (dict "name" "ZEEK_DISABLED" "value" "false")
+               (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
+             )
+           )
+           "baseVolumeMounts" (list
+             (dict "mountPath" "/var/local/ca-trust/configmap" "name" "var-local-catrust-volume")
+             (dict "mountPath" "/zeek/extract_files" "name" "zeek-live-zeek-volume" "subPath" "extract_files")
+             (dict "mountPath" "/zeek/live" "name" "zeek-live-logs-volume" "subPath" "live")
+             (dict "mountPath" "/usr/local/zeek/share/zeek/site/intel-preseed/configmap" "name" "zeek-live-intel-preseed-volume")
+             (dict "mountPath" "/usr/local/zeek/share/zeek/site/intel" "name" "zeek-intel-volume" "subPath" "zeek/intel")
+           )
+         ) | nindent 6 }}
       initContainers:
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
@@ -211,82 +157,27 @@ spec:
 {{ toYaml . | indent 6 }}
 {{- end }}
       containers:
-      - name: zeek-container
-        image: "{{ $image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          capabilities:
-            add:
-              # NET_ADMIN and NET_RAW - to turn on promiscuous mode and capture raw packets
-              - NET_ADMIN
-              - NET_RAW
-              # SYS_NICE - to set process nice values, real-time scheduling policies, I/O scheduling
-              - SYS_NICE
-        envFrom:
-          {{- if ne (len .Values.zeek_live.extra_envFrom) 0 }}
-          {{- toYaml .Values.zeek_live.extra_envFrom | nindent 10 }}
-          {{- end }}
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: upload-common-env
-          - configMapRef:
-              name: zeek-env
-          {{- if .Values.kafka.enabled }}
-          - configMapRef:
-              name: kafka-config
-          {{- end }}
-          - configMapRef:
-              name: zeek-live-env
-          - configMapRef:
-              name: pcap-capture-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 600
-          periodSeconds: 60
-          timeoutSeconds: 30
-          successThreshold: 1
-          failureThreshold: 3
-        env:
-          {{- if ne (len .Values.zeek_live.extra_env) 0 }}
-          {{- toYaml .Values.zeek_live.extra_env | nindent 10 }}
-          {{- end }}
-          - name: ZEEK_DISABLED
-            value: "false"
-          - name: PCAP_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-          - name: ZEEK_INTEL_REFRESH_CRON_EXPRESSION
-            value: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
-          - name: ZEEK_INTEL_REFRESH_ON_STARTUP
-            value: "{{ .Values.zeek_offline.zeek_intel_refresh_on_startup }}"
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: "/zeek/extract_files"
-            name: zeek-live-zeek-volume
-            subPath: "extract_files"
-          - mountPath: "/zeek/live"
-            name: zeek-live-logs-volume
-            subPath: "live"
-          - mountPath: "/usr/local/zeek/share/zeek/site/intel-preseed/configmap"
-            name: zeek-live-intel-preseed-volume
-          - mountPath: "/usr/local/zeek/share/zeek/site/intel"
-            name: zeek-intel-volume
-            subPath: "zeek/intel"
-          {{- if ne (len .Values.zeek_chart_overrides.live_remote_volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_chart_overrides.live_remote_volumeMounts | nindent 10 }}
-          {{- else }}
-          - mountPath: "/usr/local/zeek/share/zeek/site/custom/configmap"
-            name: zeek-custom-volume
-          {{- end }}
+      {{ include "malcolm.zeek.container" (dict
+           "root" $
+           "mode" "liveRemote"
+           "securityContext" (dict "capabilities" (dict "add" (list "NET_ADMIN" "NET_RAW" "SYS_NICE")))
+           "env" (concat
+             (.Values.zeek_live.extra_env | default (list))
+             (list
+               (dict "name" "ZEEK_DISABLED" "value" "false")
+               (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
+               (dict "name" "ZEEK_INTEL_REFRESH_CRON_EXPRESSION" "value" .Values.zeek_offline.zeek_intel_refresh_cron_expression)
+               (dict "name" "ZEEK_INTEL_REFRESH_ON_STARTUP" "value" .Values.zeek_offline.zeek_intel_refresh_on_startup)
+             )
+           )
+           "baseVolumeMounts" (list
+             (dict "mountPath" "/var/local/ca-trust/configmap" "name" "var-local-catrust-volume")
+             (dict "mountPath" "/zeek/extract_files" "name" "zeek-live-zeek-volume" "subPath" "extract_files")
+             (dict "mountPath" "/zeek/live" "name" "zeek-live-logs-volume" "subPath" "live")
+             (dict "mountPath" "/usr/local/zeek/share/zeek/site/intel-preseed/configmap" "name" "zeek-live-intel-preseed-volume")
+             (dict "mountPath" "/usr/local/zeek/share/zeek/site/intel" "name" "zeek-intel-volume" "subPath" "zeek/intel")
+           )
+         ) | nindent 6 }}
       {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
       {{- end }}

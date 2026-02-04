@@ -23,7 +23,6 @@ Generic arkime container (emits a list item).
 Params:
   root: $
   name: string
-  pullPolicy: string (optional; defaults to .Values.image.pullPolicy)
   ports: list (optional)            # list of {name, protocol, containerPort}
   envFrom: list (required)          # full envFrom list (toYaml-able)
   securityContext: map (required)   # full securityContext map

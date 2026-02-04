@@ -35,7 +35,6 @@ spec:
       {{ include "malcolm.arkime.container" (dict
            "root" $
            "name" "arkime-container"
-           "pullPolicy" .Values.image.pullPolicy
            "ports" (list (dict "name" "http" "protocol" "TCP" "containerPort" 8005))
            "securityContext" (dict
              "capabilities" (dict "add" (list "IPC_LOCK" "SYS_RESOURCE"))

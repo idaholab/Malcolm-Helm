@@ -28,7 +28,6 @@ spec:
       {{ include "malcolm.arkime.container" (dict
            "root" $
            "name" "arkime-live-container"
-           "pullPolicy" .Values.image.pullPolicy
            "securityContext" (dict
              "runAsGroup" 0
              "runAsUser" 0

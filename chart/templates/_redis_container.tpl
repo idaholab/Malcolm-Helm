@@ -46,7 +46,7 @@ livenessProbe:
 {{- end -}}
 
 {{/*
-Generic redis container.
+Generic redis container (emits a list item).
 Params:
   root: $
   name: string

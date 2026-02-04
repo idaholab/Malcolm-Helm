@@ -1,4 +1,3 @@
-{{- $image := .Values.image.zeek_container_override | default (printf "%s/zeek:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
@@ -39,65 +38,22 @@ spec:
     spec:
       serviceAccountName: {{ .Values.zeek_chart_overrides.serviceAccountName | default "default" }}
       containers:
-      - name: zeek-container
-        image: "{{ $image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        # TODO we should not be using root here
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: upload-common-env
-          - configMapRef:
-              name: zeek-env
-          - configMapRef:
-              name: zeek-offline-env
-        env:
-          - name: PCAP_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-        # TODO commented it out for now because sometimes it takes a really log time for the container to pull all the misp data and I dont want it restarting. We should move this logic to a separate kubernetes job and cronjob
-        # livenessProbe:
-        #   exec:
-        #     command:
-        #     - supervisorctl
-        #     - status
-        #     - pcap-zeek
-        #   initialDelaySeconds: 60
-        #   periodSeconds: 30
-        #   timeoutSeconds: 15
-        #   successThreshold: 1
-        #   failureThreshold: 50
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: "/pcap"
-            name: zeek-offline-pcap-volume
-          - mountPath: "/zeek/extract_files"
-            name: zeek-offline-zeek-volume
-            subPath: "extract_files"
-          - mountPath: "/zeek/upload"
-            name: zeek-offline-zeek-volume
-            subPath: "upload"
-          - mountPath: "/usr/local/zeek/share/zeek/site/intel-preseed/configmap"
-            name: zeek-offline-intel-preseed-volume
-          - mountPath: "/usr/local/zeek/share/zeek/site/intel"
-            name: zeek-intel-volume
-            subPath: "zeek/intel"
-          {{- if ne (len .Values.zeek_chart_overrides.offline_upload_volumeMounts) 0 }}
-          {{- toYaml .Values.zeek_chart_overrides.offline_upload_volumeMounts | nindent 10 }}
-          {{- else }}
-          - mountPath: "/usr/local/zeek/share/zeek/site/custom/configmap"
-            name: zeek-custom-volume
-          {{- end }}
+      {{ include "malcolm.zeek.container" (dict
+           "root" $
+           "mode" "offline"
+           "securityContext" (dict "runAsGroup" 0 "runAsUser" 0)
+           "env" (list
+             (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
+           )
+           "baseVolumeMounts" (list
+             (dict "mountPath" "/var/local/ca-trust/configmap" "name" "var-local-catrust-volume")
+             (dict "mountPath" "/pcap" "name" "zeek-offline-pcap-volume")
+             (dict "mountPath" "/zeek/extract_files" "name" "zeek-offline-zeek-volume" "subPath" "extract_files")
+             (dict "mountPath" "/zeek/upload" "name" "zeek-offline-zeek-volume" "subPath" "upload")
+             (dict "mountPath" "/usr/local/zeek/share/zeek/site/intel-preseed/configmap" "name" "zeek-offline-intel-preseed-volume")
+             (dict "mountPath" "/usr/local/zeek/share/zeek/site/intel" "name" "zeek-intel-volume" "subPath" "zeek/intel")
+           )
+         ) | nindent 6 }}
       {{- if ne (len .Values.zeek_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
