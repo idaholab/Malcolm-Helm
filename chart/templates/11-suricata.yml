@@ -38,55 +38,26 @@ spec:
     spec:
       serviceAccountName: {{ .Values.suricata_chart_overrides.serviceAccountName | default "default" }}
       containers:
-      - name: suricata-container
-        image: "{{ $suricata_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          # TODO we should not be using root here
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: upload-common-env
-          - configMapRef:
-              name: suricata-env
-          - configMapRef:
-              name: suricata-offline-env
-        env:
-          - name: PCAP_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 120
-          periodSeconds: 30
-          timeoutSeconds: 15
-          successThreshold: 1
-          failureThreshold: 10
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: "/data/pcap"
-            name: suricata-offline-pcap-volume
-          - mountPath: "/var/log/suricata"
-            name: suricata-offline-suricata-logs-volume
-          {{- if ne (len .Values.suricata_chart_overrides.volumeMounts) 0 }}
-          {{- toYaml .Values.suricata_chart_overrides.volumeMounts | nindent 10 }}
-          {{- else }}
-          - mountPath: "/opt/suricata/rules/configmap"
-            name: suricata-custom-rules-volume
-          - mountPath: "/opt/suricata/include-configs/configmap"
-            name: suricata-custom-configs-volume
-          {{- end }}
+      {{ include "malcolm.suricata.container" (dict
+           "root" $
+           "mode" "offline"
+           "securityContext" (dict "runAsGroup" 0 "runAsUser" 0)
+           "envFrom" (list
+             (dict "configMapRef" (dict "name" "process-env"))
+             (dict "configMapRef" (dict "name" "ssl-env"))
+             (dict "configMapRef" (dict "name" "upload-common-env"))
+             (dict "configMapRef" (dict "name" "suricata-env"))
+             (dict "configMapRef" (dict "name" "suricata-offline-env"))
+           )
+           "env" (list
+             (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
+           )
+           "baseVolumeMounts" (list
+             (dict "mountPath" "/var/local/ca-trust/configmap" "name" "var-local-catrust-volume")
+             (dict "mountPath" "/data/pcap" "name" "suricata-offline-pcap-volume")
+             (dict "mountPath" "/var/log/suricata" "name" "suricata-offline-suricata-logs-volume")
+           )
+         ) | nindent 6 }}
       {{- if ne (len .Values.suricata_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
       {{- end }}

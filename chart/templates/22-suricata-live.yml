@@ -66,68 +66,31 @@ spec:
 {{ toYaml . | indent 6 }}
 {{- end }}
       containers:
-      - name: suricata-container
-        image: "{{ $suricata_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-        # TODO we should not be using root here
-          runAsGroup: 0
-          runAsUser: 0
-          capabilities:
-            add:
-              # IPC_LOCK - to lock memory, preventing swapping
-              - IPC_LOCK
-              # SYS_RESOURCE - for increasing memlock limits
-              - SYS_RESOURCE
-              # NET_ADMIN and NET_RAW - to turn on promiscuous mode and capture raw packets
-              - NET_ADMIN
-              - NET_RAW
-              # SYS_NICE - to set process nice values, real-time scheduling policies, I/O scheduling
-              - SYS_NICE
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: upload-common-env
-          - configMapRef:
-              name: suricata-env
-          - configMapRef:
-              name: suricata-live-env
-          - configMapRef:
-              name: pcap-capture-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 600
-          periodSeconds: 60
-          timeoutSeconds: 30
-          successThreshold: 1
-          failureThreshold: 3
-        env:
-          - name: SURICATA_DISABLED
-            value: "false"
-          - name: PCAP_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: /var/log/suricata
-            name: suricata-live-suricata-logs-volume
-          {{- if ne (len .Values.suricata_chart_overrides.live_volumeMounts) 0 }}
-          {{- toYaml .Values.suricata_chart_overrides.live_volumeMounts | nindent 10 }}
-          {{- else }}                
-          - mountPath: "/opt/suricata/rules/configmap"
-            name: suricata-custom-rules-volume
-          - mountPath: "/opt/suricata/include-configs/configmap"
-            name: suricata-custom-configs-volume
-          {{- end }}
+      {{ include "malcolm.suricata.container" (dict
+           "root" $
+           "mode" "live"
+           "securityContext" (dict
+             "runAsGroup" 0
+             "runAsUser" 0
+             "capabilities" (dict "add" (list "IPC_LOCK" "SYS_RESOURCE" "NET_ADMIN" "NET_RAW" "SYS_NICE"))
+           )
+           "envFrom" (list
+             (dict "configMapRef" (dict "name" "process-env"))
+             (dict "configMapRef" (dict "name" "ssl-env"))
+             (dict "configMapRef" (dict "name" "upload-common-env"))
+             (dict "configMapRef" (dict "name" "suricata-env"))
+             (dict "configMapRef" (dict "name" "suricata-live-env"))
+             (dict "configMapRef" (dict "name" "pcap-capture-env"))
+           )
+           "env" (list
+             (dict "name" "SURICATA_DISABLED" "value" "false")
+             (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
+           )
+           "baseVolumeMounts" (list
+             (dict "mountPath" "/var/local/ca-trust/configmap" "name" "var-local-catrust-volume")
+             (dict "mountPath" "/var/log/suricata" "name" "suricata-live-suricata-logs-volume")
+           )
+         ) | nindent 6 }}
       {{- if ne (len .Values.suricata_chart_overrides.sideCars) 0 }}
       {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
       {{- end }}

@@ -25,73 +25,45 @@ spec:
 {{ toYaml . | indent 6 }}
 {{- end }}
       containers:
-      - name: arkime-live-container
-        image: "{{ $arkime_image }}"
-        imagePullPolicy: Always
-        stdin: false
-        tty: true        
-        securityContext:
-          # TODO we should not be using root here
-          runAsGroup: 0
-          runAsUser: 0
-          capabilities:
-            add:
-              # IPC_LOCK - to lock memory, preventing swapping
-              - IPC_LOCK
-              # SYS_RESOURCE - for increasing memlock limits
-              - SYS_RESOURCE
-              # NET_ADMIN and NET_RAW - to turn on promiscuous mode and capture raw packets
-              - NET_ADMIN
-              - NET_RAW
-              # SYS_NICE - to set process nice values, real-time scheduling policies, I/O scheduling
-              - SYS_NICE
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: opensearch-env
-          - configMapRef:
-              name: upload-common-env
-          - configMapRef:
-              name: pcap-capture-env
-          - configMapRef:
-              name: arkime-env
-          - configMapRef:
-              name: arkime-live-env
-          - secretRef:
-              name: arkime-secret-env
+      {{ include "malcolm.arkime.container" (dict
+           "root" $
+           "name" "arkime-live-container"
+           "pullPolicy" .Values.image.pullPolicy
+           "securityContext" (dict
+             "runAsGroup" 0
+             "runAsUser" 0
+             "capabilities" (dict "add" (list "IPC_LOCK" "SYS_RESOURCE" "NET_ADMIN" "NET_RAW" "SYS_NICE"))
+           )
+           "envFrom" (list
+             (dict "configMapRef" (dict "name" "process-env"))
+             (dict "configMapRef" (dict "name" "ssl-env"))
+             (dict "configMapRef" (dict "name" "opensearch-env"))
+             (dict "configMapRef" (dict "name" "upload-common-env"))
+             (dict "configMapRef" (dict "name" "pcap-capture-env"))
+             (dict "configMapRef" (dict "name" "arkime-env"))
+             (dict "configMapRef" (dict "name" "arkime-live-env"))
+             (dict "secretRef"    (dict "name" "arkime-secret-env"))
+           )
+           "volumeMounts" (concat
+             (list
+               (dict "mountPath" "/opt/arkime/lua/configmap"      "name" "arkime-live-lua-volume")
+               (dict "mountPath" "/var/local/ca-trust/configmap"  "name" "var-local-catrust-volume")
+               (dict "mountPath" "/var/local/curlrc/secretmap"    "name" "arkime-live-opensearch-curlrc-secret-volume")
+               (dict "mountPath" "/data/pcap"                     "name" "arkime-live-pcap-volume")
+               (dict "mountPath" "/opt/arkime/wiseini"            "name" "arkime-live-config-volume")
+             )
+             (ternary
+               (list (dict "name" "elastic-cert" "mountPath" "/usr/local/share/ca-certificates/elastic_ca.crt" "subPath" "elastic_ca.crt"))
+               (list)
+               (and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name)
+             )
+           )
+         ) | nindent 6 }}
         env:
           - name: PCAP_NODE_NAME
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 210
-          periodSeconds: 90
-          timeoutSeconds: 15
-          successThreshold: 1
-          failureThreshold: 10
-        volumeMounts:
-          - mountPath: "/opt/arkime/lua/configmap"
-            name: arkime-live-lua-volume
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: /var/local/curlrc/secretmap
-            name: arkime-live-opensearch-curlrc-secret-volume
-          - mountPath: "/data/pcap"
-            name: arkime-live-pcap-volume          
-          - mountPath: "/opt/arkime/wiseini"
-            name: arkime-live-config-volume
-{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
-          - name: elastic-cert
-            mountPath: /usr/local/share/ca-certificates/elastic_ca.crt
-            subPath: elastic_ca.crt
-{{- end }}
       initContainers:
       - name: arkime-live-dirinit-container
         image: "{{ $dirinit_image }}"
