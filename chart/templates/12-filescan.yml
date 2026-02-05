@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: filescan
+spec:
+  ports:
+    - port: 8001
+      protocol: TCP
+      name: health
+    - port: 8006
+      protocol: TCP
+      name: files
+  selector:
+    name: filescan-deployment
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filescan-deployment
+spec:
+  selector:
+    matchLabels:
+      name: filescan-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: filescan-deployment
+    spec:
+      containers:
+      {{ include "malcolm.filescan.container" (dict
+           "root" $
+           "redisSecretName" "redis-env"
+           "zeekVolumeName" "filescan-zeek-volume"
+           "logsVolumeName" "filescan-logs-volume"
+         ) | nindent 6 }}
+      initContainers:
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "filescan-live-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/zeek-logs:extract_files/filescan;/data/runtime-logs:filescan")
+           )
+           "volumeMounts" (list
+             (dict "name" "filescan-zeek-volume" "mountPath" "/data/zeek-logs")
+             (dict "name" "filescan-logs-volume" "mountPath" "/data/runtime-logs")
+           )
+         ) | nindent 6 }}
+      volumes:
+        - name: var-local-catrust-volume
+          configMap:
+            name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
+        - name: filescan-zeek-volume
+          persistentVolumeClaim:
+            claimName: zeek-claim
+        - name: filescan-logs-volume
+          persistentVolumeClaim:
+            claimName: runtime-logs-claim
+

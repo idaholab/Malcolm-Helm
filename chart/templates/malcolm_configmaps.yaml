@@ -73,6 +73,47 @@ metadata:
 ---
 apiVersion: v1
 data:
+  FILEBEAT_CLEAN_INACTIVE: {{ .Values.filebeat.filebeat_clean_inactive }}
+  FILEBEAT_CLEAN_REMOVED: "true"
+  FILEBEAT_CLOSE_EOF: "true"
+  FILEBEAT_CLOSE_INACTIVE: {{ .Values.filebeat.filebeat_close_inactive }}
+  FILEBEAT_CLOSE_INACTIVE_LIVE: {{ .Values.filebeat.filebeat_close_inactive_live }}
+  FILEBEAT_CLOSE_REMOVED: "true"
+  FILEBEAT_CLOSE_RENAMED: "true"
+  FILEBEAT_IGNORE_OLDER: {{ .Values.filebeat.filebeat_ignore_older }}
+  FILEBEAT_SCAN_FREQUENCY: {{ .Values.filebeat.filebeat_scan_frequency }}
+  ZIP_CLEANUP_MINUTES: "{{ .Values.filebeat.zip_cleanup_minutes }}"
+  LOG_CLEANUP_MINUTES: "{{ .Values.filebeat.log_cleanup_minutes }}"
+  FILEBEAT_CLEANUP_VERBOSITY: ""
+  FILEBEAT_TCP_LISTEN: "true"
+  FILEBEAT_TCP_LOG_FORMAT: json
+  FILEBEAT_TCP_PARSE_DROP_FIELD: message
+  FILEBEAT_TCP_PARSE_SOURCE_FIELD: message
+  FILEBEAT_TCP_PARSE_TARGET_FIELD: miscbeat
+  FILEBEAT_TCP_TAG: _malcolm_beats
+  # Whether or not to use polling vs. native inotify API to watch for files.
+  # Also used for to set filebeat filestream's .file_identity and .prospector.scanner.fingerprint, see:
+  #  - https://www.elastic.co/blog/introducing-filestream-fingerprint-mode
+  #  - https://www.elastic.co/docs/reference/beats/filebeat/filebeat-input-filestream#filebeat-input-filestream-file-identity
+  #  - https://www.elastic.co/docs/reference/beats/filebeat/filebeat-input-filestream#filebeat-input-filestream-scan-fingerprint
+  FILEBEAT_WATCHER_POLLING: "true"
+  FILEBEAT_WATCHER_POLLING_ASSUME_CLOSED_SEC: "10"
+  # file offset for .prospector.scanner.fingerprint
+  FILEBEAT_SCANNER_FINGERPRINT_OFFSET: "0"
+  # fingerprint length for .prospector.scanner.fingerprint
+  FILEBEAT_SCANNER_FINGERPRINT_LENGTH: "1024"
+  FILEBEAT_PREPARE_PROCESS_COUNT: "1"
+  FILEBEAT_SYSLOG_UDP_LISTEN: "false"
+  FILEBEAT_SYSLOG_UDP_PORT: "0"
+  FILEBEAT_SYSLOG_TCP_LISTEN: "false"
+  FILEBEAT_SYSLOG_TCP_PORT: "0"
+kind: ConfigMap
+metadata:
+  name: filebeat-env
+
+---
+apiVersion: v1
+data:
   NETBOX_CRON: "{{ .Values.netbox.enabled }}"
   # The name of the default "site" to be created upon NetBox initialization, and to be queried for enrichment
   NETBOX_DEFAULT_SITE: "{{ .Values.netbox.netbox_default_site }}"
@@ -145,26 +186,22 @@ data:
   REDIS_INSECURE_SKIP_TLS_VERIFY: "false"
   REDIS_SSL: "false"
   RELEASE_CHECK_URL: ""
-  REMOTE_AUTH_BACKEND: netbox.authentication.RemoteUserBackend
-  REMOTE_AUTH_DEFAULT_GROUPS: standard
-  REMOTE_AUTH_DEFAULT_PERMISSIONS: standard_permission
+  # these group names should match role names from auth-common.env
+  REMOTE_AUTH_AUTO_CREATE_GROUPS: "False"
   REMOTE_AUTH_AUTO_CREATE_USER: "True"
+  REMOTE_AUTH_BACKEND: netbox.authentication.RemoteUserBackend
+  REMOTE_AUTH_DEFAULT_GROUPS: "{{ .Values.auth.role_netbox_read_access }}"
+  REMOTE_AUTH_DEFAULT_PERMISSIONS: standard_permission
+  REMOTE_AUTH_ENABLED: "True"
+  REMOTE_AUTH_GROUP_HEADER: "HTTP_X_FORWARDED_ROLES"
+  REMOTE_AUTH_GROUP_SEPARATOR: ","
+  REMOTE_AUTH_GROUP_SYNC_ENABLED: "True"
+  REMOTE_AUTH_HEADER: HTTP_X_FORWARDED_USER
+  REMOTE_AUTH_STAFF_GROUPS: "admin"
+  REMOTE_AUTH_SUPERUSER_GROUPS: "admin"
   REMOTE_AUTH_USER_EMAIL: "HTTP_X_FORWARDED_EMAIL"
   REMOTE_AUTH_USER_FIRST_NAME: "HTTP_X_FORWARDED_GIVEN_NAME"
   REMOTE_AUTH_USER_LAST_NAME: "HTTP_X_FORWARDED_FAMILY_NAME"
-  REMOTE_AUTH_GROUP_HEADER: "HTTP_X_FORWARDED_ROLES"
-  REMOTE_AUTH_AUTO_CREATE_GROUPS: "False"
-  REMOTE_AUTH_GROUP_SYNC_ENABLED: "True"
-  REMOTE_AUTH_GROUP_SEPARATOR: ","
-  # these group names should match role names from auth-common.env
-  REMOTE_AUTH_DEFAULT_GROUPS: "{{ .Values.auth.role_netbox_read_access }}"
-  REMOTE_AUTH_SUPERUSER_GROUPS: "admin"
-  REMOTE_AUTH_STAFF_GROUPS: "admin"
-  REMOTE_AUTH_ENABLED: "True"
-  REMOTE_AUTH_HEADER: HTTP_X_FORWARDED_USER
-  REMOTE_AUTH_USER_EMAIL: HTTP_X_REMOTE_AUTH_EMAIL
-  REMOTE_AUTH_USER_FIRST_NAME: HTTP_X_REMOTE_AUTH_FIRST_NAME
-  REMOTE_AUTH_USER_LAST_NAME: HTTP_X_REMOTE_AUTH_LAST_NAME
   ENFORCE_GLOBAL_UNIQUE: "false"
   SKIP_STARTUP_SCRIPTS: "true"
   SKIP_SUPERUSER: "false"
@@ -256,6 +293,7 @@ data:
   path.repo: /opt/opensearch/backup
   node.roles: ingest,data,remote_cluster_client,cluster_manager
   discovery.seed_hosts: {{ template "malcolm.discoverySeeds" . }}
+  MALCOLM_INDEX_MAX_RESULT_WINDOW: "{{ .Values.siem_env.malcolm_index_max_result_window }}"
   MALCOLM_NETWORK_INDEX_PATTERN: "{{ .Values.siem_env.malcolm_network_index_pattern }}"
   MALCOLM_NETWORK_INDEX_ALIAS: "{{ .Values.siem_env.logstash_override.search_alias }}"
   MALCOLM_NETWORK_INDEX_DEFAULT_PIPELINE: "{{ .Values.siem_env.malcolm_template_default_pipeline }}"
@@ -380,59 +418,20 @@ apiVersion: v1
 data:
   {{- if .Values.is_production }}
     {{- with .Values.zeek_env.production }}
-  CAPA_MAX_REQUESTS: "{{ .capa_max_requests }}"
-  CLAMD_MAX_REQUESTS: "{{ .clamd_max_requests }}"
-  YARA_MAX_REQUESTS: "{{ .yara_max_requests }}"
   EXTRACTED_FILE_MAX_BYTES: "{{ .extracted_file_max_bytes }}"
-  EXTRACTED_FILE_MIN_BYTES: "{{ .extracted_file_min_bytes }}"
-  # Prune ./zeek-logs/extract_files/ when it exceeds this size...
-  EXTRACTED_FILE_PRUNE_THRESHOLD_MAX_SIZE: "{{ .extracted_file_prune_threshold_max_size }}"
-  # ... or when the *total* disk usage exceeds this percentage
-  EXTRACTED_FILE_PRUNE_THRESHOLD_TOTAL_DISK_USAGE_PERCENT: "{{ .extracted_file_prune_threshold_total_disk_usage_percent }}"
-  # Interval in seconds for checking whether to prune ./zeek-logs/extract_files/
-  EXTRACTED_FILE_PRUNE_INTERVAL_SECONDS: "{{ .extracted_file_prune_interval_seconds }}"
     {{- end }}
   {{- else }}
     {{- with .Values.zeek_env.development }}
-  CAPA_MAX_REQUESTS: "{{ .capa_max_requests }}"
-  CLAMD_MAX_REQUESTS: "{{ .clamd_max_requests }}"
-  YARA_MAX_REQUESTS: "{{ .yara_max_requests }}"
   EXTRACTED_FILE_MAX_BYTES: "{{ .extracted_file_max_bytes }}"
-  EXTRACTED_FILE_MIN_BYTES: "{{ .extracted_file_min_bytes }}"
-  # Prune ./zeek-logs/extract_files/ when it exceeds this size...
-  EXTRACTED_FILE_PRUNE_THRESHOLD_MAX_SIZE: "{{ .extracted_file_prune_threshold_max_size }}"
-  # ... or when the *total* disk usage exceeds this percentage
-  EXTRACTED_FILE_PRUNE_THRESHOLD_TOTAL_DISK_USAGE_PERCENT: "{{ .extracted_file_prune_threshold_total_disk_usage_percent }}"
-  # Interval in seconds for checking whether to prune ./zeek-logs/extract_files/
-  EXTRACTED_FILE_PRUNE_INTERVAL_SECONDS: "{{ .extracted_file_prune_interval_seconds }}"
     {{- end }}
   {{- end }}
-  EXTRACTED_FILE_CAPA_VERBOSE: "false"
-  EXTRACTED_FILE_ENABLE_CAPA: "{{ .Values.zeek_env.extracted_file_enable_capa }}"
-  EXTRACTED_FILE_ENABLE_CLAMAV: "{{ .Values.zeek_env.extracted_file_enable_clamav }}"
-  EXTRACTED_FILE_ENABLE_VTOT: "{{ .Values.zeek_env.extracted_file_enable_vtot }}"
-  EXTRACTED_FILE_ENABLE_YARA: "{{ .Values.zeek_env.extracted_file_enable_yara }}"
-  EXTRACTED_FILE_HTTP_SERVER_ENABLE: "{{ .Values.zeek_env.extracted_file_http_server_enable }}"
-  EXTRACTED_FILE_HTTP_SERVER_ZIP: "false"
-  # Whether or not to use libmagic to show MIME types for Zeek-extracted files served
-  EXTRACTED_FILE_HTTP_SERVER_MAGIC: "false"
-  EXTRACTED_FILE_HTTP_SERVER_RECURSIVE: "{{ .Values.zeek_env.extracted_file_http_server_encrypt }}"
-  EXTRACTED_FILE_IGNORE_EXISTING: "false"
-  EXTRACTED_FILE_PIPELINE_VERBOSITY: ""
-  EXTRACTED_FILE_PRESERVATION: {{ .Values.zeek_env.extracted_file_preservation }}
-  EXTRACTED_FILE_UPDATE_RULES: "false"
-  EXTRACTED_FILE_WATCHER_POLLING: "true"
-  EXTRACTED_FILE_WATCHER_POLLING_ASSUME_CLOSED_SEC: "10"
-  EXTRACTED_FILE_YARA_CUSTOM_ONLY: "false"
   # Adjust how often the JA4SSH hash is calculated
   ZEEK_JA4SSH_PACKET_COUNT: "200"
   # for zeek-long-connections plugin
   ZEEK_LONG_CONN_REPEAT_LAST_DURATION: "true"
   ZEEK_LONG_CONN_DO_NOTICE: "true"
   ZEEK_LONG_CONN_DURATIONS: "600,1800,3600,43200,86400"
-  VTOT_REQUESTS_PER_MINUTE: "4"
   ZEEK_DISABLE_BEST_GUESS_ICS: ""
-  ZEEK_DISABLE_HASH_ALL_FILES: ""
   ZEEK_DISABLE_ICS_ALL: ""
   ZEEK_DISABLE_ICS_BACNET: ""
   ZEEK_DISABLE_ICS_BSAP: ""
@@ -472,6 +471,7 @@ data:
   ZEEK_DISABLE_SSL_VALIDATE_CERTS: ""
   ZEEK_DISABLE_TRACK_ALL_ASSETS: ""
   ZEEK_EXTRACTOR_MODE: {{ .Values.zeek_env.extract_mode }}
+  ZEEK_EXTRACTOR_PATH: "/zeek/extract_files"
   ZEEK_ENIP_PORTS: ""
   ZEEK_GENISYS_PORTS: ""
   ZEEK_INTEL_FEED_SINCE: "{{ .Values.zeek_env.zeek_intel_feed_since }}"

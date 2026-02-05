@@ -54,27 +54,30 @@ image:
 
   # Overrides for the container image tags (default is the chart `appVersion` from Chart.yaml).
   # Only set this if you need a different version than the one specified in Chart.yaml.
-  dirinit_container_override: ""
-  dashboards_container_override: ""
-  opensearch_container_override: ""
-  upload_container_override: ""
-  pcap_monitor_container_override: ""
-  arkime_container_override: ""
   api_container_override: ""
-  zeek_container_override: ""
-  suricata_container_override: ""
+  arkime_container_override: ""
+  dashboards_container_override: ""
   dashboards_helper_container_override: ""
-  file_monitor_container_override: ""
+  dirinit_container_override: ""
   filebeat_container_override: ""
-  logstash_container_override: ""
-  keycloak_container_override: ""
-  redis_container_override: ""
-  postgres_container_override: ""
-  netbox_container_override: ""
-  htadmin_container_override: ""
-  pcap_capture_container_override: ""
+  filescan_container_override: ""
   freq_container_override: ""
+  htadmin_container_override: ""
+  keycloak_container_override: ""
+  logstash_container_override: ""
+  netbox_container_override: ""
   nginx_container_override: ""
+  opensearch_container_override: ""
+  pcap_capture_container_override: ""
+  pcap_monitor_container_override: ""
+  postgres_container_override: ""
+  redis_container_override: ""
+  strelka_backend_container_override: ""
+  strelka_frontend_container_override: ""
+  strelka_manager_container_override: ""
+  suricata_container_override: ""
+  upload_container_override: ""
+  zeek_container_override: ""
 
 auth:
   username: malcolm
@@ -246,6 +249,11 @@ siem_env:
   # Default time field for Arkime session indices
   arkime_network_index_time_field: "firstPacket"
 
+  # If specified, overrides index.max_result_window which defines the maximum value of from + size for searches of the network data
+  #   index, where from is the starting index to search from, and size is the number of results to return. CAUTION: increasing
+  #   this value beyond its baked-in default (10000) may result may negatively impact performance.
+  malcolm_index_max_result_window: ""
+
   # Optional: default pipeline for templates
   malcolm_template_default_pipeline: ""
   malcolm_beats_template_default_pipeline: ""
@@ -267,12 +275,14 @@ logstash:
     workers: 2
     batch_delay: 50
     batch_size: 75
+    ordered: false
 
   production:
     java_memory: -Xmx16g -Xms16g -Xss2048k
     workers: 18
     batch_delay: 50
     batch_size: 75
+    ordered: false
 
 netbox:
   # Mode of NetBox integration. Options:
@@ -498,8 +508,10 @@ suricata_offline:
 # If disabled, PCAPs can still be uploaded using the Malcolm offline upload functionality.
 zeek_live:
   zeek_disable_stats: ""
-  zeek_log_path: /opt/zeek/logs
-  zeek_extracted_path: /opt/zeek/extracted
+  zeek_log_path: /usr/local/zeek/logs
+  zeek_extracted_path: /usr/local/zeek/extracted
+  filescan_log_path: /filescan
+  redis_persistence_path: /redis
 
   # Zeek live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
   nodeSelector:
@@ -546,6 +558,43 @@ zeek_offline:
   production:
     zeek_auto_analyze_pcap_threads: 3
 
+filescan_env:
+  disable: false
+  extracted_file_http_server_enable: true
+  extracted_file_http_server_recursive: true
+  extracted_file_http_server_magic: false
+  extracted_file_http_server_zip: false
+  extracted_file_http_server_encrypt_password: ""
+  extracted_file_preservation: quarantined
+  development:
+    # Prune ./zeek-logs/extract_files/ when it exceeds this size
+    extracted_file_prune_threshold_max_size: 1TB
+    # ... or when the total disk usage exceeds this percentage
+    extracted_file_prune_threshold_total_disk_usage_percent: 0
+    # Interval (seconds) to check whether to prune ./zeek-logs/extract_files/
+    extracted_file_prune_interval_seconds: 300
+    backend_procs: 1
+  production:
+    extracted_file_prune_threshold_max_size: 1TB
+    extracted_file_prune_threshold_total_disk_usage_percent: 0
+    extracted_file_prune_interval_seconds: 300
+    backend_procs: 4
+
+redis_env:
+  # TODO: I have no idea what to base the max_memory/cache_max_memory numbers on, so for
+  # now I'm setting them to "0" which is the same as the redis default, which means
+  # "don't evict based on memory."
+  development:
+    max_memory: 0
+    max_memory_policy: allkeys-lru
+    cache_max_memory: 0
+    cache_max_memory_policy: allkeys-lru
+  production:
+    max_memory: 0
+    max_memory_policy: allkeys-lru
+    cache_max_memory: 0
+    cache_max_memory_policy: allkeys-lru
+
 # Affects all Zeek deployments (live and offline)
 zeek_env:
   # Determines which files are extracted from network traffic by Zeek
@@ -556,14 +605,6 @@ zeek_env:
   # `known`      : extract files for which any MIME type can be determined
   # `all`        : extract all files
   extract_mode: interesting
-  extracted_file_enable_capa: true
-  extracted_file_enable_clamav: true
-  extracted_file_enable_vtot: false
-  extracted_file_enable_yara: true
-  extracted_file_http_server_enable: true
-  extracted_file_http_server_recursive: true
-  extracted_file_preservation: quarantined
-
 
   # When querying a TAXII or MISP feed, only process threat indicators
   # created or modified since this value. Can be a fixed date/time (e.g., 01/01/2021)
@@ -575,27 +616,17 @@ zeek_env:
   zeek_intel_item_expiration: "-1min"
 
   development:
-    capa_max_requests: 4
-    clamd_max_requests: 8
-    yara_max_requests: 8
     extracted_file_max_bytes: "134217728"
-    extracted_file_min_bytes: "64"
-    # Prune ./zeek-logs/extract_files/ when it exceeds this size
-    extracted_file_prune_threshold_max_size: 1TB
-    # ... or when the total disk usage exceeds this percentage
-    extracted_file_prune_threshold_total_disk_usage_percent: 0
-    # Interval (seconds) to check whether to prune ./zeek-logs/extract_files/
-    extracted_file_prune_interval_seconds: 300
+    clamd_max_threads: "8"
+    clamd_max_queue: "200"
+    clamd_max_conn_queue: "400"
 
   production:
-    capa_max_requests: 8
-    clamd_max_requests: 16
-    yara_max_requests: 16
     extracted_file_max_bytes: "134217728"
-    extracted_file_min_bytes: "64"
-    extracted_file_prune_threshold_max_size: 1TB
-    extracted_file_prune_threshold_total_disk_usage_percent: 0
-    extracted_file_prune_interval_seconds: 300
+    clamd_max_threads: "8"
+    clamd_max_queue: "200"
+    clamd_max_conn_queue: "400"
+
 
 maxmind:
   license_key: ""
@@ -716,20 +747,23 @@ filebeat:
   # will be pruned from the filesystem
   zip_cleanup_minutes: "90"
 
-  # Default affinity ensures the Filebeat DaemonSet runs on nodes also running Suricata or Zeek live capture.
-  nodeAffinity:
+  # Default affinity ensures the Filebeat DaemonSet runs on nodes also running Suricata or Zeek live capture. However,
+  # for zeek-remote-capture nodes, the Filebeat container is part of zeek-live-daemonset-remotesensor, hence DoesNotExist here.
+  daemonsetNodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
       - matchExpressions:
         - key: cnaps.io/suricata-capture
           operator: In
-          values:
-          - "true"
+          values: ["true"]
+        - key: cnaps.io/zeek-remote-capture
+          operator: DoesNotExist
       - matchExpressions:
         - key: cnaps.io/zeek-capture
           operator: In
-          values:
-          - "true"
+          values: ["true"]
+        - key: cnaps.io/zeek-remote-capture
+          operator: DoesNotExist
 
 # Sets the GID and UID for unprivileged processes in all containers
 process_env:
@@ -766,7 +800,7 @@ suricata_chart_overrides:
   live_volumeMounts: []
 
 kafka:
-  enabled: "false"
+  enabled: false
   # Bootstrap broker or a comma-separated list of broker values (IP:PORT in both cases)
   brokers: "kafka.local:9091"
   topic: "zeek"  

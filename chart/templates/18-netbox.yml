@@ -1,4 +1,3 @@
-{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $netbox_image := .Values.image.netbox_container_override | default (printf "%s/netbox:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if eq .Values.netbox.mode "local" }}
 ---
@@ -90,23 +89,16 @@ spec:
             name: netbox-media-volume
             subPath: netbox/media
       initContainers:
-      - name: netbox-dirinit-container
-        image: "{{ $dirinit_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-        env:
-          - name: PUSER_MKDIR
-            value: "/data/config:netbox/media"
-        volumeMounts:
-          - name: netbox-media-volume
-            mountPath: "/data/config"
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "netbox-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/config:netbox/media")
+           )
+           "volumeMounts" (list
+             (dict "name" "netbox-media-volume" "mountPath" "/data/config")
+           )
+         ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:

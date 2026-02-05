@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: strelka-frontend
+spec:
+  ports:
+    - port: 57314
+      protocol: TCP
+      name: enqueue
+  selector:
+    name: strelka-frontend-deployment
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strelka-frontend-deployment
+spec:
+  selector:
+    matchLabels:
+      name: strelka-frontend-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: strelka-frontend-deployment
+    spec:
+      containers:
+      {{ include "malcolm.strelkaFrontend.container" (dict
+           "root" $
+           "redisSecretName" "redis-env"
+           "configVolumeName" "strelka-frontend-config-volume"
+           "extraVolumeMounts" (list
+             (dict "name" "strelka-frontend-logs-volume" "mountPath" "/var/log/strelka" "subPath" "strelka-frontend")
+           )
+         ) | nindent 6 }}
+      initContainers:
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "strelka-frontend-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/runtime-logs:strelka-frontend")
+           )
+           "volumeMounts" (list
+             (dict "name" "strelka-frontend-logs-volume" "mountPath" "/data/runtime-logs")
+           )
+         ) | nindent 6 }}
+      volumes:
+        - name: var-local-catrust-volume
+          configMap:
+            name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
+        - name: strelka-frontend-config-volume
+          configMap:
+            name: strelka-frontend-config
+        - name: strelka-frontend-logs-volume
+          persistentVolumeClaim:
+            claimName: runtime-logs-claim
+
+
+

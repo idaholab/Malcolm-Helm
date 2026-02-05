@@ -1,0 +1,45 @@
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: yara-rules
+data:
+  .gitignore: |+
+    *
+    !.gitignore
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strelka-backend-deployment
+spec:
+  selector:
+    matchLabels:
+      name: strelka-backend-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: strelka-backend-deployment
+    spec:
+      containers:
+      {{ include "malcolm.strelkaBackend.container" (dict
+           "root" $
+           "redisSecretName" "redis-env"
+           "configVolumeName" "strelka-backend-config-volume"
+         ) | nindent 6 }}
+      volumes:
+        - name: var-local-catrust-volume
+          configMap:
+            name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
+        - name: strelka-backend-config-volume
+          configMap:
+            name: strelka-backend-config
+        - name: strelka-backend-yara-rules-custom-volume
+          configMap:
+            name: yara-rules
+
+
+

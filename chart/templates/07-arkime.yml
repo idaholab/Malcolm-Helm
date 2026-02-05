@@ -1,5 +1,4 @@
 {{- $arkime_image := .Values.image.arkime_container_override | default (printf "%s/arkime:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 kind: Service
@@ -32,37 +31,39 @@ spec:
         name: arkime-deployment
     spec:
       containers:
-      - name: arkime-container
-        image: "{{ $arkime_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          capabilities:
-            add:
-              - IPC_LOCK
-              - SYS_RESOURCE
-        ports:
-          - name: http
-            protocol: TCP
-            containerPort: 8005
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: opensearch-env
-          - configMapRef:
-              name: upload-common-env
-          - configMapRef:
-              name: arkime-env
-          - configMapRef:
-              name: arkime-offline-env
-          - configMapRef:
-              name: auth-common-env
-          - secretRef:
-              name: arkime-secret-env
+      {{ include "malcolm.arkime.container" (dict
+           "root" $
+           "name" "arkime-container"
+           "ports" (list (dict "name" "http" "protocol" "TCP" "containerPort" 8005))
+           "securityContext" (dict
+             "capabilities" (dict "add" (list "IPC_LOCK" "SYS_RESOURCE"))
+           )
+           "envFrom" (list
+             (dict "configMapRef" (dict "name" "process-env"))
+             (dict "configMapRef" (dict "name" "ssl-env"))
+             (dict "configMapRef" (dict "name" "opensearch-env"))
+             (dict "configMapRef" (dict "name" "upload-common-env"))
+             (dict "configMapRef" (dict "name" "arkime-env"))
+             (dict "configMapRef" (dict "name" "arkime-offline-env"))
+             (dict "configMapRef" (dict "name" "auth-common-env"))
+             (dict "secretRef"    (dict "name" "arkime-secret-env"))
+           )
+           "volumeMounts" (concat
+             (list
+               (dict "mountPath" "/var/local/ca-trust/configmap" "name" "var-local-catrust-volume")
+               (dict "mountPath" "/var/local/curlrc/secretmap"   "name" "arkime-opensearch-curlrc-secret-volume")
+               (dict "mountPath" "/data/pcap"                    "name" "arkime-pcap-volume")
+               (dict "mountPath" "/opt/arkime/etc/wise.ini.example" "name" "wise-config" "subPath" "wise.ini")
+               (dict "mountPath" "/opt/arkime/wiseini"           "name" "arkime-config-volume")
+               (dict "mountPath" "/opt/arkime/lua/configmap"     "name" "arkime-lua-volume")
+             )
+             (ternary
+               (list (dict "name" "elastic-cert" "mountPath" "/usr/local/share/ca-certificates/elastic_ca.crt" "subPath" "elastic_ca.crt"))
+               (list)
+               (and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name)
+             )
+           )
+         ) | nindent 6 }}
         env:
           - name: MALCOLM_USERNAME
             valueFrom:
@@ -73,60 +74,20 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-        livenessProbe:
-          failureThreshold: 10
-          httpGet:
-            path: /_ns_/nstest.html
-            port: 8005
-            scheme: HTTP
-          initialDelaySeconds: 210
-          periodSeconds: 90
-          successThreshold: 1
-          timeoutSeconds: 30
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: /var/local/curlrc/secretmap
-            name: arkime-opensearch-curlrc-secret-volume
-          - mountPath: "/data/pcap"
-            name: arkime-pcap-volume
-          - mountPath: "/opt/arkime/etc/wise.ini.example"
-            name: wise-config
-            subPath: "wise.ini"
-          - mountPath: "/opt/arkime/wiseini"
-            name: arkime-config-volume
-          - mountPath: "/opt/arkime/lua/configmap"
-            name: arkime-lua-volume
-{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
-          - name: elastic-cert
-            mountPath: /usr/local/share/ca-certificates/elastic_ca.crt
-            subPath: elastic_ca.crt
-{{- end }}
       initContainers:
-      - name: arkime-dirinit-container
-        image: "{{ $dirinit_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-        env:
-          - name: PUSER_MKDIR
-            value: "/data/config:arkime/wiseini;/data/pcap:processed,arkime-live"
-          - name: PUSER_COPY
-            value: "/opt/arkime/etc/wise.ini.example:/opt/arkime/wiseini/wise.ini"
-        volumeMounts:
-          - name: arkime-pcap-volume
-            mountPath: "/data/pcap"
-          - name: arkime-config-volume
-            mountPath: "/opt/arkime/wiseini"
-          - name: wise-config
-            mountPath: "/opt/arkime/etc/wise.ini.example"
-            subPath: "wise.ini"
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "arkime-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/config:arkime/wiseini;/data/pcap:processed,arkime-live")
+             (dict "name" "PUSER_COPY" "value" "/opt/arkime/etc/wise.ini.example:/opt/arkime/wiseini/wise.ini")
+           )
+           "volumeMounts" (list
+             (dict "name" "arkime-pcap-volume" "mountPath" "/data/pcap")
+             (dict "name" "arkime-config-volume" "mountPath" "/opt/arkime/wiseini")
+             (dict "name" "wise-config" "mountPath" "/opt/arkime/etc/wise.ini.example" "subPath" "wise.ini")
+           )
+         ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:
