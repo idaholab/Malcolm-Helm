@@ -197,7 +197,7 @@ spec:
           "mode" "main"
           "secretName" "redis-remotesensor-env"
           "port" 6379
-          "portName" "redis-remotesensor"
+          "portName" "redis-sensor"
           "extraVolumeMounts" (list
             (dict "mountPath" "/data" "name" "redis-remotesensor-volume" "subPath" "data")
           )
@@ -208,7 +208,7 @@ spec:
           "mode" "cache"
           "secretName" "redis-remotesensor-env"
           "port" 6380
-          "portName" "redis-cache-remotesensor"
+          "portName" "redisca-sensor"
         ) | nindent 6 }}
       {{ include "malcolm.filebeat.container" (dict
            "root" $
