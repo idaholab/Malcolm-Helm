@@ -4,7 +4,7 @@
 {{- $root.Values.image.filebeat_container_override | default (printf "%s/filebeat-oss:%s" $root.Values.image.repository $root.Chart.AppVersion) -}}
 {{- end -}}
 
-{{- define "malcolm.filebeat.liveness" -}}
+{{- define "malcolm.filebeat.livenessProbe" -}}
 livenessProbe:
   exec:
     command:
@@ -57,7 +57,7 @@ Params:
     - configMapRef: { name: filebeat-env }
   env:
 {{ toYaml $env | nindent 4 }}
-{{ include "malcolm.filebeat.liveness" . | nindent 2 }}
+{{ include "malcolm.filebeat.livenessProbe" . | nindent 2 }}
   volumeMounts:
 {{ toYaml $mounts | nindent 4 }}
 {{- end -}}

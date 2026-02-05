@@ -33,8 +33,7 @@ Params:
     runAsGroup: 0
     runAsUser: 0
   envFrom:
-    - configMapRef:
-        name: process-env
+    - configMapRef: { name: process-env }
 {{- if gt (len $env) 0 }}
   env:
 {{ toYaml $env | nindent 4 }}

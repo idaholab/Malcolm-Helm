@@ -47,14 +47,10 @@ Params:
       containerPort: 57314
       protocol: TCP
   envFrom:
-    - configMapRef:
-        name: process-env
-    - configMapRef:
-        name: ssl-env
-    - secretRef:
-        name: {{ $redisSecret }}
-    - configMapRef:
-        name: pipeline-env
+    - configMapRef: { name: process-env }
+    - configMapRef: { name: ssl-env }
+    - secretRef: { name: {{ $redisSecret }} }
+    - configMapRef: { name: pipeline-env }
 {{ include "malcolm.strelkaFrontend.livenessProbe" . | nindent 2 }}
   volumeMounts:
     - mountPath: /var/local/ca-trust/configmap

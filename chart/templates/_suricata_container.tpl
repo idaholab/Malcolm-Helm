@@ -5,7 +5,7 @@
 {{- end -}}
 
 {{/* Liveness probes */}}
-{{- define "malcolm.suricata.liveness.offline" -}}
+{{- define "malcolm.suricata.livenessProbe.offline" -}}
 livenessProbe:
   exec:
     command:
@@ -17,7 +17,7 @@ livenessProbe:
   failureThreshold: 10
 {{- end -}}
 
-{{- define "malcolm.suricata.liveness.live" -}}
+{{- define "malcolm.suricata.livenessProbe.live" -}}
 livenessProbe:
   exec:
     command:
@@ -72,9 +72,9 @@ Params:
 {{ toYaml $env | nindent 4 }}
 {{- end }}
 {{- if eq $mode "live" }}
-{{ include "malcolm.suricata.liveness.live" . | nindent 2 }}
+{{ include "malcolm.suricata.livenessProbe.live" . | nindent 2 }}
 {{- else }}
-{{ include "malcolm.suricata.liveness.offline" . | nindent 2 }}
+{{ include "malcolm.suricata.livenessProbe.offline" . | nindent 2 }}
 {{- end }}
   volumeMounts:
 {{ toYaml $baseMounts | nindent 4 }}

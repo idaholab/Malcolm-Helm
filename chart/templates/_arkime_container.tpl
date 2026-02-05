@@ -33,7 +33,6 @@ Params:
 {{- $name := .name | default "arkime-container" -}}
 {{- $ports := .ports | default (list) -}}
 {{- $envFrom := .envFrom | default (list) -}}
-{{- $env := .env | default (list) -}}
 {{- $sc := .securityContext -}}
 {{- $mounts := .volumeMounts | default (list) -}}
 

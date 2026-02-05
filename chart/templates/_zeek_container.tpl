@@ -5,7 +5,7 @@
 {{- end -}}
 
 {{/* Zeek liveness (live flavors) */}}
-{{- define "malcolm.zeek.liveness.live" -}}
+{{- define "malcolm.zeek.livenessProbe.live" -}}
 livenessProbe:
   exec:
     command:
@@ -18,7 +18,7 @@ livenessProbe:
 {{- end -}}
 
 {{/* Zeek liveness (pcap-processor) */}}
-{{- define "malcolm.zeek.liveness.pcap" -}}
+{{- define "malcolm.zeek.livenessProbe.pcap" -}}
 livenessProbe:
   exec:
     command:
@@ -76,7 +76,6 @@ Params:
   name: string (default zeek-container)
   mode: "offline" | "live" | "liveRemote" | "pcapProcessor"
   securityContext: map (required)
-  envFrom: list (required)
   env: list (optional)
   baseVolumeMounts: list (required) # mounts excluding the “custom vs overrides” block
 */}}
@@ -101,9 +100,9 @@ Params:
 {{- end }}
 
 {{- if or (eq $mode "live") (eq $mode "liveRemote") }}
-{{ include "malcolm.zeek.liveness.live" . | nindent 2 }}
+{{ include "malcolm.zeek.livenessProbe.live" . | nindent 2 }}
 {{- else if eq $mode "pcapProcessor" }}
-{{ include "malcolm.zeek.liveness.pcap" . | nindent 2 }}
+{{ include "malcolm.zeek.livenessProbe.pcap" . | nindent 2 }}
 {{- end }}
 {{/*
   TODO note that for now the "offline" mode has no liveness check, because sometimes it takes a really log time for the container to pull all the misp data

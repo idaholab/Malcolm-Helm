@@ -50,18 +50,13 @@ Params:
       protocol: TCP
       containerPort: 30441
   envFrom:
-    - configMapRef:
-        name: process-env
-    - configMapRef:
-        name: ssl-env
+    - configMapRef: { name: process-env }
+    - configMapRef: { name: ssl-env }
 {{- if eq $mode "monitor" }}
-    - configMapRef:
-        name: opensearch-env
-    - configMapRef:
-        name: upload-common-env
+    - configMapRef: { name: opensearch-env }
+    - configMapRef: { name: upload-common-env }
 {{- else }}
-    - configMapRef:
-        name: upload-pcap-offline-env
+    - configMapRef: { name: upload-pcap-offline-env }
 {{- end }}
 {{ include "malcolm.pcapMonitor.livenessProbe" . | nindent 2 }}
   volumeMounts:

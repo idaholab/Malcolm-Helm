@@ -88,12 +88,9 @@ Params:
       protocol: TCP
       containerPort: {{ $port }}
   envFrom:
-    - configMapRef:
-        name: process-env
-    - configMapRef:
-        name: ssl-env
-    - secretRef:
-        name: {{ $secret }}
+    - configMapRef: { name: process-env }
+    - configMapRef: { name: ssl-env }
+    - secretRef: { name: {{ $secret }} }
 {{ include "malcolm.redis.livenessProbe" . | nindent 2 }}
   volumeMounts:
     - mountPath: /var/local/ca-trust/configmap

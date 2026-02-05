@@ -52,22 +52,14 @@ Params:
       protocol: TCP
       containerPort: 8006
   envFrom:
-    - configMapRef:
-        name: process-env
-    - configMapRef:
-        name: ssl-env
-    - configMapRef:
-        name: auth-common-env
-    - configMapRef:
-        name: zeek-env
-    - configMapRef:
-        name: pipeline-env
-    - secretRef:
-        name: {{ $redisSecret }}
-    - secretRef:
-        name: filescan-secret-env
-    - configMapRef:
-        name: filescan-env
+    - configMapRef: { name: process-env }
+    - configMapRef: { name: ssl-env }
+    - configMapRef: { name: auth-common-env }
+    - configMapRef: { name: zeek-env }
+    - configMapRef: { name: pipeline-env }
+    - secretRef: { name: {{ $redisSecret }} }
+    - secretRef: { name: filescan-secret-env }
+    - configMapRef: { name: filescan-env }
 {{- if gt (len $extraEnv) 0 }}
   env:
 {{ toYaml $extraEnv | nindent 4 }}
