@@ -31,7 +31,6 @@ Params:
 {{- define "malcolm.arkime.container" -}}
 {{- $root := .root -}}
 {{- $name := .name | default "arkime-container" -}}
-{{- $pull := .pullPolicy | default $root.Values.image.pullPolicy -}}
 {{- $ports := .ports | default (list) -}}
 {{- $envFrom := .envFrom | default (list) -}}
 {{- $env := .env | default (list) -}}
@@ -40,7 +39,7 @@ Params:
 
 - name: {{ $name }}
   image: "{{ include "malcolm.arkime.image" (dict "root" $root) }}"
-  imagePullPolicy: "{{ $pull }}"
+  imagePullPolicy: "{{ $root.Values.image.pullPolicy }}"
   stdin: false
   tty: true
   securityContext:

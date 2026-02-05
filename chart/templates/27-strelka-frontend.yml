@@ -1,5 +1,3 @@
-{{- $strelka_frontend_image := .Values.image.strelka_frontend_container_override | default (printf "%s/strelka-frontend:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 kind: Service
@@ -29,63 +27,25 @@ spec:
         name: strelka-frontend-deployment
     spec:
       containers:
-      - name: strelka-frontend-container
-        image: "{{ $strelka_frontend_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          # TODO we should not be using root here
-          runAsGroup: 0
-          runAsUser: 0
-        ports:
-          - name: enqueue
-            containerPort: 57314
-            protocol: TCP
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - secretRef:
-              name: redis-env
-          - configMapRef:
-              name: pipeline-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 60
-          periodSeconds: 30
-          timeoutSeconds: 15
-          successThreshold: 1
-          failureThreshold: 10
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: "/etc/strelka/configmap"
-            name: strelka-frontend-config-volume
-          - name: strelka-frontend-logs-volume
-            mountPath: /var/log/strelka
-            subPath: "strelka-frontend"
+      {{ include "malcolm.strelkaFrontend.container" (dict
+           "root" $
+           "redisSecretName" "redis-env"
+           "configVolumeName" "strelka-frontend-config-volume"
+           "extraVolumeMounts" (list
+             (dict "name" "strelka-frontend-logs-volume" "mountPath" "/var/log/strelka" "subPath" "strelka-frontend")
+           )
+         ) | nindent 6 }}
       initContainers:
-      - name: strelka-frontend-live-dirinit-container
-        image: "{{ $dirinit_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-        env:
-          - name: PUSER_MKDIR
-            value: "/data/runtime-logs:strelka-frontend"
-        volumeMounts:
-          - name: strelka-frontend-logs-volume
-            mountPath: "/data/runtime-logs"
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "strelka-frontend-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/runtime-logs:strelka-frontend")
+           )
+           "volumeMounts" (list
+             (dict "name" "strelka-frontend-logs-volume" "mountPath" "/data/runtime-logs")
+           )
+         ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:

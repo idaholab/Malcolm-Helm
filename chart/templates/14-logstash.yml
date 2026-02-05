@@ -1,5 +1,4 @@
 {{- $logstash_image := .Values.image.logstash_container_override | default (printf "%s/logstash-oss:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 data:
@@ -149,23 +148,16 @@ spec:
             subPath: 99_opensearch_output.conf
 {{- end }}
       initContainers:
-      - name: logstash-dirinit-container
-        image: "{{ $dirinit_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-        env:
-          - name: PUSER_MKDIR
-            value: "/data/config:logstash"
-        volumeMounts:
-          - name: logstash-config-persist-volume
-            mountPath: "/data/config"
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "logstash-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/config:logstash")
+           )
+           "volumeMounts" (list
+             (dict "name" "logstash-config-persist-volume" "mountPath" "/data/config")
+           )
+         ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:

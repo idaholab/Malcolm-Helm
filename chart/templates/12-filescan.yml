@@ -1,5 +1,3 @@
-{{- $filescan_image := .Values.image.filescan_container_override | default (printf "%s/filescan:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 kind: Service
@@ -32,81 +30,24 @@ spec:
         name: filescan-deployment
     spec:
       containers:
-      - name: filescan-container
-        image: "{{ $filescan_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          # TODO we should not be using root here
-          runAsGroup: 0
-          runAsUser: 0
-        ports:
-          - name: health
-            containerPort: 8001
-            protocol: TCP
-          - name: files
-            protocol: TCP
-            containerPort: 8006
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: auth-common-env
-          - configMapRef:
-              name: zeek-env
-          - configMapRef:
-              name: pipeline-env
-          - secretRef:
-              name: redis-env
-          - secretRef:
-              name: filescan-secret-env
-          - configMapRef:
-              name: filescan-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 60
-          periodSeconds: 30
-          timeoutSeconds: 15
-          successThreshold: 1
-          failureThreshold: 10
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: "/zeek/extract_files"
-            name: filescan-zeek-volume
-            subPath: "extract_files"
-          - name: filescan-logs-volume
-            mountPath: /filescan/data/logs
-            subPath: "filescan"
-          - mountPath: "/filescan/data/files"
-            name: filescan-zeek-volume
-            subPath: "extract_files/filescan"
-            readOnly: true
+      {{ include "malcolm.filescan.container" (dict
+           "root" $
+           "redisSecretName" "redis-env"
+           "zeekVolumeName" "filescan-zeek-volume"
+           "logsVolumeName" "filescan-logs-volume"
+         ) | nindent 6 }}
       initContainers:
-      - name: filescan-live-dirinit-container
-        image: "{{ $dirinit_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-        env:
-          - name: PUSER_MKDIR
-            value: "/data/zeek-logs:extract_files/filescan;/data/runtime-logs:filescan"
-        volumeMounts:
-          - name: filescan-zeek-volume
-            mountPath: "/data/zeek-logs"
-          - name: filescan-logs-volume
-            mountPath: "/data/runtime-logs"
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "filescan-live-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/zeek-logs:extract_files/filescan;/data/runtime-logs:filescan")
+           )
+           "volumeMounts" (list
+             (dict "name" "filescan-zeek-volume" "mountPath" "/data/zeek-logs")
+             (dict "name" "filescan-logs-volume" "mountPath" "/data/runtime-logs")
+           )
+         ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:

@@ -1,5 +1,4 @@
 {{- $arkime_image := .Values.image.arkime_container_override | default (printf "%s/arkime:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if .Values.arkime_live.enabled }}
 ---
 apiVersion: apps/v1
@@ -64,30 +63,19 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
       initContainers:
-      - name: arkime-live-dirinit-container
-        image: "{{ $dirinit_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-        env:
-          - name: PUSER_MKDIR
-            value: "/data/pcap:arkime-live;/opt/arkime:wiseini"
-          - name: PUSER_COPY
-            value: "/opt/arkime/etc/wise.ini.example:/opt/arkime/wiseini/wise.ini"
-        volumeMounts:
-          - name: arkime-live-pcap-volume
-            mountPath: "/data/pcap"
-          - name: arkime-live-config-volume
-            mountPath: "/opt/arkime/wiseini"
-          - name: wise-config
-            mountPath: "/opt/arkime/etc/wise.ini.example"
-            subPath: "wise.ini"
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "arkime-live-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/pcap:arkime-live;/opt/arkime:wiseini")
+             (dict "name" "PUSER_COPY" "value" "/opt/arkime/etc/wise.ini.example:/opt/arkime/wiseini/wise.ini")
+           )
+           "volumeMounts" (list
+             (dict "name" "arkime-live-pcap-volume" "mountPath" "/data/pcap")
+             (dict "name" "arkime-live-config-volume" "mountPath" "/opt/arkime/wiseini")
+             (dict "name" "wise-config" "mountPath" "/opt/arkime/etc/wise.ini.example" "subPath" "wise.ini")
+           )
+         ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:

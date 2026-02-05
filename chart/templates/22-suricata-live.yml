@@ -1,5 +1,4 @@
 {{- $suricata_image := .Values.image.suricata_container_override | default (printf "%s/suricata:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if eq .Values.capture_mode "live" }}
 ---
 apiVersion: v1
@@ -95,23 +94,16 @@ spec:
       {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
       initContainers:
-      - name: suricata-live-dirinit-container
-        image: "{{ $dirinit_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-        env:
-          - name: PUSER_MKDIR
-            value: "/data/suricata-logs:live"
-        volumeMounts:
-          - name: suricata-live-suricata-logs-volume
-            mountPath: "/data/suricata-logs"
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "suricata-live-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/suricata-logs:live")
+           )
+           "volumeMounts" (list
+             (dict "name" "suricata-live-suricata-logs-volume" "mountPath" "/data/suricata-logs")
+           )
+         ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:

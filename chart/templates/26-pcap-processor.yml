@@ -1,6 +1,3 @@
-{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $pcap_monitor_image := .Values.image.pcap_monitor_container_override | default (printf "%s/pcap-monitor:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $suricata_image := .Values.image.suricata_container_override | default (printf "%s/suricata:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- if eq .Values.capture_mode "pipeline" }}
 ---
 apiVersion: v1
@@ -47,45 +44,16 @@ spec:
 {{ toYaml . | indent 6 }}
 {{- end }}
       containers:
-      - name: pcap-monitor-container
-        image: "{{ $pcap_monitor_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        env:
-          - name: PCAP_PATH_PROCESSED_SUBDIR
-            value: ""
-          - name: PCAP_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-        ports:
-          - name: zmq
-            protocol: TCP
-            containerPort: 30441
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: upload-pcap-offline-env
-        livenessProbe:
-          exec:
-            command:
-              - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 90
-          periodSeconds: 30
-          timeoutSeconds: 15
-          successThreshold: 1
-          failureThreshold: 10
-        volumeMounts:
-        - mountPath: /var/local/ca-trust/configmap
-          name: var-local-catrust-volume
-        - mountPath: "/pcap"
-          name: pcap-volume
-        - mountPath: "/zeek"
-          name: zeek-volume
+      {{ include "malcolm.pcapMonitor.container" (dict
+           "root" $
+           "mode" "processor"
+           "env" (list
+             (dict "name" "PCAP_PATH_PROCESSED_SUBDIR" "value" "")
+             (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
+           )
+           "pcapVolumeName" "pcap-volume"
+           "zeekVolumeName" "zeek-volume"
+         ) | nindent 6 }}
       {{ include "malcolm.zeek.container" (dict
            "root" $
            "mode" "pcapProcessor"
@@ -129,42 +97,23 @@ spec:
       {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
       {{- end }}
       initContainers:
-      - name: dirinit-container
-        image: "{{ $dirinit_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-        env:
-          - name: PUSER_CHOWN
-            value: /data/pcap;/zeek;/data/config
-          - name: PUSER_MKDIR
-            value: /data/pcap:processed,upload;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/zeek:current,live,processed,upload,extract_files/filescan
-        volumeMounts:
-          - name: pcap-volume
-            mountPath: "/data/pcap" 
-          - name: zeek-intel-volume
-            mountPath: "/data/config"
-          - name: zeek-volume
-            mountPath: "/zeek/current"
-            subPath: "current"
-          - name: zeek-volume
-            mountPath: "/zeek/live"
-            subPath: "live"
-          - name: zeek-volume
-            mountPath: "/zeek/processed"
-            subPath: "processed"
-          - name: zeek-volume
-            mountPath: "/zeek/upload"
-            subPath: "upload"
-          - mountPath: "/zeek/extract_files"
-            name: extract-zeek-volume
-            subPath: "extract_files"
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "pcap-processor-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_CHOWN" "value" "/data/pcap;/zeek;/data/config")
+             (dict "name" "PUSER_MKDIR" "value" "/data/pcap:processed,upload;/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/zeek:current,live,processed,upload,extract_files/filescan")
+           )
+           "volumeMounts" (list
+             (dict "name" "pcap-volume" "mountPath" "/data/pcap")
+             (dict "name" "zeek-intel-volume" "mountPath" "/data/config")
+             (dict "name" "zeek-volume" "mountPath" "/zeek/current" "subPath" "current")
+             (dict "name" "zeek-volume" "mountPath" "/zeek/live" "subPath" "live")
+             (dict "name" "zeek-volume" "mountPath" "/zeek/processed" "subPath" "processed")
+             (dict "name" "zeek-volume" "mountPath" "/zeek/upload" "subPath" "upload")
+             (dict "name" "extract-zeek-volume" "mountPath" "/zeek/extract_files" "subPath" "extract_files")
+           )
+         ) | nindent 6 }}
       {{- if ne (len .Values.zeek_chart_overrides.extra_init_containers) 0 }}
       {{- toYaml .Values.zeek_chart_overrides.extra_init_containers | nindent 6 }}
       {{- end }}
