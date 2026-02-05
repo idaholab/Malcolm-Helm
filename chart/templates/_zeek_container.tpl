@@ -56,7 +56,7 @@ envFrom:
 {{- end }}
   - configMapRef: { name: zeek-env }
 
-{{- if $root.Values.kafka.enabled }}
+{{- if and $root.Values.kafka.enabled (or (eq $mode "live") (eq $mode "liveRemote") (eq $mode "pcapProcessor")) }}
   - configMapRef: { name: kafka-config }
 {{- end }}
 
