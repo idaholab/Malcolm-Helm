@@ -37,7 +37,7 @@ data:
 {{- else }}
   ARKIME_QUERY_ALL_INDICES: "false"
 {{- end }}
-{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
+{{- if and .Values.external_elasticsearch.enabled (not (empty .Values.external_elasticsearch.elastic_cert_name)) }}
   ARKIME_CERTFILE: "/usr/local/share/ca-certificates/elastic_ca.crt"
 {{- end }}
 {{- if .Values.is_production }}
