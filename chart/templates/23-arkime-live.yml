@@ -53,7 +53,7 @@ spec:
              (ternary
                (list (dict "name" "elastic-cert" "mountPath" "/usr/local/share/ca-certificates/elastic_ca.crt" "subPath" "elastic_ca.crt"))
                (list)
-               (and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name)
+               (and .Values.external_elasticsearch.enabled (not (empty .Values.external_elasticsearch.elastic_cert_name)))
              )
            )
          ) | nindent 6 }}
@@ -97,7 +97,7 @@ spec:
           hostPath:
             path: "{{ .Values.arkime_live.hostpath }}"
             type: DirectoryOrCreate
-{{- if and .Values.external_elasticsearch.enabled .Values.external_elasticsearch.elastic_cert_name }}
+{{- if and .Values.external_elasticsearch.enabled (not (empty .Values.external_elasticsearch.elastic_cert_name)) }}
         - name: elastic-cert
           secret:
             secretName: {{ .Values.external_elasticsearch.elastic_cert_name }}
