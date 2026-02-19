@@ -89,6 +89,8 @@ spec:
         stdin: false
         tty: true
         securityContext:
+          runAsGroup: 0
+          runAsUser: 0
           capabilities:
             add:
               - IPC_LOCK
