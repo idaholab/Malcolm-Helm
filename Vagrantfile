@@ -23,6 +23,10 @@ Vagrant.configure("2") do |config|
   vm_gui = ENV['VAGRANT_GUI'] || 'true'
   vm_ssd = ENV['VAGRANT_SSD'] || 'on'
   vm_nic = ENV['VAGRANT_NIC'] || 'enp0s8'
+  libvirt_machine_arch = ENV['VAGRANT_LIBVIRT_MACHINE_ARCH'] || 'x86_64'
+  libvirt_machine_type = ENV['VAGRANT_LIBVIRT_MACHINE_TYPE'] || 'q35'
+  libvirt_ovmf_code = ENV['VAGRANT_LIBVIRT_LOADER'] || ''
+  libvirt_ovmf_vars = ENV['VAGRANT_LIBVIRT_NVRAM'] || ''
   malcolm_username = ENV['MALCOLM_USERNAME'] || 'malcolm'
   malcolm_password = ENV['MALCOLM_PASSWORD'] || 'malcolm'
   malcolm_namespace = ENV['MALCOLM_NAMESPACE'] || 'malcolm'
@@ -55,8 +59,10 @@ Vagrant.configure("2") do |config|
     libvirt.driver = "kvm"
     libvirt.cpus = vm_cpus.to_i
     libvirt.memory = vm_memory.to_i
-    libvirt.machine_arch = 'x86_64'
-    libvirt.machine_type = "q35"
+    libvirt.machine_arch = libvirt_machine_arch
+    libvirt.machine_type = libvirt_machine_type
+    libvirt.loader = libvirt_ovmf_code if libvirt_ovmf_code && !libvirt_ovmf_code.empty?
+    libvirt.nvram  = libvirt_ovmf_vars if libvirt_ovmf_vars && !libvirt_ovmf_vars.empty?
     libvirt.nic_model_type = "virtio"
     libvirt.cpu_mode = 'host-model'
     libvirt.cpu_fallback = 'forbid'
@@ -84,7 +90,7 @@ Vagrant.configure("2") do |config|
     set -euo pipefail
 
     apt-get update -y
-    apt-get install -y build-essential git iptables linux-headers-$(uname -m | sed 's/^x86_64$/amd64/') qemu-guest-agent apache2-utils openssl
+    apt-get install -y build-essential git iptables linux-headers-$(uname -m | sed 's/^x86_64$/amd64/') qemu-guest-agent apache2-utils openssl jq
 
     ALL_DISKS=($(lsblk --nodeps --noheadings --output NAME --paths))
     for DISK in "${ALL_DISKS[@]}"; do
@@ -119,7 +125,7 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.34.2+rke2r1 sh -
+    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.35.0+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
     [[ -n "${RKE2_DATA_DIR}" ]] && echo "data-dir: ${RKE2_DATA_DIR}" >> /etc/rancher/rke2/config.yaml
@@ -157,8 +163,15 @@ Vagrant.configure("2") do |config|
     fi
     kubectl apply -f /tmp/sc.yaml
 
-    STERN_VERSION=1.33.1
     LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+
+    YQ_VERSION="4.52.2"
+    YQ_URL="https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${LINUX_CPU}"
+    curl -fsSL -o /usr/local/bin/yq "${YQ_URL}"
+    chmod 755 /usr/local/bin/yq
+    chown root:root /usr/local/bin/yq
+
+    STERN_VERSION=1.33.1
     STERN_URL="https://github.com/stern/stern/releases/download/v${STERN_VERSION}/stern_${STERN_VERSION}_linux_${LINUX_CPU}.tar.gz"
     cd /tmp
     mkdir -p ./stern
@@ -168,9 +181,7 @@ Vagrant.configure("2") do |config|
     chown root:root /usr/local/bin/stern
     rm -rf /tmp/stern*
 
-
-    K9S_VERSION=0.50.16
-    LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+    K9S_VERSION=0.50.18
     K9S_URL="https://github.com/derailed/K9S/releases/download/v${K9S_VERSION}/k9s_Linux_${LINUX_CPU}.tar.gz"
     cd /tmp
     mkdir -p ./K9S
@@ -179,6 +190,16 @@ Vagrant.configure("2") do |config|
     chmod 755 /usr/local/bin/k9s
     chown root:root /usr/local/bin/k9s
     rm -rf /tmp/K9S*
+
+    KUBECONFORM_VERSION=0.7.0
+    KUBECONFORM_URL="https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-${LINUX_CPU}.tar.gz"
+    cd /tmp
+    mkdir -p ./KUBECONFORM
+    curl -L "${KUBECONFORM_URL}" | tar xzf - -C ./KUBECONFORM
+    mv ./KUBECONFORM/kubeconform /usr/local/bin/kubeconform
+    chmod 755 /usr/local/bin/kubeconform
+    chown root:root /usr/local/bin/kubeconform
+    rm -rf /tmp/KUBECONFORM*
 
     grep -qxF 'alias k="kubectl"' /home/vagrant/.bashrc || cat /vagrant/vagrant_dependencies/bash_convenience >> /home/vagrant/.bashrc
     sed -i "s/KUBESPACE=malcolm/KUBESPACE=#{malcolm_namespace}/g" /home/vagrant/.bashrc
@@ -191,9 +212,9 @@ Vagrant.configure("2") do |config|
       echo 'fs.inotify.max_user_instances=8192' >> /etc/sysctl.d/performance.conf
       echo 'fs.inotify.max_user_watches=131072' >> /etc/sysctl.d/performance.conf
       echo 'kernel.dmesg_restrict=0' >> /etc/sysctl.d/performance.conf
-      echo 'vm.dirty_background_ratio=40' >> /etc/sysctl.d/performance.conf
-      echo 'vm.dirty_ratio=80' >> /etc/sysctl.d/performance.conf
-      echo 'vm.max_map_count=262144' >> /etc/sysctl.d/performance.conf
+      echo 'vm.dirty_background_ratio=5' >> /etc/sysctl.d/performance.conf
+      echo 'vm.dirty_ratio=10' >> /etc/sysctl.d/performance.conf
+      echo 'vm.max_map_count=524288' >> /etc/sysctl.d/performance.conf
       echo 'vm.swappiness=0' >> /etc/sysctl.d/performance.conf
       sysctl -p
     fi
@@ -264,7 +285,7 @@ Vagrant.configure("2") do |config|
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      ISTIO_VERSION=1.28.1
+      ISTIO_VERSION=1.28.3
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
@@ -293,7 +314,12 @@ Vagrant.configure("2") do |config|
         --from-literal=openssl_password="$(openssl passwd -1 '#{malcolm_password}' | tr -d '\n' | base64 | tr -d '\n')" \
         --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
 
-      # Install Malcolm enabling istio
+      # Install Malcolm enabling istio (commented out for dev/testing so I can deploy it manually)
+      helm lint /vagrant/chart || echo "Helm linting failed!" >&2
+      helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
+      kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2
+      rm -f /tmp/malcolm_rendered.yaml
+      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic} >/dev/null || echo "Helm install --dry-run failed!" >&2
       helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       grep -qxF '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' /etc/hosts || echo '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' >> /etc/hosts
@@ -318,7 +344,12 @@ Vagrant.configure("2") do |config|
         --from-literal=openssl_password="$(openssl passwd -1 '#{malcolm_password}' | tr -d '\n' | base64 | tr -d '\n')" \
         --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
 
-      # Install Malcolm
+      # Install Malcolm (commented out for dev/testing so I can deploy it manually)
+      helm lint /vagrant/chart || echo "Helm linting failed!" >&2
+      helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
+      kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2
+      rm -f /tmp/malcolm_rendered.yaml
+      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic} >/dev/null || echo "Helm install --dry-run failed!" >&2
       helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2

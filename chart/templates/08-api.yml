@@ -67,6 +67,8 @@ spec:
               name: auth-common-env
           - secretRef:
               name: netbox-secret-env
+          - secretRef:
+              name: redis-env
           - configMapRef:
               name: opensearch-env
         env:

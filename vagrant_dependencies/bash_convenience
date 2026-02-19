@@ -34,6 +34,38 @@ function kpods () {
   kctl get pods --no-headers "${NAMESPACE_ARGS[@]}"
 }
 
+function knodes () {
+  kctl get nodes -o json \
+  | jq -r '
+    def roles:
+      (.metadata.labels // {})
+      | to_entries
+      | map(select(.key|startswith("node-role.kubernetes.io/")))
+      | map(.key | sub("^node-role\\.kubernetes\\.io/";""))
+      | map(select(length>0))
+      | unique
+      | sort
+      | join(",");
+
+    def status:
+      (.status.conditions // [])
+      | map(select(.type=="Ready"))
+      | (if length>0 and .[0].status=="True" then "Ready" else "NotReady" end);
+
+    .items[]
+    | . as $n
+    | ($n.metadata.name + " (" + status + ", " + (roles | if .=="" then "none" else . end) + "):\n"
+       + (($n.metadata.labels // {})
+          | to_entries
+          | sort_by(.key)
+          | map("  - " + .key + "=" + (.value|tostring))
+          | join("\n")
+         )
+       + "\n"
+      )
+  '
+}
+
 function kshell () {
   SERVICE="${1}"
   if [[ -n "${SERVICE}" ]]; then

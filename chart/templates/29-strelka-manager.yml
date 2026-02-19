@@ -1,0 +1,30 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strelka-manager-deployment
+spec:
+  selector:
+    matchLabels:
+      name: strelka-manager-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: strelka-manager-deployment
+    spec:
+      containers:
+      {{ include "malcolm.strelkaManager.container" (dict
+           "root" $
+           "redisSecretName" "redis-env"
+           "configVolumeName" "strelka-manager-config-volume"
+         ) | nindent 6 }}
+      volumes:
+        - name: var-local-catrust-volume
+          configMap:
+            name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
+        - name: strelka-manager-config-volume
+          configMap:
+            name: strelka-manager-config
+
+

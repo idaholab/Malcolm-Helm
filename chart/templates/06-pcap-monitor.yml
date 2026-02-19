@@ -1,5 +1,3 @@
-{{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- $pcap_monitor_image := .Values.image.pcap_monitor_container_override | default (printf "%s/pcap-monitor:%s" .Values.image.repository .Chart.AppVersion) }}
 ---
 apiVersion: v1
 kind: Service
@@ -29,65 +27,27 @@ spec:
         name: pcap-monitor-deployment
     spec:
       containers:
-      - name: pcap-monitor-container
-        image: "{{ $pcap_monitor_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        env:
-          - name: PCAP_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-        ports:
-          - name: zmq
-            protocol: TCP
-            containerPort: 30441
-        envFrom:
-          - configMapRef:
-              name: process-env
-          - configMapRef:
-              name: ssl-env
-          - configMapRef:
-              name: opensearch-env
-          - configMapRef:
-              name: upload-common-env
-        livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
-          initialDelaySeconds: 90
-          periodSeconds: 30
-          timeoutSeconds: 15
-          successThreshold: 1
-          failureThreshold: 10
-        volumeMounts:
-          - mountPath: /var/local/ca-trust/configmap
-            name: var-local-catrust-volume
-          - mountPath: /var/local/curlrc/secretmap
-            name: pcap-monitor-opensearch-curlrc-secret-volume
-          - mountPath: "/pcap"
-            name: pcap-monitor-pcap-volume
-          - mountPath: "/zeek"
-            name: pcap-monitor-zeek-volume
+      {{ include "malcolm.pcapMonitor.container" (dict
+           "root" $
+           "mode" "monitor"
+           "env" (list
+             (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
+           )
+           "pcapVolumeName" "pcap-monitor-pcap-volume"
+           "zeekVolumeName" "pcap-monitor-zeek-volume"
+           "curlrcVolumeName" "pcap-monitor-opensearch-curlrc-secret-volume"
+         ) | nindent 6 }}
       initContainers:
-      - name: pcap-monitor-dirinit-container
-        image: "{{ $dirinit_image }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        stdin: false
-        tty: true
-        securityContext:
-          runAsGroup: 0
-          runAsUser: 0
-        envFrom:
-          - configMapRef:
-              name: process-env
-        env:
-          - name: PUSER_MKDIR
-            value: "/data/pcap:processed,upload"
-        volumeMounts:
-          - name: pcap-monitor-pcap-volume
-            mountPath: "/data/pcap"
+      {{ include "malcolm.dirinit.initContainer" (dict
+           "root" $
+           "name" "pcap-monitor-dirinit-container"
+           "env" (list
+             (dict "name" "PUSER_MKDIR" "value" "/data/pcap:processed,upload")
+           )
+           "volumeMounts" (list
+             (dict "name" "pcap-monitor-pcap-volume" "mountPath" "/data/pcap")
+           )
+         ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:
