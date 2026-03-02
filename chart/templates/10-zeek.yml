@@ -16,6 +16,7 @@ data:
   ZEEK_DISABLE_STATS: "true"
   ZEEK_INTEL_REFRESH_CRON_EXPRESSION: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"
   ZEEK_INTEL_REFRESH_ON_STARTUP: "{{ .Values.zeek_offline.zeek_intel_refresh_on_startup }}"
+  ZEEK_DISABLE_INTEL_OFFLINE: "{{ .Values.zeek_offline.zeek_disable_intel_offline }}"
 kind: ConfigMap
 metadata:
   name: zeek-offline-env

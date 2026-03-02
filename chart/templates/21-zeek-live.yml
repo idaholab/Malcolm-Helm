@@ -9,6 +9,7 @@ data:
   ZEEK_PCAP_PROCESSOR: "false"
   # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
   ZEEK_DISABLE_STATS: "{{ .Values.zeek_live.zeek_disable_stats }}"
+  ZEEK_DISABLE_INTEL_LIVE: "{{ .Values.zeek_live.zeek_disable_intel_live }}"
   {{- if .Values.is_production }}
     {{- with .Values.zeek_live.production }}
   ZEEK_LB_PROCS_WORKER_DEFAULT: "{{ .zeek_lb_procs_worker_default }}"
