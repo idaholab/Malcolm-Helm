@@ -862,6 +862,9 @@ keycloak:
 # These NGINX settings apply to Malcolm's internal proxy, *not* the ingress defined above
 nginx:
   log_level: ""
+  log_access_and_errors: false
   # use "type: ClusterIP" if using Ingress-NGINX as illustrated in 99-ingress-nginx.yml.example
   # use "type: LoadBalancer" if using AWS Load Balancer as illustrated in 99-ingress-alb.yml.example
   type: "ClusterIP"
+  # with Kubernetes handling TLS termination, this should probably be false
+  ssl: false
