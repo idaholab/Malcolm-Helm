@@ -1,16 +1,4 @@
 {{- if .Values.ingress.enabled }}
-{{- if eq .Values.ingress.className "traefik" }}
----
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: malcolm-strip-trailing-slash
-spec:
-  redirectRegex:
-    regex: "^(.+[^/])/$"
-    replacement: "$1"
-    permanent: true
-{{- end }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -18,10 +6,9 @@ metadata:
   name: {{ .Values.ingress.className }}-ingress
   annotations:
     {{- if eq .Values.ingress.className "traefik" }}
-    traefik.ingress.kubernetes.io/service.serversscheme: {{ ternary "https" "http" (.Values.nginx.ssl | default false) | quote }}
-    traefik.ingress.kubernetes.io/router.middlewares: malcolm-strip-trailing-slash@kubernetescrd
+    traefik.ingress.kubernetes.io/service.serversscheme: "http"
     {{- else if eq .Values.ingress.className "nginx" }}
-    nginx.ingress.kubernetes.io/backend-protocol: {{ ternary "https" "http" (.Values.nginx.ssl | default false) | quote }}
+    nginx.ingress.kubernetes.io/backend-protocol: "http"
     nginx.ingress.kubernetes.io/preserve-trailing-slash: "false"
     nginx.ingress.kubernetes.io/ssl-passthrough: "false"
     nginx.ingress.kubernetes.io/client-body-buffer-size: "512k"

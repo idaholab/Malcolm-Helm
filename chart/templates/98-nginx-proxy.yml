@@ -9,12 +9,13 @@ spec:
   # use "type: LoadBalancer" if using AWS Load Balancer as illustrated in 99-ingress-alb.yml.example
   type: "{{ .Values.nginx.type | default "ClusterIP" }}"
   ports:
-    - port: 443
-      protocol: TCP
-      name: https
-    - port: 8443
+    - port: 80
+      targetPort: 443
       protocol: TCP
       name: http
+    - port: 8443
+      protocol: TCP
+      name: healthhttp
     - port: 9200
       protocol: TCP
       name: opensearch
@@ -47,10 +48,10 @@ spec:
           runAsGroup: 0
           runAsUser: 0
         ports:
-          - name: https
+          - name: http
             protocol: TCP
             containerPort: 443
-          - name: http
+          - name: healthhttp
             protocol: TCP
             containerPort: 8443
           - name: opensearch

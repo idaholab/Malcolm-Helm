@@ -38,7 +38,6 @@ Vagrant.configure("2") do |config|
   if script_choice == 'use_istio'
     config.vm.network "forwarded_port", guest: 443, host: 8443, guest_ip: "10.0.2.100"
   else
-    config.vm.network "forwarded_port", guest: 30080, host: 8080
     config.vm.network "forwarded_port", guest: 30443, host: 8443
   end
 
