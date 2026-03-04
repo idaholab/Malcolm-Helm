@@ -393,10 +393,11 @@ storage:
       classNameOverride: ""
 
 ingress:
-  # Enable the default NGINX ingress controller
+  # Enable the default (Traefik) ingress controller
   enabled: true
-  # Enable annotations bypassing proxy buffering
-  proxyBufferBypass: true
+  className: traefik
+  # Enable annotations bypassing proxy buffering (only applies if className: nginx)
+  nginxProxyBufferBypass: true
   # Optional: specify additional annotations for the ingress
   # additionalAnnotations:
   #   cert-manager.io/cluster-issuer: "local-ca-issuer"
@@ -858,6 +859,7 @@ keycloak:
   kc_bootstrap_admin_username: "vagrant"
   kc_bootstrap_admin_password: "vagrant"
 
+# These NGINX settings apply to Malcolm's internal proxy, *not* the ingress defined above
 nginx:
   log_level: ""
   # use "type: ClusterIP" if using Ingress-NGINX as illustrated in 99-ingress-nginx.yml.example

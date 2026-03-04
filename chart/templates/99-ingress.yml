@@ -1,0 +1,61 @@
+{{- if .Values.ingress.enabled }}
+{{- if eq .Values.ingress.className "traefik" }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: malcolm-transport-timeouts
+spec:
+  forwardingTimeouts:
+    dialTimeout: 75s
+    responseHeaderTimeout: 600s
+    idleConnTimeout: 600s
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: malcolm-strip-trailing-slash
+spec:
+  redirectRegex:
+    regex: "^(.+[^/])/$"
+    replacement: "$1"
+    permanent: true
+{{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.ingress.className }}-ingress
+  annotations:
+    {{- if eq .Values.ingress.className "traefik" }}
+    traefik.ingress.kubernetes.io/service.serversscheme: "http"
+    traefik.ingress.kubernetes.io/service.serverstransport: malcolm-transport-timeouts@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: malcolm-strip-trailing-slash@kubernetescrd
+    {{- else if eq .Values.ingress.className "nginx" }}
+    nginx.ingress.kubernetes.io/backend-protocol: "http"
+    nginx.ingress.kubernetes.io/preserve-trailing-slash: "false"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: "512k"
+    {{- if .Values.ingress.nginxProxyBufferBypass }}
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "0"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "512k"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "75"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    {{- end }}
+    {{- end }}
+{{- with .Values.ingress.additionalAnnotations }}
+{{ toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{- end }}
+{{- toYaml .Values.ingress.specRules | nindent 2 }}
+{{- with .Values.ingress.specTls }}
+{{ toYaml . | nindent 2 }}
+{{- end }}
+{{- end }}
