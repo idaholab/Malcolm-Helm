@@ -215,7 +215,7 @@ metadata:
 ---
 apiVersion: v1
 data:
-  NGINX_LOG_ACCESS_AND_ERRORS: "false"
+  NGINX_LOG_ACCESS_AND_ERRORS: "{{ .Values.nginx.log_access_and_errors }}"
   NGINX_SSL: "false"
   NGINX_DASHBOARDS_PREFIX: ""
   NGINX_DASHBOARDS_PROXY_PASS: ""
