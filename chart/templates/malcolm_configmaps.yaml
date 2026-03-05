@@ -358,6 +358,7 @@ data:
   SURICATA_UPDATE_ETOPEN: "true"
   SURICATA_UPDATE_RULES: "false"
   SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net }}]'"
+  SURICATA_DISABLE_SIDS: "{{ .Values.suricata_env.disable_sids }}"
   LUA_PATH: "{{ .Values.suricata_env.lua_path }}"
   PCAP_PROCESSED_DIRECTORY: "/data/pcap/processed"
 {{- if .Values.is_production }}

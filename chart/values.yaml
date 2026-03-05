@@ -434,6 +434,8 @@ istio:
 suricata_env:
   # Lua path for Suricata rules
   lua_path: "/opt/suricata/rules/?.lua;;"
+  # Comma-separated list of SIDs to disable
+  disable_sids: ""
   development:
     # Memory caps for various Suricata components in development
     stream_memcap: "1gb"
@@ -508,6 +510,7 @@ suricata_offline:
 # If disabled, PCAPs can still be uploaded using the Malcolm offline upload functionality.
 zeek_live:
   zeek_disable_stats: ""
+  zeek_disable_intel_live: "false"
   hostpath:
     logs: /var/lib/malcolm/zeek-logs
     extracted: /var/lib/malcolm/extracted-files
@@ -547,6 +550,7 @@ zeek_live:
 zeek_offline:
   # Refresh Zeek Intel data at startup
   zeek_intel_refresh_on_startup: "true"
+  zeek_disable_intel_offline: "false"
 
   # Cron expression for refreshing Zeek Intel data
   zeek_intel_refresh_cron_expression: "0 */12 * * *"
