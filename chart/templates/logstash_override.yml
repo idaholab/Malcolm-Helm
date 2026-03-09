@@ -8,7 +8,7 @@ data:
         elasticsearch {
           id => "output_opensearch_malcolm_metrics"
           hosts => "${OPENSEARCH_URL:https://opensearch:9200}"
-          ssl_certificate_verification => "false"
+          ssl_verification_mode => "none"
           manage_template => false
           document_id => "%{+YYMMdd}-%{[event][hash]}"
           ilm_rollover_alias => "{{ .Values.siem_env.logstash_override.rollover_alias_beats }}"
@@ -19,7 +19,7 @@ data:
         elasticsearch {
           id => "output_opensearch_malcolm_suricata"
           hosts => "${OPENSEARCH_URL:https://opensearch:9200}"
-          ssl_certificate_verification => "false"
+          ssl_verification_mode => "none"
           manage_template => false
           document_id => "%{+YYMMdd}-%{[event][hash]}"
           ilm_rollover_alias => "{{ .Values.siem_env.logstash_override.rollover_alias_suricata }}"
@@ -30,7 +30,7 @@ data:
         elasticsearch {
           id => "output_opensearch_malcolm_zeek"
           hosts => "${OPENSEARCH_URL:https://opensearch:9200}"
-          ssl_certificate_verification => "false"
+          ssl_verification_mode => "none"
           manage_template => false
           document_id => "%{+YYMMdd}-%{[event][hash]}"
           ilm_rollover_alias => "{{ .Values.siem_env.logstash_override.rollover_alias_zeek }}"
