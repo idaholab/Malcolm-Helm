@@ -30,4 +30,4 @@ spec:
     - destination:
         host: nginx-proxy.{{ .Release.Namespace }}.svc.cluster.local
         port:
-          number: 443
+          number: 80
