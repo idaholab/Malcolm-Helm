@@ -185,7 +185,7 @@ kubectl get services -n malcolm
 
 ![Screen shot of output from kubectl get services malcolm namespace command in Cloud Shell](Azure_images/screenshots/Azure_Cloud_Shell_kubectl_get_services_malcolm_command.png)
 
-In the above screen-shot the External IP assigned to the nginx-proxy LoadBalancer component is 20.245.132.124. We need to use that address to test our new deployment in a browser. At this point the load balancer is listening on port 443. Since Malcolm's internal `nginx-proxy` service is not configured for TLS encryption, we need to use the HTTP protocol with the following URL:
+In the above screen-shot the External IP assigned to the nginx-proxy LoadBalancer component is 20.245.132.124. We need to use that address to test our new deployment in a browser. At this point the load balancer is listening on port 80. Since Malcolm's internal `nginx-proxy` service is not configured for TLS encryption by the Malcolm Helm chart, we need to use the HTTP protocol with the following URL:
 
 ```
 http://20.245.132.124:80
