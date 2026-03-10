@@ -272,7 +272,7 @@ for OP in template install; do
     --set ingress.specRules.rules[0].http.paths[0].path=/ \
     --set ingress.specRules.rules[0].http.paths[0].pathType=Prefix \
     --set ingress.specRules.rules[0].http.paths[0].backend.service.name=nginx-proxy \
-    --set ingress.specRules.rules[0].http.paths[0].backend.service.port.number=443 \
+    --set ingress.specRules.rules[0].http.paths[0].backend.service.port.number=80 \
     --set-string ingress.specRules.rules[0].host=malcolm.example.org \
     --set-string image.pullPolicy=Always >./"$OP".txt || break
     if [[ "$OP" == "template" ]]; then
