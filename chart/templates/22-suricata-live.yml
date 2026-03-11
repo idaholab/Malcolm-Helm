@@ -1,6 +1,5 @@
 {{- $suricata_image := .Values.image.suricata_container_override | default (printf "%s/suricata:%s" .Values.image.repository .Chart.AppVersion) }}
 {{- $dirinit_image := .Values.image.dirinit_container_override | default (printf "%s/dirinit:%s" .Values.image.repository .Chart.AppVersion) }}
-{{- if eq .Values.capture_mode "live" }}
 ---
 apiVersion: v1
 data:
@@ -167,4 +166,3 @@ spec:
           configMap:
             name: suricata-configs
         {{- end }}
-{{- end }}
