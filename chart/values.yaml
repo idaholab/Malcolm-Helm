@@ -7,11 +7,6 @@ is_production: false
 # internal communication (and optional exceptions for Istio or external Elasticsearch).
 enable_network_policies: false
 
-# Determines how network traffic is captured and processed.
-# Set to `live` for Arkime, Zeek, and Suricata to capture directly from the network interface,
-# or `pipeline` to have Zeek and Suricata ingest PCAP data streamed from Arkime.
-capture_mode: live
-
 cluster:
   # Set to a CIDR mask that covers all the cluster nodes.
   node_cidr: "10.0.0.0/8"
