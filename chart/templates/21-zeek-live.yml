@@ -67,7 +67,6 @@ spec:
         securityContext:
           runAsGroup: 0
           runAsUser: 0
-        securityContext:
           capabilities:
             add:
               # NET_ADMIN and NET_RAW - to turn on promiscuous mode and capture raw packets
