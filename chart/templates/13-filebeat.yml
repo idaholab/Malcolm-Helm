@@ -73,6 +73,9 @@ spec:
       - name: filebeat-container
         image: "{{ $filebeat_image }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
         stdin: false
         tty: true
         ports:
