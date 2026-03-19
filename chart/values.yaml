@@ -164,13 +164,15 @@ opensearch:
   #       -out ca.crt
   # 
   # Then add the ca.crt and ca.key to a K8s secret
-  #     kubectl create secret generic OpenSearchCASecret \
+  #     kubectl create ns <your namespace>
+  #
+  #     kubectl create secret generic opensearch-ca-secret \
   #       --from-file=ca.crt=./ca.crt \
   #       --from-file=ca.key=./ca.key \
   #       -n <your namespace>
   #
   # Then place the secret name below 
-  #     (e.g. existingCASecretName: "OpenSearchCASecret") 
+  #     (e.g. existingCASecretName: "opensearch-ca-secret") 
   existingCASecretName: ""
 
 external_elasticsearch:
