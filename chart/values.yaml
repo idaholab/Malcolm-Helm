@@ -300,7 +300,8 @@ postgres:
   host: postgres
 
   # Default PostgreSQL password
-  password: "ChangeMe"
+  # If not provided, a random password is assigned.
+  password: ""
 
   # Database names for applications
   netbox_db_name: "netbox"
