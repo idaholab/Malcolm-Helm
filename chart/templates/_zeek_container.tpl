@@ -84,18 +84,17 @@ Params:
 {{- $name := .name | default "zeek-container" -}}
 {{- $mode := .mode | default "offline" -}}
 {{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 {{- $env := .env | default (list) -}}
 {{- $baseMounts := .baseVolumeMounts | default (list) -}}
+
 - name: {{ $name }}
   image: "{{ include "malcolm.zeek.image" (dict "root" $root) }}"
   imagePullPolicy: "{{ $root.Values.image.pullPolicy }}"
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
-{{ toYaml $sc | nindent 4 }}
+{{ toYaml $mergedSc | nindent 4 }}
   {{ include "malcolm.zeek.envFrom" (dict "root" $root "mode" $mode) | nindent 2 }}
 {{- if gt (len $env) 0 }}
   env:

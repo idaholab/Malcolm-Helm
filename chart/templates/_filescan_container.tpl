@@ -27,6 +27,7 @@ Params:
   zeekVolumeName: string (required)   # filescan-zeek-volume vs zeek-live-zeek-volume
   logsVolumeName: string (required)   # filescan-logs-volume vs filescan-live-logs-volume
   extraEnv: list (optional)           # for zeek-live (http server disable, preservation)
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.filescan.container" -}}
 {{- $root := .root -}}
@@ -35,6 +36,8 @@ Params:
 {{- $zeekVol := .zeekVolumeName -}}
 {{- $logsVol := .logsVolumeName -}}
 {{- $extraEnv := .extraEnv | default (list) -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.filescan.image" (dict "root" $root) }}"
@@ -42,9 +45,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   ports:
     - name: health
       containerPort: 8001

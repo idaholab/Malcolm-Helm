@@ -25,12 +25,15 @@ Params:
   name: string (default strelka-manager-container)
   redisSecretName: string (default redis-env)
   configVolumeName: string (required)
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.strelkaManager.container" -}}
 {{- $root := .root -}}
 {{- $name := .name | default "strelka-manager-container" -}}
 {{- $redisSecret := .redisSecretName | default "redis-env" -}}
 {{- $cfgVol := .configVolumeName -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.strelkaManager.image" (dict "root" $root) }}"
@@ -38,9 +41,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   envFrom:
     - configMapRef: { name: process-env }
     - configMapRef: { name: ssl-env }

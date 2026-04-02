@@ -26,6 +26,7 @@ Params:
   redisSecretName: string (default redis-env)
   configVolumeName: string (required)
   extraVolumeMounts: list (optional)   # e.g. logs mount in the standalone deployment
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.strelkaFrontend.container" -}}
 {{- $root := .root -}}
@@ -33,6 +34,8 @@ Params:
 {{- $redisSecret := .redisSecretName | default "redis-env" -}}
 {{- $cfgVol := .configVolumeName -}}
 {{- $extraMounts := .extraVolumeMounts | default (list) -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.strelkaFrontend.image" (dict "root" $root) }}"
@@ -40,9 +43,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   ports:
     - name: enqueue
       containerPort: 57314

@@ -26,6 +26,7 @@ Params:
   redisSecretName: string (default redis-env)
   configVolumeName: string (required)
   yaraVolumeName: string (optional; default strelka-backend-yara-rules-custom-volume)
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.strelkaBackend.container" -}}
 {{- $root := .root -}}
@@ -33,6 +34,8 @@ Params:
 {{- $redisSecret := .redisSecretName | default "redis-env" -}}
 {{- $cfgVol := .configVolumeName -}}
 {{- $yaraVol := .yaraVolumeName | default "strelka-backend-yara-rules-custom-volume" -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.strelkaBackend.image" (dict "root" $root) }}"
@@ -40,9 +43,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   envFrom:
     - configMapRef: { name: process-env }
     - configMapRef: { name: ssl-env }

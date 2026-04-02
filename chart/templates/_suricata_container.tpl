@@ -56,6 +56,7 @@ Params:
 {{- $envFrom := .envFrom | default (list) -}}
 {{- $env := .env | default (list) -}}
 {{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 {{- $baseMounts := .baseVolumeMounts | default (list) -}}
 
 - name: {{ $name }}
@@ -64,10 +65,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
-{{ toYaml $sc | nindent 4 }}
+{{ toYaml $mergedSc | nindent 4 }}
   envFrom:
 {{ toYaml $envFrom | nindent 4 }}
 {{- if gt (len $env) 0 }}

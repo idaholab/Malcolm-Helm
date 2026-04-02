@@ -55,6 +55,7 @@ Params:
   secretName: string
   mode: "main" | "cache"
   extraVolumeMounts: list (optional)
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.redis.container" -}}
 {{- $root := .root -}}
@@ -64,15 +65,16 @@ Params:
 {{- $secret := (.secretName | default "redis-env") -}}
 {{- $mode := (.mode | default "cache") -}}
 {{- $extraMounts := (.extraVolumeMounts | default (list)) -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
+
 - name: {{ $name }}
   image: "{{ include "malcolm.redis.image" (dict "root" $root) }}"
   imagePullPolicy: "{{ $root.Values.image.pullPolicy }}"
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   command: ["/sbin/tini"]
   args:
     - "--"

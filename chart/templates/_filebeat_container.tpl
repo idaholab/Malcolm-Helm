@@ -26,6 +26,7 @@ Params:
   ports: list (optional)                   # list of {name, protocol, containerPort}
   env: list (required)                     # env entries
   volumeMounts: list (required)            # full mounts list
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.filebeat.container" -}}
 {{- $root := .root -}}
@@ -34,6 +35,8 @@ Params:
 {{- $ports := .ports | default (list) -}}
 {{- $env := .env | default (list) -}}
 {{- $mounts := .volumeMounts | default (list) -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.filebeat.image" (dict "root" $root) }}"
@@ -41,9 +44,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
 {{- if gt (len $ports) 0 }}
   ports:
 {{ toYaml $ports | nindent 4 }}

@@ -17,12 +17,15 @@ Params:
   name: string (required)
   env: list (required)           # list of env entries (dicts with name/value)
   volumeMounts: list (required)  # list of volumeMount dicts (mountPath/name/subPath/readOnly/etc)
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.dirinit.initContainer" -}}
 {{- $root := .root -}}
 {{- $name := .name -}}
 {{- $env := .env | default (list) -}}
 {{- $mounts := .volumeMounts | default (list) -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.dirinit.image" (dict "root" $root) }}"
@@ -30,9 +33,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   envFrom:
     - configMapRef: { name: process-env }
 {{- if gt (len $env) 0 }}

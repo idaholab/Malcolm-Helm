@@ -28,6 +28,7 @@ Params:
   pcapVolumeName: string (required)
   zeekVolumeName: string (required)
   curlrcVolumeName: string (optional; only for mode=monitor)
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.pcapMonitor.container" -}}
 {{- $root := .root -}}
@@ -37,6 +38,8 @@ Params:
 {{- $pcapVol := .pcapVolumeName -}}
 {{- $zeekVol := .zeekVolumeName -}}
 {{- $curlrcVol := .curlrcVolumeName | default "pcap-monitor-opensearch-curlrc-secret-volume" -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.pcapMonitor.image" (dict "root" $root) }}"
@@ -44,9 +47,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    # initializes as root then drops privileges in the entrypoint
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   env:
 {{ toYaml $env | nindent 4 }}
   ports:
