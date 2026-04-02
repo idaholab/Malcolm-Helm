@@ -44,7 +44,6 @@ Params:
   tty: true
   securityContext:
 {{ toYaml $mergedSc | nindent 4 }}
-{{ toYaml $sc | nindent 4 }}
 {{- if gt (len $ports) 0 }}
   ports:
 {{ toYaml $ports | nindent 4 }}
