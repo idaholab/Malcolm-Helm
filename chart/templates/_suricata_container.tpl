@@ -46,7 +46,7 @@ Params:
   mode: "offline" | "live" | "pcapProcessor"   (controls liveness + which override list to use)
   envFrom: list (required)                     (full envFrom list)
   env: list (optional)
-  securityContext: map (required)
+  securityContext: map (optional)
   baseVolumeMounts: list (required)            (everything except the rules/config overrides)
 */}}
 {{- define "malcolm.suricata.container" -}}
@@ -55,7 +55,7 @@ Params:
 {{- $mode := .mode | default "offline" -}}
 {{- $envFrom := .envFrom | default (list) -}}
 {{- $env := .env | default (list) -}}
-{{- $sc := .securityContext -}}
+{{- $sc := .securityContext | default (dict) -}}
 {{- $baseMounts := .baseVolumeMounts | default (list) -}}
 
 - name: {{ $name }}
@@ -64,6 +64,9 @@ Params:
   stdin: false
   tty: true
   securityContext:
+    # initializes as root then drops privileges in the entrypoint
+    runAsGroup: 0
+    runAsUser: 0
 {{ toYaml $sc | nindent 4 }}
   envFrom:
 {{ toYaml $envFrom | nindent 4 }}

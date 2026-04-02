@@ -75,7 +75,7 @@ Params:
   root: $
   name: string (default zeek-container)
   mode: "offline" | "live" | "liveRemote" | "pcapProcessor"
-  securityContext: map (required)
+  securityContext: map (optional)
   env: list (optional)
   baseVolumeMounts: list (required) # mounts excluding the “custom vs overrides” block
 */}}
@@ -83,7 +83,7 @@ Params:
 {{- $root := .root -}}
 {{- $name := .name | default "zeek-container" -}}
 {{- $mode := .mode | default "offline" -}}
-{{- $sc := .securityContext -}}
+{{- $sc := .securityContext | default (dict) -}}
 {{- $env := .env | default (list) -}}
 {{- $baseMounts := .baseVolumeMounts | default (list) -}}
 - name: {{ $name }}
@@ -92,6 +92,9 @@ Params:
   stdin: false
   tty: true
   securityContext:
+    # initializes as root then drops privileges in the entrypoint
+    runAsGroup: 0
+    runAsUser: 0
 {{ toYaml $sc | nindent 4 }}
   {{ include "malcolm.zeek.envFrom" (dict "root" $root "mode" $mode) | nindent 2 }}
 {{- if gt (len $env) 0 }}

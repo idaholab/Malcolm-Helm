@@ -43,6 +43,10 @@ Params:
   imagePullPolicy: "{{ $root.Values.image.pullPolicy }}"
   stdin: false
   tty: true
+  securityContext:
+    # initializes as root then drops privileges in the entrypoint
+    runAsGroup: 0
+    runAsUser: 0
   env:
 {{ toYaml $env | nindent 4 }}
   ports:

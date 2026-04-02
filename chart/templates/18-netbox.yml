@@ -40,8 +40,8 @@ spec:
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         stdin: false
         tty: true
-        # TODO we should not be using root here
         securityContext:
+          # initializes as root then drops privileges in the entrypoint
           runAsGroup: 0
           runAsUser: 0
         ports:

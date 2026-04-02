@@ -38,6 +38,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
+    # initializes as root then drops privileges in the entrypoint
     runAsGroup: 0
     runAsUser: 0
   envFrom:
