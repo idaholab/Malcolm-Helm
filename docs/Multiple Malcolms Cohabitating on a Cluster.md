@@ -262,7 +262,7 @@ for OP in template install; do
     --set-string storage_class_name=nfs-client-malsg \
     --set-string arkime_live.hostpath=/var/lib/malcolm-sg/arkime-pcap \
     --set-string filescan_env.hostpath=/var/lib/malcolm-sg/filescan-logs \
-    --set-string redis_env.hostpath=/var/lib/malcolm-sg/redis-aof \
+    --set-string valkey_env.hostpath=/var/lib/malcolm-sg/valkey-aof \
     --set-string suricata_live.hostpath=/var/lib/malcolm-sg/suricata-logs \
     --set-string zeek_live.hostpath.extracted=/var/lib/malcolm-sg/extracted-files \
     --set-string zeek_live.hostpath.logs=/var/lib/malcolm-sg/zeek-logs \

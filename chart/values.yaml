@@ -71,7 +71,7 @@ image:
   pcap_capture_container_override: ""
   pcap_monitor_container_override: ""
   postgres_container_override: ""
-  redis_container_override: ""
+  valkey_container_override: ""
   strelka_backend_container_override: ""
   strelka_frontend_container_override: ""
   strelka_manager_container_override: ""
@@ -589,9 +589,90 @@ filescan_env:
     extracted_file_prune_threshold_total_disk_usage_percent: 0
     extracted_file_prune_interval_seconds: 300
     backend_procs: 4
+  # Enabled scanners, see https://idaholab.github.io/Malcolm/docs/file-scanning.html
+  # and https://target.github.io/strelka/#/?id=scanner-list
+  scanners:
+    # - 'ScanAntiword'
+    # - 'ScanBase64'
+    # - 'ScanBase64PE'
+    - 'ScanBatch'
+    - 'ScanBmpEof'
+    - 'ScanBzip2'
+    # - 'ScanCapa'
+    # - 'ScanCart'
+    # - 'ScanCcn'
+    - 'ScanClamav'
+    - 'ScanDmg'
+    - 'ScanDocx'
+    - 'ScanDonut'
+    # - 'ScanElf'
+    - 'ScanEmail'
+    - 'ScanEncryptedDoc'
+    - 'ScanEncryptedZip'
+    - 'ScanEntropy'
+    - 'ScanExiftool'
+    # - 'ScanFooter'
+    - 'ScanGifEof'
+    - 'ScanGzip'
+    # - 'ScanHeader'
+    - 'ScanHtml'
+    # - 'ScanIni'
+    - 'ScanIqy'
+    - 'ScanIso'
+    - 'ScanJarManifest'
+    - 'ScanJavascript'
+    - 'ScanJnlp'
+    - 'ScanJpegEof'
+    - 'ScanJson'
+    - 'ScanLibarchive'
+    - 'ScanLnk'
+    - 'ScanLsb'
+    - 'ScanLzma'
+    - 'ScanMacho'
+    - 'ScanManifest'
+    - 'ScanMsi'
+    # - 'ScanNf'
+    # - 'ScanOcr'
+    - 'ScanOle'
+    - 'ScanOnenote'
+    - 'ScanPdf'
+    - 'ScanPe'
+    - 'ScanPgp'
+    - 'ScanPhp'
+    - 'ScanPkcs7'
+    - 'ScanPlist'
+    - 'ScanPngEof'
+    - 'ScanPyinstaller'
+    - 'ScanQr'
+    - 'ScanRar'
+    - 'ScanRpm'
+    - 'ScanRtf'
+    # - 'ScanSave'
+    - 'ScanSevenZip'
+    # - 'ScanStrings'
+    - 'ScanSwf'
+    - 'ScanTar'
+    # - 'ScanTlsh'
+    - 'ScanTnef'
+    - 'ScanTranscode'
+    - 'ScanUdf'
+    - 'ScanUpx'
+    - 'ScanUrl'
+    - 'ScanVb'
+    - 'ScanVba'
+    - 'ScanVhd'
+    - 'ScanVsto'
+    # - 'ScanX509'
+    - 'ScanXar'
+    - 'ScanXl4ma'
+    - 'ScanXml'
+    - 'ScanYara'
+    - 'ScanZip'
+    - 'ScanZlib'
+    - 'ScanZstd'
 
-redis_env:
-  hostpath: /var/lib/malcolm/redis-aof
+valkey_env:
+  hostpath: /var/lib/malcolm/valkey-aof
   ports:
     local:
       persistent: 6379
@@ -600,7 +681,7 @@ redis_env:
       persistent: 6381
       cache: 6382
   # TODO: I have no idea what to base the max_memory/cache_max_memory numbers on, so for
-  # now I'm setting them to "0" which is the same as the redis default, which means
+  # now I'm setting them to "0" which is the same as the valkey default, which means
   # "don't evict based on memory."
   development:
     max_memory: 0
@@ -863,6 +944,6 @@ keycloak:
 nginx:
   log_level: ""
   log_access_and_errors: false
-  # use "type: ClusterIP" if using Ingress-NGINX as illustrated in 99-ingress-nginx.yml.example
-  # use "type: LoadBalancer" if using AWS Load Balancer as illustrated in 99-ingress-alb.yml.example
+  # use "type: ClusterIP" when Malcolm is exposed through a Kubernetes ingress controller
+  # use "type: LoadBalancer" when exposing Malcolm directly via a cloud/provider load balancer
   type: "ClusterIP"

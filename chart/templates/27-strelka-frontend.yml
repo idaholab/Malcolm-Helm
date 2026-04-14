@@ -29,7 +29,7 @@ spec:
       containers:
       {{ include "malcolm.strelkaFrontend.container" (dict
            "root" $
-           "redisSecretName" "redis-env"
+           "valkeySecretName" "valkey-env"
            "configVolumeName" "strelka-frontend-config-volume"
            "extraVolumeMounts" (list
              (dict "name" "strelka-frontend-logs-volume" "mountPath" "/var/log/strelka" "subPath" "strelka-frontend")

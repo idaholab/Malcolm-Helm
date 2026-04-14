@@ -23,7 +23,7 @@ Generic strelka-frontend container (emits a list item).
 Params:
   root: $
   name: string (default strelka-frontend-container)
-  redisSecretName: string (default redis-env)
+  valkeySecretName: string (default valkey-env)
   configVolumeName: string (required)
   extraVolumeMounts: list (optional)   # e.g. logs mount in the standalone deployment
   securityContext: map (optional)
@@ -31,7 +31,7 @@ Params:
 {{- define "malcolm.strelkaFrontend.container" -}}
 {{- $root := .root -}}
 {{- $name := .name | default "strelka-frontend-container" -}}
-{{- $redisSecret := .redisSecretName | default "redis-env" -}}
+{{- $valkeySecret := .valkeySecretName | default "valkey-env" -}}
 {{- $cfgVol := .configVolumeName -}}
 {{- $extraMounts := .extraVolumeMounts | default (list) -}}
 {{- $sc := .securityContext | default (dict) -}}
@@ -51,7 +51,7 @@ Params:
   envFrom:
     - configMapRef: { name: process-env }
     - configMapRef: { name: ssl-env }
-    - secretRef: { name: {{ $redisSecret }} }
+    - secretRef: { name: {{ $valkeySecret }} }
     - configMapRef: { name: pipeline-env }
 {{ include "malcolm.strelkaFrontend.livenessProbe" . | nindent 2 }}
   volumeMounts:

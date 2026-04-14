@@ -23,7 +23,7 @@ Generic filescan container (emits a list item).
 Params:
   root: $
   name: string (default filescan-container)
-  redisSecretName: string (default redis-env)
+  valkeySecretName: string (default valkey-env)
   zeekVolumeName: string (required)   # filescan-zeek-volume vs zeek-live-zeek-volume
   logsVolumeName: string (required)   # filescan-logs-volume vs filescan-live-logs-volume
   extraEnv: list (optional)           # for zeek-live (http server disable, preservation)
@@ -32,7 +32,7 @@ Params:
 {{- define "malcolm.filescan.container" -}}
 {{- $root := .root -}}
 {{- $name := .name | default "filescan-container" -}}
-{{- $redisSecret := .redisSecretName | default "redis-env" -}}
+{{- $valkeySecret := .valkeySecretName | default "valkey-env" -}}
 {{- $zeekVol := .zeekVolumeName -}}
 {{- $logsVol := .logsVolumeName -}}
 {{- $extraEnv := .extraEnv | default (list) -}}
@@ -59,7 +59,7 @@ Params:
     - configMapRef: { name: auth-common-env }
     - configMapRef: { name: zeek-env }
     - configMapRef: { name: pipeline-env }
-    - secretRef: { name: {{ $redisSecret }} }
+    - secretRef: { name: {{ $valkeySecret }} }
     - secretRef: { name: filescan-secret-env }
     - configMapRef: { name: filescan-env }
 {{- if gt (len $extraEnv) 0 }}

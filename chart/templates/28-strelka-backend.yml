@@ -27,7 +27,7 @@ spec:
       containers:
       {{ include "malcolm.strelkaBackend.container" (dict
            "root" $
-           "redisSecretName" "redis-env"
+           "valkeySecretName" "valkey-env"
            "configVolumeName" "strelka-backend-config-volume"
          ) | nindent 6 }}
       volumes:

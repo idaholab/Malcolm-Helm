@@ -8,7 +8,7 @@
 Generic dirinit initContainer (emits a list item).
 
 Covers all observed variants across callers:
-- name differs (e.g. redis-dirinit-container, zeek-live-dirinit-container, dirinit-container, etc.)
+- name differs (e.g. valkey-dirinit-container, zeek-live-dirinit-container, dirinit-container, etc.)
 - env may contain PUSER_MKDIR, PUSER_COPY, PUSER_CHOWN (any subset)
 - volumeMounts vary widely (including subPath mounts)
 

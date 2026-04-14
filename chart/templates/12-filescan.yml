@@ -32,7 +32,7 @@ spec:
       containers:
       {{ include "malcolm.filescan.container" (dict
            "root" $
-           "redisSecretName" "redis-env"
+           "valkeySecretName" "valkey-env"
            "zeekVolumeName" "filescan-zeek-volume"
            "logsVolumeName" "filescan-logs-volume"
          ) | nindent 6 }}

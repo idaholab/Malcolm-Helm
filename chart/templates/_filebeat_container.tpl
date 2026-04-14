@@ -22,7 +22,7 @@ Generic filebeat container (emits a list item).
 Params:
   root: $
   name: string (default filebeat-container)
-  redisSecretName: string (default redis-env)
+  valkeySecretName: string (default valkey-env)
   ports: list (optional)                   # list of {name, protocol, containerPort}
   env: list (required)                     # env entries
   volumeMounts: list (required)            # full mounts list
@@ -31,7 +31,7 @@ Params:
 {{- define "malcolm.filebeat.container" -}}
 {{- $root := .root -}}
 {{- $name := .name | default "filebeat-container" -}}
-{{- $redisSecret := .redisSecretName | default "redis-env" -}}
+{{- $valkeySecret := .valkeySecretName | default "valkey-env" -}}
 {{- $ports := .ports | default (list) -}}
 {{- $env := .env | default (list) -}}
 {{- $mounts := .volumeMounts | default (list) -}}
@@ -53,7 +53,7 @@ Params:
     - configMapRef: { name: process-env }
     - configMapRef: { name: ssl-env }
     - configMapRef: { name: nginx-env }
-    - secretRef:    { name: {{ $redisSecret }} }
+    - secretRef:    { name: {{ $valkeySecret }} }
     - configMapRef: { name: zeek-env }
     - configMapRef: { name: opensearch-env }
     - configMapRef: { name: upload-common-env }

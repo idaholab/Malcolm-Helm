@@ -447,8 +447,8 @@ nginx-proxy-deployment-77c9cfc9cc-7wjt4        1/1     Running   0        47s
 opensearch-0                                   1/1     Running   0        47s
 pcap-monitor-deployment-5ddffb999f-g5wsx       1/1     Running   0        47s
 postgres-statefulset-0                         1/1     Running   0        47s
-redis-cache-deployment-86b95b5c75-hnn9b        1/1     Running   0        47s
-redis-deployment-659ffb44b6-krtv9              1/1     Running   0        47s
+valkey-cache-deployment-86b95b5c75-hnn9b        1/1     Running   0        47s
+valkey-deployment-659ffb44b6-krtv9              1/1     Running   0        47s
 strelka-backend-deployment-588b8d6bd9-bgplg    1/1     Running   0        47s
 strelka-frontend-deployment-7fddf7989c-sdsr7   1/1     Running   0        45s
 strelka-manager-deployment-6bb9d67d97-lpd4q    1/1     Running   0        46s

@@ -127,7 +127,7 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.35.0+rke2r1 sh -
+    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.35.3+rke2r3 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
     echo "disable: rke2-ingress-nginx" >> /etc/rancher/rke2/config.yaml
@@ -209,7 +209,7 @@ EOF
 
     LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 
-    YQ_VERSION="4.52.2"
+    YQ_VERSION="4.52.5"
     YQ_URL="https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${LINUX_CPU}"
     curl -fsSL -o /usr/local/bin/yq "${YQ_URL}"
     chmod 755 /usr/local/bin/yq
@@ -322,14 +322,11 @@ EOF
       kubectl apply -f /vagrant/vagrant_dependencies/ipaddress-pool.yml
       kubectl apply -f /vagrant/vagrant_dependencies/l2advertisement.yaml
 
-      # Delete rke ingress controller so it does not conflict with istio service mesh
-      kubectl delete daemonset rke2-ingress-nginx-controller -n kube-system
-
       # Install istio service mesh
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      ISTIO_VERSION=1.28.3
+      ISTIO_VERSION=1.29.2
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system

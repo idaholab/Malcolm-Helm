@@ -5,8 +5,8 @@ kind: Service
 metadata:
   name: nginx-proxy
 spec:
-  # use "type: ClusterIP" if using Ingress-NGINX as illustrated in 99-ingress-nginx.yml.example
-  # use "type: LoadBalancer" if using AWS Load Balancer as illustrated in 99-ingress-alb.yml.example
+  # use "type: ClusterIP" when Malcolm is exposed through a Kubernetes ingress controller
+  # use "type: LoadBalancer" when exposing Malcolm directly via a cloud/provider load balancer
   type: "{{ .Values.nginx.type | default "ClusterIP" }}"
   ports:
     - port: 80
