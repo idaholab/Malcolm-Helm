@@ -22,24 +22,29 @@ Generic filebeat container (emits a list item).
 Params:
   root: $
   name: string (default filebeat-container)
-  redisSecretName: string (default redis-env)
+  valkeySecretName: string (default valkey-env)
   ports: list (optional)                   # list of {name, protocol, containerPort}
   env: list (required)                     # env entries
   volumeMounts: list (required)            # full mounts list
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.filebeat.container" -}}
 {{- $root := .root -}}
 {{- $name := .name | default "filebeat-container" -}}
-{{- $redisSecret := .redisSecretName | default "redis-env" -}}
+{{- $valkeySecret := .valkeySecretName | default "valkey-env" -}}
 {{- $ports := .ports | default (list) -}}
 {{- $env := .env | default (list) -}}
 {{- $mounts := .volumeMounts | default (list) -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.filebeat.image" (dict "root" $root) }}"
   imagePullPolicy: "{{ $root.Values.image.pullPolicy }}"
   stdin: false
   tty: true
+  securityContext:
+{{ toYaml $mergedSc | nindent 4 }}
 {{- if gt (len $ports) 0 }}
   ports:
 {{ toYaml $ports | nindent 4 }}
@@ -48,7 +53,7 @@ Params:
     - configMapRef: { name: process-env }
     - configMapRef: { name: ssl-env }
     - configMapRef: { name: nginx-env }
-    - secretRef:    { name: {{ $redisSecret }} }
+    - secretRef:    { name: {{ $valkeySecret }} }
     - configMapRef: { name: zeek-env }
     - configMapRef: { name: opensearch-env }
     - configMapRef: { name: upload-common-env }

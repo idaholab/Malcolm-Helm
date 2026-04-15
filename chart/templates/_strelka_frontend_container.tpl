@@ -23,16 +23,19 @@ Generic strelka-frontend container (emits a list item).
 Params:
   root: $
   name: string (default strelka-frontend-container)
-  redisSecretName: string (default redis-env)
+  valkeySecretName: string (default valkey-env)
   configVolumeName: string (required)
   extraVolumeMounts: list (optional)   # e.g. logs mount in the standalone deployment
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.strelkaFrontend.container" -}}
 {{- $root := .root -}}
 {{- $name := .name | default "strelka-frontend-container" -}}
-{{- $redisSecret := .redisSecretName | default "redis-env" -}}
+{{- $valkeySecret := .valkeySecretName | default "valkey-env" -}}
 {{- $cfgVol := .configVolumeName -}}
 {{- $extraMounts := .extraVolumeMounts | default (list) -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.strelkaFrontend.image" (dict "root" $root) }}"
@@ -40,8 +43,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   ports:
     - name: enqueue
       containerPort: 57314
@@ -49,7 +51,7 @@ Params:
   envFrom:
     - configMapRef: { name: process-env }
     - configMapRef: { name: ssl-env }
-    - secretRef: { name: {{ $redisSecret }} }
+    - secretRef: { name: {{ $valkeySecret }} }
     - configMapRef: { name: pipeline-env }
 {{ include "malcolm.strelkaFrontend.livenessProbe" . | nindent 2 }}
   volumeMounts:

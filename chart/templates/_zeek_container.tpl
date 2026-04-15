@@ -75,7 +75,7 @@ Params:
   root: $
   name: string (default zeek-container)
   mode: "offline" | "live" | "liveRemote" | "pcapProcessor"
-  securityContext: map (required)
+  securityContext: map (optional)
   env: list (optional)
   baseVolumeMounts: list (required) # mounts excluding the “custom vs overrides” block
 */}}
@@ -83,16 +83,18 @@ Params:
 {{- $root := .root -}}
 {{- $name := .name | default "zeek-container" -}}
 {{- $mode := .mode | default "offline" -}}
-{{- $sc := .securityContext -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 {{- $env := .env | default (list) -}}
 {{- $baseMounts := .baseVolumeMounts | default (list) -}}
+
 - name: {{ $name }}
   image: "{{ include "malcolm.zeek.image" (dict "root" $root) }}"
   imagePullPolicy: "{{ $root.Values.image.pullPolicy }}"
   stdin: false
   tty: true
   securityContext:
-{{ toYaml $sc | nindent 4 }}
+{{ toYaml $mergedSc | nindent 4 }}
   {{ include "malcolm.zeek.envFrom" (dict "root" $root "mode" $mode) | nindent 2 }}
 {{- if gt (len $env) 0 }}
   env:

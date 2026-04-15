@@ -5,16 +5,17 @@ kind: Service
 metadata:
   name: nginx-proxy
 spec:
-  # use "type: ClusterIP" if using Ingress-NGINX as illustrated in 99-ingress-nginx.yml.example
-  # use "type: LoadBalancer" if using AWS Load Balancer as illustrated in 99-ingress-alb.yml.example
+  # use "type: ClusterIP" when Malcolm is exposed through a Kubernetes ingress controller
+  # use "type: LoadBalancer" when exposing Malcolm directly via a cloud/provider load balancer
   type: "{{ .Values.nginx.type | default "ClusterIP" }}"
   ports:
-    - port: 443
-      protocol: TCP
-      name: https
-    - port: 8443
+    - port: 80
+      targetPort: 443
       protocol: TCP
       name: http
+    - port: 8443
+      protocol: TCP
+      name: healthhttp
     - port: 9200
       protocol: TCP
       name: opensearch
@@ -43,14 +44,14 @@ spec:
         stdin: false
         tty: true
         securityContext:
-          # TODO we should not be using root here
+          # initializes as root then drops privileges in the entrypoint
           runAsGroup: 0
           runAsUser: 0
         ports:
-          - name: https
+          - name: http
             protocol: TCP
             containerPort: 443
-          - name: http
+          - name: healthhttp
             protocol: TCP
             containerPort: 8443
           - name: opensearch

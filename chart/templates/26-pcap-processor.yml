@@ -58,7 +58,6 @@ spec:
            "root" $
            "mode" "pcapProcessor"
            "name" "zeek-container"
-           "securityContext" (dict "runAsGroup" 0 "runAsUser" 0)
            "env" (list
              (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
              (dict "name" "PCAP_PROCESSED_DIRECTORY" "value" "/pcap/arkime-live")
@@ -75,7 +74,6 @@ spec:
       {{ include "malcolm.suricata.container" (dict
            "root" $
            "mode" "pcapProcessor"
-           "securityContext" (dict "runAsGroup" 0 "runAsUser" 0)
            "envFrom" (list
              (dict "configMapRef" (dict "name" "process-env"))
              (dict "configMapRef" (dict "name" "ssl-env"))

@@ -38,7 +38,7 @@ Vagrant.configure("2") do |config|
   if script_choice == 'use_istio'
     config.vm.network "forwarded_port", guest: 443, host: 8443, guest_ip: "10.0.2.100"
   else
-    config.vm.network "forwarded_port", guest: 80, host: 8080
+    config.vm.network "forwarded_port", guest: 30443, host: 8443
   end
 
   config.vm.provider "virtualbox" do |vb, override|
@@ -113,8 +113,10 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
     RKE2_DATA_DRIVE="$(grep -A 1 "Disk added by Vagrant" /etc/fstab | grep -v '^#' | head -n 1 | awk '{print $2}')"
-    [[ -d "${RKE2_DATA_DRIVE}" ]] && RKE2_DATA_DIR="${RKE2_DATA_DRIVE}"/rke2 || RKE2_DATA_DIR=
-    [[ -n "${RKE2_DATA_DIR}" ]] && mkdir -p "${RKE2_DATA_DIR}"
+    [[ -d "${RKE2_DATA_DRIVE}" ]] && RKE2_DATA_DIR="${RKE2_DATA_DRIVE}"/rke2 || RKE2_DATA_DIR=/var/lib/rancher/rke2
+    [[ -d "${RKE2_DATA_DRIVE}" ]] && echo "export RKE2_DATA_DRIVE=${RKE2_DATA_DRIVE}" > /root/rke2_paths.sh
+    mkdir -p "${RKE2_DATA_DIR}"
+    echo "export RKE2_DATA_DIR=${RKE2_DATA_DIR}" >> /root/rke2_paths.sh
 
     # Turn on password authentication to make it easier to login
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
@@ -125,10 +127,52 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.35.0+rke2r1 sh -
+    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.35.3+rke2r3 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
-    [[ -n "${RKE2_DATA_DIR}" ]] && echo "data-dir: ${RKE2_DATA_DIR}" >> /etc/rancher/rke2/config.yaml
+    echo "disable: rke2-ingress-nginx" >> /etc/rancher/rke2/config.yaml
+    echo "data-dir: ${RKE2_DATA_DIR}" >> /etc/rancher/rke2/config.yaml
+  SHELL
+
+  if script_choice != 'use_istio'
+    config.vm.provision "shell", inline: <<-SHELL
+      [[ -f /root/rke2_paths.sh ]] && source /root/rke2_paths.sh
+      mkdir -p "${RKE2_DATA_DIR}"/server/manifests/
+      cat <<EOF >"${RKE2_DATA_DIR}"/server/manifests/traefik.yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  repo: https://traefik.github.io/charts
+  chart: traefik
+  targetNamespace: kube-system
+  valuesContent: |-
+    service:
+      type: NodePort
+    ports:
+      web:
+        nodePort: 30080
+      websecure:
+        nodePort: 30443
+    ingressClass:
+      enabled: true
+      isDefaultClass: true
+EOF
+            cat <<EOF >"${RKE2_DATA_DIR}"/server/manifests/traefik-nginx-compat.yaml
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: nginx
+spec:
+  controller: traefik.io/ingress-controller
+EOF
+    SHELL
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    [[ -f /root/rke2_paths.sh ]] && source /root/rke2_paths.sh
 
     systemctl start rke2-server.service
     systemctl enable rke2-server.service
@@ -165,7 +209,7 @@ Vagrant.configure("2") do |config|
 
     LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 
-    YQ_VERSION="4.52.2"
+    YQ_VERSION="4.52.5"
     YQ_URL="https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${LINUX_CPU}"
     curl -fsSL -o /usr/local/bin/yq "${YQ_URL}"
     chmod 755 /usr/local/bin/yq
@@ -278,14 +322,11 @@ Vagrant.configure("2") do |config|
       kubectl apply -f /vagrant/vagrant_dependencies/ipaddress-pool.yml
       kubectl apply -f /vagrant/vagrant_dependencies/l2advertisement.yaml
 
-      # Delete rke ingress controller so it does not conflict with istio service mesh
-      kubectl delete daemonset rke2-ingress-nginx-controller -n kube-system
-
       # Install istio service mesh
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      ISTIO_VERSION=1.28.3
+      ISTIO_VERSION=1.29.2
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
@@ -314,7 +355,7 @@ Vagrant.configure("2") do |config|
         --from-literal=openssl_password="$(openssl passwd -1 '#{malcolm_password}' | tr -d '\n' | base64 | tr -d '\n')" \
         --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
 
-      # Install Malcolm enabling istio (commented out for dev/testing so I can deploy it manually)
+      # Install Malcolm enabling istio
       helm lint /vagrant/chart || echo "Helm linting failed!" >&2
       helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
       kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2
@@ -328,11 +369,11 @@ Vagrant.configure("2") do |config|
     SHELL
   else
     config.vm.provision "shell", inline: <<-SHELL
-      echo "Waiting for rke2-ingress-nginx-controller-admission..." >&2
-      until kubectl get endpoints --namespace kube-system 2>/dev/null | grep -Pq "rke2-ingress-nginx-controller-admission\\s+.+:\\d+"; do
-        sleep 20
+      echo "Waiting for Traefik ingress controller..." >&2
+      until kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=traefik -n kube-system --timeout=20s >/dev/null 2>&1; do
+        sleep 5
       done
-      echo "rke2-ingress-nginx-controller-admission is present" >&2
+      echo "Traefik ingress controller is ready" >&2
       sleep 5
 
       echo "Installing Malcolm..." >&2
@@ -344,7 +385,7 @@ Vagrant.configure("2") do |config|
         --from-literal=openssl_password="$(openssl passwd -1 '#{malcolm_password}' | tr -d '\n' | base64 | tr -d '\n')" \
         --from-literal=htpass_cred="$(htpasswd -bnB '#{malcolm_username}' '#{malcolm_password}' | head -n1)"
 
-      # Install Malcolm (commented out for dev/testing so I can deploy it manually)
+      # Install Malcolm
       helm lint /vagrant/chart || echo "Helm linting failed!" >&2
       helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
       kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2

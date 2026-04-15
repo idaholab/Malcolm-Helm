@@ -4,8 +4,8 @@ kind: Service
 metadata:
   name: filebeat
 spec:
-  # use "type: ClusterIP" if using Ingress-NGINX as illustrated in 99-ingress-nginx.yml.example
-  # use "type: LoadBalancer" if using AWS Load Balancer as illustrated in 99-ingress-alb.yml.example
+  # use "type: ClusterIP" when Malcolm is exposed through a Kubernetes ingress controller
+  # use "type: LoadBalancer" when exposing Malcolm directly via a cloud/provider load balancer
   type: ClusterIP
   ports:
     - port: 5045
@@ -38,7 +38,7 @@ spec:
       containers:
       {{ include "malcolm.filebeat.container" (dict
            "root" $
-           "redisSecretName" "redis-env"
+           "valkeySecretName" "valkey-env"
            "ports" (list (dict "name" "tcpjson" "protocol" "TCP" "containerPort" 5045))
            "env" (list
              (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
@@ -105,7 +105,7 @@ spec:
       containers:
       {{ include "malcolm.filebeat.container" (dict
            "root" $
-           "redisSecretName" "redis-env"
+           "valkeySecretName" "valkey-env"
            "ports" (list (dict "name" "tcpjson" "protocol" "TCP" "containerPort" 5045))
            "env" (list
              (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))

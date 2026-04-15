@@ -101,7 +101,7 @@ data:
   # file offset for .prospector.scanner.fingerprint
   FILEBEAT_SCANNER_FINGERPRINT_OFFSET: "0"
   # fingerprint length for .prospector.scanner.fingerprint
-  FILEBEAT_SCANNER_FINGERPRINT_LENGTH: "1024"
+  FILEBEAT_SCANNER_FINGERPRINT_LENGTH: "512"
   FILEBEAT_PREPARE_PROCESS_COUNT: "1"
   FILEBEAT_SYSLOG_UDP_LISTEN: "false"
   FILEBEAT_SYSLOG_UDP_PORT: "0"
@@ -181,10 +181,10 @@ data:
   MEDIA_ROOT: /opt/netbox/netbox/media
   METRICS_ENABLED: "false"
   NAPALM_TIMEOUT: "10"
-  REDIS_CACHE_INSECURE_SKIP_TLS_VERIFY: "false"
-  REDIS_CACHE_SSL: "false"
-  REDIS_INSECURE_SKIP_TLS_VERIFY: "false"
-  REDIS_SSL: "false"
+  VALKEY_CACHE_INSECURE_SKIP_TLS_VERIFY: "false"
+  VALKEY_CACHE_SSL: "false"
+  VALKEY_INSECURE_SKIP_TLS_VERIFY: "false"
+  VALKEY_SSL: "false"
   RELEASE_CHECK_URL: ""
   # these group names should match role names from auth-common.env
   REMOTE_AUTH_AUTO_CREATE_GROUPS: "False"
@@ -215,7 +215,7 @@ metadata:
 ---
 apiVersion: v1
 data:
-  NGINX_LOG_ACCESS_AND_ERRORS: "false"
+  NGINX_LOG_ACCESS_AND_ERRORS: "{{ .Values.nginx.log_access_and_errors }}"
   NGINX_SSL: "false"
   NGINX_DASHBOARDS_PREFIX: ""
   NGINX_DASHBOARDS_PROXY_PASS: ""
@@ -468,6 +468,7 @@ data:
   ZEEK_DISABLE_SPICY_TAILSCALE: ""
   ZEEK_DISABLE_SPICY_TFTP: ""
   ZEEK_DISABLE_SPICY_WIREGUARD: ""
+  ZEEK_DISABLE_SPICY_ZIP: "true"
   ZEEK_DISABLE_SSL_VALIDATE_CERTS: ""
   ZEEK_DISABLE_TRACK_ALL_ASSETS: ""
   ZEEK_EXTRACTOR_MODE: {{ .Values.zeek_env.extract_mode }}

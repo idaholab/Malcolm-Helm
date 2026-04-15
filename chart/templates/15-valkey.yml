@@ -2,56 +2,56 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis
+  name: valkey
 spec:
   ports:
-    - port: {{ .Values.redis_env.ports.local.persistent }}
+    - port: {{ .Values.valkey_env.ports.local.persistent }}
       protocol: TCP
-      name: redis
+      name: valkey
   selector:
-    name: redis-deployment
+    name: valkey-deployment
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-deployment
+  name: valkey-deployment
 spec:
   selector:
     matchLabels:
-      name: redis-deployment
+      name: valkey-deployment
   replicas: 1
   template:
     metadata:
       labels:
-        name: redis-deployment
+        name: valkey-deployment
     spec:
       containers:
-      {{ include "malcolm.redis.container" (dict
+      {{ include "malcolm.valkey.container" (dict
         "root" $
-        "name" "redis-container"
+        "name" "valkey-container"
         "mode" "main"
-        "secretName" "redis-env"
-        "port" .Values.redis_env.ports.local.persistent
-        "portName" "redis"
+        "secretName" "valkey-env"
+        "port" .Values.valkey_env.ports.local.persistent
+        "portName" "valkey"
         "extraVolumeMounts" (list
-          (dict "mountPath" "/data" "name" "redis-volume" "subPath" "redis")
+          (dict "mountPath" "/data" "name" "valkey-volume" "subPath" "valkey")
         )
       ) | nindent 6 }}
       initContainers:
       {{ include "malcolm.dirinit.initContainer" (dict
            "root" $
-           "name" "redis-dirinit-container"
+           "name" "valkey-dirinit-container"
            "env" (list
-             (dict "name" "PUSER_MKDIR" "value" "/data/config:redis")
+             (dict "name" "PUSER_MKDIR" "value" "/data/config:valkey")
            )
            "volumeMounts" (list
-             (dict "name" "redis-volume" "mountPath" "/data/config")
+             (dict "name" "valkey-volume" "mountPath" "/data/config")
            )
          ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume
           configMap:
             name: {{ .Values.ca_trust_configmap_name | default "var-local-catrust" }}
-        - name: redis-volume
+        - name: valkey-volume
           persistentVolumeClaim:
             claimName: config-claim

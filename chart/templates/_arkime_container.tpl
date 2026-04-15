@@ -25,7 +25,7 @@ Params:
   name: string
   ports: list (optional)            # list of {name, protocol, containerPort}
   envFrom: list (required)          # full envFrom list (toYaml-able)
-  securityContext: map (required)   # full securityContext map
+  securityContext: map (optional)   # securityContext map
   volumeMounts: list (required)     # full mount list
 */}}
 {{- define "malcolm.arkime.container" -}}
@@ -33,7 +33,8 @@ Params:
 {{- $name := .name | default "arkime-container" -}}
 {{- $ports := .ports | default (list) -}}
 {{- $envFrom := .envFrom | default (list) -}}
-{{- $sc := .securityContext -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 {{- $mounts := .volumeMounts | default (list) -}}
 
 - name: {{ $name }}
@@ -42,7 +43,7 @@ Params:
   stdin: false
   tty: true
   securityContext:
-{{ toYaml $sc | nindent 4 }}
+{{ toYaml $mergedSc | nindent 4 }}
 {{- if gt (len $ports) 0 }}
   ports:
 {{ toYaml $ports | nindent 4 }}

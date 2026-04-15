@@ -16,7 +16,7 @@ spec:
       containers:
       {{ include "malcolm.strelkaManager.container" (dict
            "root" $
-           "redisSecretName" "redis-env"
+           "valkeySecretName" "valkey-env"
            "configVolumeName" "strelka-manager-config-volume"
          ) | nindent 6 }}
       volumes:

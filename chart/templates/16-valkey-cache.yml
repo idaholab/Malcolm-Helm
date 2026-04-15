@@ -2,38 +2,38 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-cache
+  name: valkey-cache
 spec:
   ports:
-    - port: {{ .Values.redis_env.ports.local.cache }}
+    - port: {{ .Values.valkey_env.ports.local.cache }}
       protocol: TCP
-      name: redis
+      name: valkey
   selector:
-    name: redis-cache-deployment
+    name: valkey-cache-deployment
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-cache-deployment
+  name: valkey-cache-deployment
 spec:
   selector:
     matchLabels:
-      name: redis-cache-deployment
+      name: valkey-cache-deployment
   replicas: 1
   template:
     metadata:
       labels:
-        name: redis-cache-deployment
+        name: valkey-cache-deployment
     spec:
       containers:
-      {{ include "malcolm.redis.container" (dict
+      {{ include "malcolm.valkey.container" (dict
           "root" $
-          "name" "redis-cache-container"
+          "name" "valkey-cache-container"
           "mode" "cache"
-          "secretName" "redis-env"
-          "port" .Values.redis_env.ports.local.cache
-          "portName" "redis-cache"
+          "secretName" "valkey-env"
+          "port" .Values.valkey_env.ports.local.cache
+          "portName" "valkey-cache"
         ) | nindent 6 }}
       volumes:
         - name: var-local-catrust-volume

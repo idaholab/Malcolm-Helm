@@ -23,14 +23,17 @@ Generic strelka-manager container (emits a list item).
 Params:
   root: $
   name: string (default strelka-manager-container)
-  redisSecretName: string (default redis-env)
+  valkeySecretName: string (default valkey-env)
   configVolumeName: string (required)
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.strelkaManager.container" -}}
 {{- $root := .root -}}
 {{- $name := .name | default "strelka-manager-container" -}}
-{{- $redisSecret := .redisSecretName | default "redis-env" -}}
+{{- $valkeySecret := .valkeySecretName | default "valkey-env" -}}
 {{- $cfgVol := .configVolumeName -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.strelkaManager.image" (dict "root" $root) }}"
@@ -38,12 +41,11 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   envFrom:
     - configMapRef: { name: process-env }
     - configMapRef: { name: ssl-env }
-    - secretRef: { name: {{ $redisSecret }} }
+    - secretRef: { name: {{ $valkeySecret }} }
     - configMapRef: { name: pipeline-env }
 {{ include "malcolm.strelkaManager.livenessProbe" . | nindent 2 }}
   volumeMounts:

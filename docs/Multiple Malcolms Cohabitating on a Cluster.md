@@ -262,7 +262,7 @@ for OP in template install; do
     --set-string storage_class_name=nfs-client-malsg \
     --set-string arkime_live.hostpath=/var/lib/malcolm-sg/arkime-pcap \
     --set-string filescan_env.hostpath=/var/lib/malcolm-sg/filescan-logs \
-    --set-string redis_env.hostpath=/var/lib/malcolm-sg/redis-aof \
+    --set-string valkey_env.hostpath=/var/lib/malcolm-sg/valkey-aof \
     --set-string suricata_live.hostpath=/var/lib/malcolm-sg/suricata-logs \
     --set-string zeek_live.hostpath.extracted=/var/lib/malcolm-sg/extracted-files \
     --set-string zeek_live.hostpath.logs=/var/lib/malcolm-sg/zeek-logs \
@@ -272,7 +272,7 @@ for OP in template install; do
     --set ingress.specRules.rules[0].http.paths[0].path=/ \
     --set ingress.specRules.rules[0].http.paths[0].pathType=Prefix \
     --set ingress.specRules.rules[0].http.paths[0].backend.service.name=nginx-proxy \
-    --set ingress.specRules.rules[0].http.paths[0].backend.service.port.number=443 \
+    --set ingress.specRules.rules[0].http.paths[0].backend.service.port.number=80 \
     --set-string ingress.specRules.rules[0].host=malcolm.example.org \
     --set-string image.pullPolicy=Always >./"$OP".txt || break
     if [[ "$OP" == "template" ]]; then

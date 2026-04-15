@@ -42,8 +42,8 @@ kind: Service
 metadata:
   name: logstash
 spec:
-  # use "type: ClusterIP" if using Ingress-NGINX as illustrated in 99-ingress-nginx.yml.example
-  # use "type: LoadBalancer" if using AWS Load Balancer as illustrated in 99-ingress-alb.yml.example
+  # use "type: ClusterIP" when Malcolm is exposed through a Kubernetes ingress controller
+  # use "type: LoadBalancer" when exposing Malcolm directly via a cloud/provider load balancer
   type: ClusterIP
   ports:
     - port: 5044
@@ -90,6 +90,9 @@ spec:
         stdin: false
         tty: true
         securityContext:
+          # initializes as root then drops privileges in the entrypoint
+          runAsGroup: 0
+          runAsUser: 0
           capabilities:
             add:
               - IPC_LOCK

@@ -170,7 +170,7 @@ spec:
       {{- end }}
       {{ include "malcolm.filescan.container" (dict
            "root" $
-           "redisSecretName" "redis-remotesensor-env"
+           "valkeySecretName" "valkey-remotesensor-env"
            "zeekVolumeName" "zeek-live-extract-files-volume"
            "logsVolumeName" "filescan-live-logs-volume"
            "extraEnv" (list
@@ -180,41 +180,41 @@ spec:
          ) | nindent 6 }}
       {{ include "malcolm.strelkaFrontend.container" (dict
            "root" $
-           "redisSecretName" "redis-remotesensor-env"
+           "valkeySecretName" "valkey-remotesensor-env"
            "configVolumeName" "strelka-frontend-live-config-volume"
          ) | nindent 6 }}
       {{ include "malcolm.strelkaBackend.container" (dict
            "root" $
-           "redisSecretName" "redis-remotesensor-env"
+           "valkeySecretName" "valkey-remotesensor-env"
            "configVolumeName" "strelka-backend-live-config-volume"
          ) | nindent 6 }}
       {{ include "malcolm.strelkaManager.container" (dict
            "root" $
-           "redisSecretName" "redis-remotesensor-env"
+           "valkeySecretName" "valkey-remotesensor-env"
            "configVolumeName" "strelka-manager-live-config-volume"
          ) | nindent 6 }}
-      {{ include "malcolm.redis.container" (dict
+      {{ include "malcolm.valkey.container" (dict
           "root" $
-          "name" "redis-container"
+          "name" "valkey-container"
           "mode" "main"
-          "secretName" "redis-remotesensor-env"
-          "port" .Values.redis_env.ports.remote.persistent
-          "portName" "redis-sensor"
+          "secretName" "valkey-remotesensor-env"
+          "port" .Values.valkey_env.ports.remote.persistent
+          "portName" "valkey-sensor"
           "extraVolumeMounts" (list
-            (dict "mountPath" "/data" "name" "redis-remotesensor-volume" "subPath" "data")
+            (dict "mountPath" "/data" "name" "valkey-remotesensor-volume" "subPath" "data")
           )
         ) | nindent 6 }}
-      {{ include "malcolm.redis.container" (dict
+      {{ include "malcolm.valkey.container" (dict
           "root" $
-          "name" "redis-cache-container"
+          "name" "valkey-cache-container"
           "mode" "cache"
-          "secretName" "redis-remotesensor-env"
-          "port" .Values.redis_env.ports.remote.cache
-          "portName" "redisca-sensor"
+          "secretName" "valkey-remotesensor-env"
+          "port" .Values.valkey_env.ports.remote.cache
+          "portName" "valkeyca-sensor"
         ) | nindent 6 }}
       {{ include "malcolm.filebeat.container" (dict
            "root" $
-           "redisSecretName" "redis-remotesensor-env"
+           "valkeySecretName" "valkey-remotesensor-env"
            "env" (list
              (dict "name" "MALCOLM_PROFILE" "value" "hedgehog")
              (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
@@ -238,8 +238,8 @@ spec:
            "root" $
            "name" "zeek-remotesensor-dirinit-container"
            "env" (list
-             (dict "name" "PUSER_CHOWN" "value" "/config;/filescan;/redis;/suricata-live-logs;/zeek-live-logs;/zeek-files")
-             (dict "name" "PUSER_MKDIR" "value" "/suricata-live-logs:live;/filescan:filescan;/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/zeek-live-logs:current,live/logs,processed,upload;/zeek-files:extract_files/filescan;/redis:data")
+             (dict "name" "PUSER_CHOWN" "value" "/config;/filescan;/valkey;/suricata-live-logs;/zeek-live-logs;/zeek-files")
+             (dict "name" "PUSER_MKDIR" "value" "/suricata-live-logs:live;/filescan:filescan;/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/zeek-live-logs:current,live/logs,processed,upload;/zeek-files:extract_files/filescan;/valkey:data")
            )
            "volumeMounts" (list
              (dict "name" "filescan-live-logs-volume" "mountPath" "/filescan")
@@ -247,7 +247,7 @@ spec:
              (dict "name" "zeek-live-logs-volume" "mountPath" "/zeek-live-logs")
              (dict "name" "suricata-live-logs-volume" "mountPath" "/suricata-live-logs")
              (dict "name" "zeek-live-extract-files-volume" "mountPath" "/zeek-files")
-             (dict "name" "redis-remotesensor-volume" "mountPath" "/redis")
+             (dict "name" "valkey-remotesensor-volume" "mountPath" "/valkey")
            )
          ) | nindent 6 }}
       volumes:        
@@ -258,9 +258,9 @@ spec:
           hostPath:
             path: "{{ .Values.zeek_live.hostpath.extracted }}"
             type: DirectoryOrCreate
-        - name: redis-remotesensor-volume
+        - name: valkey-remotesensor-volume
           hostPath:
-            path: "{{ .Values.redis_env.hostpath }}"
+            path: "{{ .Values.valkey_env.hostpath }}"
             type: DirectoryOrCreate
         - name: zeek-live-intel-preseed-volume
           configMap:

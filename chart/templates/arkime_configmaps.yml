@@ -28,6 +28,8 @@ data:
   # Whether or not Arkime is allowed to delete uploaded/captured PCAP
   #   https://arkime.com/faq#pcap-deletion
   MANAGE_PCAP_FILES: "true"
+  # Revert to older libpcap mode for PCAP file processing rather than faster scheme processing
+  ARKIME_PCAP_LIBPCAP: "false"
   # debug flag for config.ini (https://arkime.com/settings#debug)
   ARKIME_DEBUG_LEVEL: "{{ .Values.arkime_env.arkime_debug_level }}"
 {{- if ne .Values.siem_env.malcolm_network_index_pattern "arkime_sessions3-*" }}

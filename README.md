@@ -130,7 +130,7 @@ which is then indicated to the `helm install` command with `--set auth.existingS
 4. `cd /path/to/Malcolm-Helm`
 5. `vagrant up`
 6. Wait for installation to complete (signaled by the "You may now ssh to your kubernetes cluster..." message)
-7. Open a web browser and navigate to `http://localhost:8080` to display the Malcolm landing page.
+7. Open a web browser and navigate to `https://localhost:8443` to display the Malcolm landing page.
     * The default username/password is `malcolm`/`malcolm`, although it is preferred that users set their own credentials in the `MALCOLM_USERNAME` and `MALCOLM_PASSWORD` environment variables as described [above](VagrantDemo)
     * It may take several minutes for all Malcolm's services to become available.
 8. If desired, SSH into the VM with `ssh -p 2222 vagrant@localhost` and the password `vagrant`
@@ -447,8 +447,8 @@ nginx-proxy-deployment-77c9cfc9cc-7wjt4        1/1     Running   0        47s
 opensearch-0                                   1/1     Running   0        47s
 pcap-monitor-deployment-5ddffb999f-g5wsx       1/1     Running   0        47s
 postgres-statefulset-0                         1/1     Running   0        47s
-redis-cache-deployment-86b95b5c75-hnn9b        1/1     Running   0        47s
-redis-deployment-659ffb44b6-krtv9              1/1     Running   0        47s
+valkey-cache-deployment-86b95b5c75-hnn9b        1/1     Running   0        47s
+valkey-deployment-659ffb44b6-krtv9              1/1     Running   0        47s
 strelka-backend-deployment-588b8d6bd9-bgplg    1/1     Running   0        47s
 strelka-frontend-deployment-7fddf7989c-sdsr7   1/1     Running   0        45s
 strelka-manager-deployment-6bb9d67d97-lpd4q    1/1     Running   0        46s

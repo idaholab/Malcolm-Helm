@@ -23,16 +23,19 @@ Generic strelka-backend container (emits a list item).
 Params:
   root: $
   name: string (default strelka-backend-container)
-  redisSecretName: string (default redis-env)
+  valkeySecretName: string (default valkey-env)
   configVolumeName: string (required)
   yaraVolumeName: string (optional; default strelka-backend-yara-rules-custom-volume)
+  securityContext: map (optional)
 */}}
 {{- define "malcolm.strelkaBackend.container" -}}
 {{- $root := .root -}}
 {{- $name := .name | default "strelka-backend-container" -}}
-{{- $redisSecret := .redisSecretName | default "redis-env" -}}
+{{- $valkeySecret := .valkeySecretName | default "valkey-env" -}}
 {{- $cfgVol := .configVolumeName -}}
 {{- $yaraVol := .yaraVolumeName | default "strelka-backend-yara-rules-custom-volume" -}}
+{{- $sc := .securityContext | default (dict) -}}
+{{- $mergedSc := merge (dict "runAsGroup" 0 "runAsUser" 0) $sc -}}
 
 - name: {{ $name }}
   image: "{{ include "malcolm.strelkaBackend.image" (dict "root" $root) }}"
@@ -40,12 +43,11 @@ Params:
   stdin: false
   tty: true
   securityContext:
-    runAsGroup: 0
-    runAsUser: 0
+{{ toYaml $mergedSc | nindent 4 }}
   envFrom:
     - configMapRef: { name: process-env }
     - configMapRef: { name: ssl-env }
-    - secretRef: { name: {{ $redisSecret }} }
+    - secretRef: { name: {{ $valkeySecret }} }
     - configMapRef: { name: pipeline-env }
 {{ include "malcolm.strelkaBackend.livenessProbe" . | nindent 2 }}
   volumeMounts:

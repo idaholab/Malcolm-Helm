@@ -41,7 +41,6 @@ spec:
       {{ include "malcolm.zeek.container" (dict
            "root" $
            "mode" "offline"
-           "securityContext" (dict "runAsGroup" 0 "runAsUser" 0)
            "env" (list
              (dict "name" "PCAP_NODE_NAME" "valueFrom" (dict "fieldRef" (dict "fieldPath" "spec.nodeName")))
            )
