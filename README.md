@@ -25,6 +25,8 @@ For more information on Malcolm and its features, see:
     - [Test the newly installed nfs-subdir-external-provisioner](#NFSTest)
     - [Configure Malcolm-Helm to use the nfs-subdir-external-provisioner](#NFSMalcolmConfig)
 * [Updating Malcolm-Helm for a New Malcolm Release](#HelmChartUpdate)
+* [Deploying Malcolm-Helm on Cloud Service Providers](CloudDeployment)
+* [Using Multiple OpenSearch Nodes](MultiOpenSeachNodes)
 
 ## <a name="HelmRepoQuickstart"></a>Installation From Helm Repository
 
@@ -531,9 +533,13 @@ HEAD is now at b77e3eb3 Merge branch 'staging' of https://github.com/idaholab/Ma
 6. Launch an instance of Malcolm-Helm to verify the upgrade, ensuring there are no breaking changes and that the system functions as expected.
 
 
-## Deploying Malcolm-Helm on Cloud Service Providers
+## <a name="CloudDeployment"></a>Deploying Malcolm-Helm on Cloud Service Providers
 
 Please see the documentation pages for each cloud service provider below:
 
   [**Deploying Malcolm-Helm on Azure**](docs/Azure.md)
 
+
+## <a name="MultiOpenSeachNodes"></a>Using Multiple OpenSearch Nodes
+
+Malcom-Helm allows for [single OpenSearch node deployments](chart/values.yaml#L151) or (with singleNode mode disabled) you can specify [Multiple OpenSearch replicas](chart/values.yaml#L152). Please see the [Deploying Multiple OpenSearch Replicas](docs/MultipleOpenSeachReplicas.md) documentation page for special considerations with multi-node deployments.
