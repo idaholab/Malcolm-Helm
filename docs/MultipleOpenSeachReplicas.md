@@ -41,7 +41,7 @@ You should see a message that the new namespace was created successfully
 
 Next create the Secret object in the appropriate namespace.    
 
-In the command below the new Secret object is named "opensearch-ca-secret". Make note of the this name as it will be used in values.yaml modifications or command line options later. The certificate and key files created in the last step are specified for storage in the Kubernetes Secret
+In the command below the new Secret object is named "opensearch-ca-secret". Make note of the this name as it will be used in values.yaml modifications or command line options later. The certificate and key files created in the previous step are specified for storage in the Kubernetes Secret
 
 
 ```bash
