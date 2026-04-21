@@ -4,7 +4,7 @@ Malcom-Helm allows for [single OpenSearch node deployments](../chart/values.yaml
 
 ## Generating a Certificate Authority and related key ##
 
-Using the OpenSSL tool generate an RSA key:
+Use the [OpenSSL tool](https://www.openssl.org/) to generate an RSA key file named ca.key:
 
 ```bash
 openssl genrsa -out ca.key 2048
@@ -18,7 +18,7 @@ openssl req -x509 -new -nodes \
   -subj "/CN=opensearch/OU=ca/O=Malcolm/ST=ID/C=US" \
   -out ca.crt
 ```
-This should leave you with two files that will be stored in a Kubernetes Secret:
+This should leave you with two files that we will store in a Kubernetes Secret:
 
 ```bash
 $ ls -al
@@ -28,7 +28,7 @@ $ ls -al
 
 ## Create a Kubernetes Secret from the certificate files ##
 
-You will need to know the Kubernetes namespace (if any) for your Malcom-Helm deployment so that the Secret object will be available at run-time. Create the Kubernetes namespace if it doesn't already exist: 
+You will need to know the Kubernetes namespace (if any) for your Malcom-Helm deployment so that the Secret object will be available to Malcolm-Helm at run-time. Create the Kubernetes namespace if it doesn't already exist. For this example we will use the "existingca" namespace: 
 ```bash
 kubectl create ns existingca
 ```
@@ -39,10 +39,10 @@ You should see a message that the new namespace was created successfully
 > $ kubectl create ns existingca    
 > namespace/existingca created    
 
+Next create the Secret object in the appropriate namespace.    
 
-In the command below the new Secret object is named "opensearch-ca-secret". Make note of the this name as it will be used in values.yaml modifications later.
+In the command below the new Secret object is named "opensearch-ca-secret". Make note of the this name as it will be used in values.yaml modifications or command line options later. The certificate and key files created in the last step are specified for storage in the Kubernetes Secret
 
-Create the Secret object in the appropriate namespace.:
 
 ```bash
 kubectl create secret generic opensearch-ca-secret \
@@ -66,10 +66,10 @@ Verify the Secret object contains the ca.crt and ca.key files:
 kubectl describe secret opensearch-ca-secret -n existingca
 ```
 
-You should see the name and namespace match what was provided above as well as a Data section listing the two certificate files.
+You should see the name and namespace match what was provided above as well as a Data section listing the two Certificate Authority files.
 
-> $ kubectl describe secret opensearch-ca-secret -n existingca    
-> 		
+> $ kubectl describe secret opensearch-ca-secret -n existingca
+>
 >       Name:         opensearch-ca-secret    
 > 		Namespace:    existingca    
 > 		Labels:       <none>    
@@ -80,24 +80,51 @@ You should see the name and namespace match what was provided above as well as a
 > 		Data
 > 		====
 > 		ca.crt:  1269 bytes
-> 		ca.key:  1704 bytes
+> 		ca.key:  1704 bytes    
 
-With the certificate information stored in the Kubernetes secret in the appropriate namespace we are ready to customize Malcolm-Helm.
+With the certificate information stored in the Kubernetes Secret for the appropriate namespace we are ready to customize Malcolm-Helm.
 
 ## Provide the Secret object name to Malcolm-Helm ##    
 
-You can either edit the Helm Chart [values.yaml](../chart/values.yaml#L176) "existingCASecretName" value directly:    
-> \# Then place the secret name below    
-> \#     (e.g. existingCASecretName: "opensearch-ca-secret")    
-> existingCASecretName: "opensearch-ca-secret"
+When installing Malcolm-Helm from source code you can edit the Helm Chart [values.yaml](../chart/values.yaml#L176) "existingCASecretName" value directly:    
 
-or provide the new Secret object name via helm install command line options at install time. e.g.:
+```
+opensearch:    
+  singleNode: false    
+  replicas: 3    
+  ...    
+  existingCASecretName: "opensearch-ca-secret"
+```    
+
+When [installing from the Malcolm-Helm repository](../README.md#installation-from-helm-repository) you can either provide the new Secret object name via helm install command line options. e.g.:
 
 ```bash
-helm install malcolm
+helm install malcolm \
   --set "opensearch.existingCASecretName=opensearch-ca-secret" \
-  -n "existingca" \    
   --set "opensearch.singleNode=false" \
-```
+  --namespace "existingca" \    
+  ...
+```    
 
-04142026
+or create a values.yaml file with the secret name specified:
+
+```
+opensearch:    
+  singleNode: false    
+  replicas: 3    
+  ...    
+  existingCASecretName: "opensearch-ca-secret"
+```    
+
+and pass the new values.yaml file to Helm via command line:
+
+```bash
+$ helm install malcolm malcolm/malcolm \
+    --values ./values.yaml \
+    --namespace "existingca" \
+```    
+
+## How this works in Malcolm-Helm ##
+
+
+When the opensearch [existingCASecretName value](../chart/values.yaml#L176) is specified Malcolm-Helm [mounts the Secret's files](../chart/templates/03-opensearch.yml#L152) into every OpenSearch pod at: /usr/share/opensearch/config/certs/secretmap. Malcolm [has a mechanism](https://github.com/cisagov/Malcolm/blob/e60cbd07d8f150c6126df30ae4a90c9034dca643/shared/bin/docker-uid-gid-setup.sh#L24) that copies the Secret's contents up one directory to: /usr/share/opensearch/config/certs. With the custom Certificate Authority files in the proper place, each OpenSearch pod uses the provided certificate to [generate server and client certificates](https://github.com/cisagov/Malcolm/blob/e60cbd07d8f150c6126df30ae4a90c9034dca643/shared/bin/self_signed_key_gen.sh#L131) for that pod. Since all of the OpenSearch pods leveraged the same Certificate Authority files (provided by you) trusted encryption channels can be established between the Opensearch pods satisfying the encryption requirements of the [OpenSearch Security Plugin](https://docs.opensearch.org/latest/security/).

@@ -25,8 +25,8 @@ For more information on Malcolm and its features, see:
     - [Test the newly installed nfs-subdir-external-provisioner](#NFSTest)
     - [Configure Malcolm-Helm to use the nfs-subdir-external-provisioner](#NFSMalcolmConfig)
 * [Updating Malcolm-Helm for a New Malcolm Release](#HelmChartUpdate)
-* [Deploying Malcolm-Helm on Cloud Service Providers](CloudDeployment)
-* [Using Multiple OpenSearch Nodes](MultiOpenSeachNodes)
+* [Deploying Malcolm-Helm on Cloud Service Providers](#CloudDeployment)
+* [Using Multiple OpenSearch Nodes](#MultiOpenSeachNodes)
 
 ## <a name="HelmRepoQuickstart"></a>Installation From Helm Repository
 
