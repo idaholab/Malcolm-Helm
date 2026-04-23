@@ -1,6 +1,6 @@
 # Deploying Multiple OpenSearch Replicas
 
-Malcom-Helm allows for [single OpenSearch node deployments](../chart/values.yaml#L151) or (with singleNode mode disabled) you can specify [Multiple OpenSearch replicas](../chart/values.yaml#L152). With the addition of the [OpenSearch Security Plugin](https://docs.opensearch.org/latest/security/) as of [Malcolm v25.06.0](https://github.com/cisagov/Malcolm/releases/tag/v25.06.0) all OpenSearch replica communications must now be encrypted with a common shared TLS certificate. In a multiple OpenSearch replica deployment this certificate must be externally created and provided to the Malcolm-Helm platform via a [Kubernetes Secret](https://kubernetes.io/docs/concepts/configuration/secret/) prior to install. The following steps explain how to generate a TLS certificate and a Secret to hold the certificate files.
+Malcom-Helm allows for [single OpenSearch node deployments](../chart/values.yaml#L151) or (with singleNode mode disabled) you can specify [Multiple OpenSearch replicas](../chart/values.yaml#L152). With the addition of the [OpenSearch Security Plugin](https://docs.opensearch.org/latest/security/) (as of [Malcolm v25.06.0](https://github.com/cisagov/Malcolm/releases/tag/v25.06.0)) all OpenSearch replica communications must now be encrypted with a common shared TLS certificate. For a multiple replica deployment this certificate must be externally created and provided to the Malcolm-Helm platform via a [Kubernetes Secret](https://kubernetes.io/docs/concepts/configuration/secret/) prior to install. The following steps explain how to generate a TLS certificate and a Secret to hold the certificate files.
 
 ## Generating a Certificate Authority and related key ##
 
@@ -18,7 +18,10 @@ openssl req -x509 -new -nodes \
   -subj "/CN=opensearch/OU=ca/O=Malcolm/ST=ID/C=US" \
   -out ca.crt
 ```
+
+
 This should leave you with two files that we will store in a Kubernetes Secret:
+
 
 ```bash
 $ ls -al
@@ -26,15 +29,16 @@ $ ls -al
 -rw-------  1 user user 1704 Dec 14 09:26 ca.key
 ```
 
+
 ## Create a Kubernetes Secret from the certificate files ##
 
 You will need to know the Kubernetes namespace (if any) for your Malcom-Helm deployment so that the Secret object will be available to Malcolm-Helm at run-time. Create the Kubernetes namespace if it doesn't already exist. For this example we will use the "existingca" namespace: 
+
 ```bash
 kubectl create ns existingca
 ```
 
 You should see a message that the new namespace was created successfully
-
 
 > $ kubectl create ns existingca    
 > namespace/existingca created    
@@ -42,7 +46,6 @@ You should see a message that the new namespace was created successfully
 Next create the Secret object in the appropriate namespace.    
 
 In the command below the new Secret object is named "opensearch-ca-secret". Make note of the this name as it will be used in values.yaml modifications or command line options later. The certificate and key files created in the previous step are specified for storage in the Kubernetes Secret
-
 
 ```bash
 kubectl create secret generic opensearch-ca-secret \
@@ -52,7 +55,6 @@ kubectl create secret generic opensearch-ca-secret \
 ```
 
 You should see a message that the Secret was created successfully
-
 
 > $ kubectl create secret generic opensearch-ca-secret \
 >     --from-file=ca.crt=./ca.crt \
@@ -88,15 +90,15 @@ With the certificate information stored in the Kubernetes Secret for the appropr
 
 When installing Malcolm-Helm from source code you can edit the Helm Chart [values.yaml](../chart/values.yaml#L176) "existingCASecretName" value directly:    
 
-```
-opensearch:    
-  singleNode: false    
-  replicas: 3    
-  ...    
-  existingCASecretName: "opensearch-ca-secret"
-```    
 
-When [installing from the Malcolm-Helm repository](../README.md#installation-from-helm-repository) you can either provide the new Secret object name via helm install command line options. e.g.:
+> opensearch:    
+> singleNode: false    
+> replicas: 3    
+> ...    
+> existingCASecretName: "opensearch-ca-secret"
+    
+
+When [installing from the Malcolm-Helm repository](../README.md#installation-from-helm-repository) you can either provide the new Secret object name via helm install command line options. e.g.:    
 
 ```bash
 helm install malcolm \
@@ -104,7 +106,7 @@ helm install malcolm \
   --set "opensearch.singleNode=false" \
   --namespace "existingca" \    
   ...
-```    
+```  
 
 or create a values.yaml file with the secret name specified:
 
@@ -116,13 +118,56 @@ opensearch:
   existingCASecretName: "opensearch-ca-secret"
 ```    
 
-and pass the new values.yaml file to Helm via command line:
+and pass the new values.yaml file to Helm via command line:    
 
 ```bash
 $ helm install malcolm malcolm/malcolm \
     --values ./values.yaml \
     --namespace "existingca" \
+```
+
+## Verify Malcolm is using the provided Certificate Authority files ##    
+
+The OpenSearch pod logs will contain entries verifying the Secret files were recognized and used rather than generating a new certificate internally. First find the names of the running OpenSearch pods with kubectl. The pods will be named "opensearch-" with a number starting from 0. 
+
+```bash
+$ kubectl get pods -n existingca   
+```
+
+The number of pods should match the number of replicas set in values.yaml.
+
+>$ kubectl get pods -n existingca    
+>...    
+>opensearch-0                                   1/1     Running   0             68s    
+>opensearch-1                                   1/1     Running   0             61s    
+>opensearch-2                                   1/1     Running   0             55s    
+
+
+Messages about existing certificate files will contain the string "CA certificate". You should see Malcolm skipped generating a new certificate by searching the pod logs. Search the first OpenSearch pod (opensearch-0) logs to verify the Secret contents were used.
+
+```bash
+$ kubectl logs opensearch-0 -n existingca | grep "CA certificate"
 ```    
+
+
+You should see that Malcolm found the provided certificate.
+
+
+>$ kubectl logs opensearch-0 -n existingca | grep "CA certificate"    
+>Defaulted container "opensearch-container" out of: opensearch-container, opensearch-dirinit-container (init)    
+>CA certificate and key already exist at /usr/share/opensearch/config/certs. Skipping generation.    
+
+Each pod replica should log the same "Skipping generation" message as all OpenSeach pods now contain the same Certificate Authority files provided in the Kubernetes Secret. Below we search the second pod (opensearch-1) logs to verify the existing certificate was used.
+
+```bash
+$ kubectl logs opensearch-1 -n existingca | grep "CA certificate"
+```
+
+Again the logs show the certificate files were found and Malcolm skipped generating a new one.
+
+>$ kubectl logs opensearch-1 -n existingca | grep "CA certificate"    
+>Defaulted container "opensearch-container" out of: opensearch-container, opensearch-dirinit-container (init)    
+>CA certificate and key already exist at /usr/share/opensearch/config/certs. Skipping generation.    
 
 ## How this works in Malcolm-Helm ##
 
