@@ -121,9 +121,9 @@ opensearch:
 and pass the new values.yaml file to Helm via command line:    
 
 ```bash
-$ helm install malcolm malcolm/malcolm \
-    --values ./values.yaml \
-    --namespace "existingca" \
+helm install malcolm malcolm/malcolm \
+  --values ./values.yaml \
+  --namespace "existingca" \
 ```
 
 ## Verify Malcolm is using the provided Certificate Authority files ##    
@@ -131,7 +131,7 @@ $ helm install malcolm malcolm/malcolm \
 The OpenSearch pod logs will contain entries verifying the Secret files were recognized and used rather than generating a new certificate internally. First find the names of the running OpenSearch pods with kubectl. The pods will be named "opensearch-" with a number starting from 0. 
 
 ```bash
-$ kubectl get pods -n existingca   
+kubectl get pods -n existingca   
 ```
 
 The number of pods should match the number of replicas set in values.yaml.
@@ -146,7 +146,7 @@ The number of pods should match the number of replicas set in values.yaml.
 Messages about existing certificate files will contain the string "CA certificate". You should see Malcolm skipped generating a new certificate by searching the pod logs. Search the first OpenSearch pod (opensearch-0) logs to verify the Secret contents were used.
 
 ```bash
-$ kubectl logs opensearch-0 -n existingca | grep "CA certificate"
+kubectl logs opensearch-0 -n existingca | grep "CA certificate"
 ```    
 
 
@@ -160,7 +160,7 @@ You should see that Malcolm found the provided certificate.
 Each pod replica should log the same "Skipping generation" message as all OpenSeach pods now contain the same Certificate Authority files provided in the Kubernetes Secret. Below we search the second pod (opensearch-1) logs to verify the existing certificate was used.
 
 ```bash
-$ kubectl logs opensearch-1 -n existingca | grep "CA certificate"
+kubectl logs opensearch-1 -n existingca | grep "CA certificate"
 ```
 
 Again the logs show the certificate files were found and Malcolm skipped generating a new one.
