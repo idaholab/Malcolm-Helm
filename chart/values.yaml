@@ -140,8 +140,6 @@ auth:
 
 opensearch:
   enabled: true
-  singleNode: true
-  replicas: 3
   url: https://opensearch:9200
   dashboards_url: http://dashboards:5601/dashboards
   development:
@@ -150,6 +148,32 @@ opensearch:
   production:
     java_memory: -Xmx32g -Xms32g -Xss256k
     cluster_max_shards_per_node: 2500
+  singleNode: true
+  replicas: 3
+  # When running multiple OpenSearch instances ("singleNode: false" above)
+  # Specify a manually created Kubernetes secret 
+  # containing a ca.crt and ca.key
+  # for trusted TLS communications betwen OpenSearch nodes
+  # 
+  # Generate a ca.crt and ca.key
+  #     openssl genrsa -out ca.key 2048
+  #
+  #     openssl req -x509 -new -nodes \
+  #       -key ca.key -sha256 -days 3650 \
+  #       -subj "/CN=opensearch/OU=ca/O=Malcolm/ST=ID/C=US" \
+  #       -out ca.crt
+  # 
+  # Then add the ca.crt and ca.key to a K8s secret
+  #     kubectl create ns <your namespace>
+  #
+  #     kubectl create secret generic opensearch-ca-secret \
+  #       --from-file=ca.crt=./ca.crt \
+  #       --from-file=ca.key=./ca.key \
+  #       -n <your namespace>
+  #
+  # Then place the secret name below 
+  #     (e.g. existingCASecretName: "opensearch-ca-secret") 
+  existingCASecretName: ""
 
 external_elasticsearch:
   enabled: false

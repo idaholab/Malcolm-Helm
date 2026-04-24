@@ -152,6 +152,11 @@ spec:
           - name: opensearch-claim
             mountPath: /usr/share/opensearch/config/persist
             subPath: "opensearch"
+        {{- if .Values.opensearch.existingCASecretName }}
+          - name: opensearch-ca-secret-volume
+            mountPath: /usr/share/opensearch/config/certs/secretmap
+            readOnly: true
+        {{- end }}
       initContainers:
       {{ include "malcolm.dirinit.initContainer" (dict
            "root" $
@@ -174,4 +179,9 @@ spec:
         - name: opensearch-keystore-default-secret-volume
           secret:
             secretName: opensearch-keystore
+      {{- if .Values.opensearch.existingCASecretName }}
+        - name: opensearch-ca-secret-volume
+          secret:
+            secretName: {{ .Values.opensearch.existingCASecretName }}
+		  {{- end }}
 {{- end }}
