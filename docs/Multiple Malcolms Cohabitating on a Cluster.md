@@ -267,7 +267,9 @@ for OP in template install; do
     --set-string zeek_live.hostpath.extracted=/var/lib/malcolm-sg/extracted-files \
     --set-string zeek_live.hostpath.logs=/var/lib/malcolm-sg/zeek-logs \
     --set-string cluster.node_cidr=192.168.9.0/24 \
+    --set opensearch.singleNode=true \
     --set istio.enabled=false \
+    --set ingress.className=traefik \
     --set ingress.enabled=true \
     --set ingress.specRules.rules[0].http.paths[0].path=/ \
     --set ingress.specRules.rules[0].http.paths[0].pathType=Prefix \
