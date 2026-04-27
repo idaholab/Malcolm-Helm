@@ -282,9 +282,11 @@ data:
   cluster.routing.allocation.node_initial_primaries_recoveries: "8"
 {{- if .Values.opensearch.singleNode }}
   discovery.type: single-node
+  OPENSEARCH_DEFAULT_REPLICA_COUNT: "0"
 {{- else }}
   cluster.initial_cluster_manager_nodes: {{ template "malcolm.managerNodes" . }}
   discovery.type: ""
+  OPENSEARCH_DEFAULT_REPLICA_COUNT: "{{ .Values.opensearch.defaultReplicaCount }}"
 {{- end }}
   cluster.name: opensearch-cluster
   network.host: 0.0.0.0

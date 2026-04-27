@@ -149,7 +149,12 @@ opensearch:
     java_memory: -Xmx32g -Xms32g -Xss256k
     cluster_max_shards_per_node: 2500
   singleNode: true
+  # When singleNode: false, number of OpenSearch pods/nodes in the StatefulSet.
+  # This is cluster size, not index shard replication.
   replicas: 3
+  # When singleNode: false, number of replica shards per primary shard for new/default indices.
+  # typically <= data nodes - 1, often 1 for multi-node.
+  defaultReplicaCount: 1
   # When running multiple OpenSearch instances ("singleNode: false" above)
   # Specify a manually created Kubernetes secret 
   # containing a ca.crt and ca.key
