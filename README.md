@@ -81,8 +81,7 @@ $ helm install malcolm malcolm/malcolm \
     --namespace $MALCOLM_NAMESPACE \
     --set is_production=true \
     --set auth.existingSecret=malcolm-auth \
-    --set istio.enabled=true \
-    --set ingress.enabled=false \
+    --set ingress.enabled=true \
     --set pcap_capture_env.pcap_iface=eth0
 NAME: malcolm
 LAST DEPLOYED: Wed Nov 12 14:20:18 2025
