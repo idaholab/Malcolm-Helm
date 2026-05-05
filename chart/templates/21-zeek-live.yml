@@ -7,6 +7,7 @@ data:
   ZEEK_LIVE_CAPTURE: "true"
   ZEEK_LOG_PATH: "/zeek/live"
   ZEEK_PCAP_PROCESSOR: "false"
+  ZEEK_CLUSTER_BACKEND: "ZeroMQ"
   # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
   ZEEK_DISABLE_STATS: "{{ .Values.zeek_live.zeek_disable_stats }}"
   ZEEK_DISABLE_INTEL_LIVE: "{{ .Values.zeek_live.zeek_disable_intel_live }}"
