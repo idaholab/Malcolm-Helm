@@ -12,7 +12,7 @@ data:
   ROLE_READ_ACCESS: "{{ .Values.auth.role_read_access }}"
   # ROLE_READ_WRITE_ACCESS - Read/write access across all components, excluding some admin functions
   ROLE_READ_WRITE_ACCESS: "{{ .Values.auth.role_read_write_access }}"
-  # ------------------------------------------------------------------------------
+  # 
   # Specific access roles
   # ROLE_ARKIME_ADMIN - Maps to the built-in arkimeAdmin role
   ROLE_ARKIME_ADMIN: "{{ .Values.auth.role_arkime_admin }}"
