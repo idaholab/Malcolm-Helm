@@ -138,6 +138,15 @@ spec:
               name: opensearch-env
           - configMapRef:
               name: auth-common-env
+        livenessProbe:
+          exec:
+            command:
+              - /usr/local/bin/container_health.sh
+          initialDelaySeconds: 600
+          periodSeconds: 60
+          timeoutSeconds: 30
+          successThreshold: 1
+          failureThreshold: 5
         volumeMounts:
           - mountPath: /var/local/ca-trust/configmap
             name: var-local-catrust-volume
