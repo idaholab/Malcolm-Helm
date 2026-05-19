@@ -194,7 +194,7 @@ Furthermore, the Kibana interface (specified via `dashboards_url`) is still expe
 
 ## <a name="StorageProvisioner"></a>Storage Provisioner Options
 
-Malcolm-Helm's `chart/values.yaml` file doesn't specify a storage class (storage_class_name: "") which allows Kubernetes to choose the cluster's default StorageClass object. You can detemine your cluster's default StorageClass with:
+Malcolm-Helm's `chart/values.yaml` file doesn't specify a storage class (storage_class_name: "") which allows Kubernetes to choose the cluster's default StorageClass object. You can determine your cluster's default StorageClass with:
 
 ```bash
 kubectl get storageclass
@@ -213,13 +213,13 @@ Change your cluster's default StorageClass object by removing the "is-default-cl
 kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 ```
 
-Then add that annotation for to the StoragClass you want as the new default:
+Then add that annotation to the StorageClass you want as the new default:
 
 ```bash
 kubectl patch storageclass nfs-client -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 ```
 
-Now your cluster should show the StorageClass with the newly added annonation as the default
+Now your cluster should show the StorageClass with the newly added annotation as the default
 
 >$ kubectl get storageclass    
 >NAME                   PROVISIONER    
@@ -435,7 +435,7 @@ rm -rf archived-default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328/
 
 ### <a name="NFSMalcolmConfig"></a>Configure Malcolm-Helm to use the nfs-subdir-external-provisioner
 
-With the NFS server exports configured correctly and the Kubernetes nfs-subdir-external-provisioner able to access them for PersistentVolumeClaims, Malcolm-Helm is ready to be configured for deployment. As stated [above](#StorageProvisioner), the Malcolm-Helm [`values.yaml` file](https://github.com/idaholab/Malcolm-Helm/blob/main/chart/values.yaml) doesn't specify a storage storage class which is defined at the top of `values.yaml` as `storage_class_name:`. You can either set your cluster's default StorageClass object (see [above](#StorageProvisioner)) or change the `storage_class_name:` value to `nfs-client` which will explicitly leverage the `nfs-subpath-external-provisioner` and the NFS server exports:
+With the NFS server exports configured correctly and the Kubernetes nfs-subdir-external-provisioner able to access them for PersistentVolumeClaims, Malcolm-Helm is ready to be configured for deployment. As stated [above](#StorageProvisioner), the Malcolm-Helm [`values.yaml` file](https://github.com/idaholab/Malcolm-Helm/blob/main/chart/values.yaml) doesn't specify a storage class which is defined at the top of `values.yaml` as `storage_class_name:`. You can either set your cluster's default StorageClass object (see [above](#StorageProvisioner)) or change the `storage_class_name:` value to `nfs-client` which will explicitly leverage the `nfs-subpath-external-provisioner` and the NFS server exports:
 
 ```yaml
 # The StorageClass used for Malcolm persistent volumes. 
