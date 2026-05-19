@@ -435,17 +435,35 @@ rm -rf archived-default-test-claim-pvc-20de4d0b-3e1c-4e7b-83c9-d6915a483328/
 
 ### <a name="NFSMalcolmConfig"></a>Configure Malcolm-Helm to use the nfs-subdir-external-provisioner
 
-With the NFS server exports configured correctly and the Kubernetes nfs-subdir-external-provisioner able to access them for PersistentVolumeClaims, Malcolm-Helm is ready to be configured for deployment. As stated [above](#StorageProvisioner), the Malcolm-Helm [`values.yaml` file](https://github.com/idaholab/Malcolm-Helm/blob/main/chart/values.yaml) defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner. This is defined at the top of `values.yaml` by `storage_class_name`, which can be changed to `nfs-client` to leverage the `nfs-subpath-external-provisioner` and the NFS server exports:
+With the NFS server exports configured correctly and the Kubernetes nfs-subdir-external-provisioner able to access them for PersistentVolumeClaims, Malcolm-Helm is ready to be configured for deployment. As stated [above](#StorageProvisioner), the Malcolm-Helm [`values.yaml` file](https://github.com/idaholab/Malcolm-Helm/blob/main/chart/values.yaml) doesn't specify a storage storage class which is defined at the top of `values.yaml` as `storage_class_name:`. You can either set your cluster's default StorageClass object (see [above](#StorageProvisioner)) or change the `storage_class_name:` value to `nfs-client` which will explicitly leverage the `nfs-subpath-external-provisioner` and the NFS server exports:
 
 ```yaml
-# The StorageClass used for persistent volumes. Defaults to `local-path` (Local Path Provisioner).
-# If your cluster doesn't support this, set `storage_class_name` to another class that supports
-# ReadWriteMany. You can also override it at install time, e.g.:
-#    helm install --set "storage_class_name=nfs-client"
+# The StorageClass used for Malcolm persistent volumes. 
+# Defaults to "" which uses your cluser's default Kubernetes StorageClass.
+# (can be overridden on a per-component basis in the storage: section below) 
+#
+# Check your cluster's default StorageClass with: "kubectl get storageclass"
+# You should see a list of installed storage classes and, potentially, one marked "default"
+#
+#   $ kubectl get storageclass
+#   NAME                   PROVISIONER                                     
+#   local-path (default)   rancher.io/local-path                           
+#   nfs-client             cluster.local/nfs-subdir-external-provisioner   
+#
+# Change your default StorageClass with "kubectl patch storageclass"
+#
+#   $ kubectl patch storageclass nfs-client -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+#   storageclass.storage.k8s.io/nfs-client patched
+# 
+# (Note: more than one StorageClass can be set to default. Patch with "is-default-class": "false" to disable unwated defaults.)
+# see: https://kubernetes.io/docs/tasks/administer-cluster/change-default-storage-class/
+#
+# The selected StorageClass must support the ReadWriteMany access mode. You can also override it at install time, e.g.:
+#   helm install --set "storage_class_name=nfs-client"
 storage_class_name: nfs-client
 ```
 
-If further customization were needed -- for example, using different storage classes for different claims -- it could be accomplished by overriding the individual claims with `classNameOverride` in the `storage` section of `values.yaml`.
+If further customization were needed -- for example, using different storage classes for different claims -- it could be accomplished by overriding the individual claims with `classNameOverride` in the `storage:` section of `values.yaml`.
 
 Now, follow the [Installation procedures](#installation-procedures) section above to deploy the Malcolm-Helm chart into your cluser.
 
