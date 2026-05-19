@@ -194,7 +194,41 @@ Furthermore, the Kibana interface (specified via `dashboards_url`) is still expe
 
 ## <a name="StorageProvisioner"></a>Storage Provisioner Options
 
-Malcolm-Helm's `chart/values.yaml` file defaults to the Rancher [local-path](https://github.com/rancher/local-path-provisioner) storage provisioner which allocates storage from the Kubernetes nodes' local storage. As stated [above](#ProductionReqs), any storage provider that supports the `ReadWriteMany` access mode may be employed for Malcolm-Helm. This section provides an example of how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for enviroments with an NFS server available.
+Malcolm-Helm's `chart/values.yaml` file doesn't specify a storage class (storage_class_name: "") which allows Kubernetes to choose the cluster's default StorageClass object. You can detemine your cluster's default StorageClass with:
+
+```bash
+kubectl get storageclass
+```
+
+You should see a list of installed storage classes and, potentially, one or more marked "default"
+
+>$ kubectl get storageclass    
+>NAME                   PROVISIONER    
+>local-path (default)   rancher.io/local-path    
+>nfs-client             cluster.local/nfs-subdir-external-provisioner    
+
+Change your cluster's default StorageClass object by removing the "is-default-class" annotation from any existing defaults:
+
+```bash
+kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+```
+
+Then add that annotation for to the StoragClass you want as the new default:
+
+```bash
+kubectl patch storageclass nfs-client -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
+
+Now your cluster should show the StorageClass with the newly added annonation as the default
+
+>$ kubectl get storageclass    
+>NAME                   PROVISIONER    
+>local-path             rancher.io/local-path    
+>nfs-client (default)   cluster.local/nfs-subdir-external-provisioner   
+
+Note: Multiple StorageClasses may be marked as default. Multiple defaults will cause a PersistentVolumeClaim to be created using the most recently created default StorageClass <sup>[1](https://kubernetes.io/docs/tasks/administer-cluster/change-default-storage-class/)</sup>
+
+As stated [above](#ProductionReqs), any storage provider that supports the `ReadWriteMany` access mode may be employed for Malcolm-Helm. This section provides an example of how to configure the [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) for enviroments with an NFS server available.
 
 ### <a name="NFSServer"></a>Configure an NFS server
 
