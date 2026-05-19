@@ -44,7 +44,9 @@ spec:
     - metadata:
         name: postgres-claim
       spec:
-        storageClassName: {{ default $global_storage_class_name .postgres_claim.classNameOverride }}
+        {{- with (default $global_storage_class_name .postgres_claim.classNameOverride) }}
+        storageClassName: {{ . }}
+        {{- end }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
@@ -57,7 +59,9 @@ spec:
     - metadata:
         name: postgres-claim
       spec:
-        storageClassName: {{ default $global_storage_class_name .postgres_claim.classNameOverride }}
+        {{- with (default $global_storage_class_name .postgres_claim.classNameOverride) }}
+        storageClassName: {{ . }}
+        {{- end }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
