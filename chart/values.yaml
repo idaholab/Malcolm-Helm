@@ -790,3 +790,15 @@ nginx:
   # use "type: ClusterIP" if using Ingress-NGINX as illustrated in 99-ingress-nginx.yml.example
   # use "type: LoadBalancer" if using AWS Load Balancer as illustrated in 99-ingress-alb.yml.example
   type: "ClusterIP"
+
+# If true, the sidecars for suricata-live, suricata-offline, and zeek-offline will be
+# instrumented for code coverage using the Python coverage library. NOTE: The sidecar's image
+# must include the coverage package and should start coverage collection when any python process
+# is started.
+enable_coverage: false
+
+# If coverage is enabled, this value is the contents of the .coveragerc file used for code
+# coverage collection.
+coveragerc: |
+  [run]
+  data_file = /tmp/coverage/.coverage
