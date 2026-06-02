@@ -61,7 +61,9 @@ spec:
     - metadata:
         name: opensearch-claim
       spec:
-        storageClassName: {{ default $global_storage_class_name .opensearch_claim.classNameOverride }}
+        {{- with (default $global_storage_class_name .opensearch_claim.classNameOverride) }}
+        storageClassName: {{ . }}
+        {{- end }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
@@ -71,7 +73,9 @@ spec:
     - metadata:
         name: opensearch-backup-claim
       spec:
-        storageClassName: {{ default $global_storage_class_name .opensearch_backup_claim.classNameOverride }}
+        {{- with (default $global_storage_class_name .opensearch_backup_claim.classNameOverride) }}
+        storageClassName: {{ . }}
+        {{- end }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
@@ -84,7 +88,9 @@ spec:
     - metadata:
         name: opensearch-claim
       spec:
-        storageClassName: {{ default $global_storage_class_name .opensearch_claim.classNameOverride }}
+        {{- with (default $global_storage_class_name .opensearch_claim.classNameOverride) }}
+        storageClassName: {{ . }}
+        {{- end }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
@@ -94,7 +100,9 @@ spec:
     - metadata:
         name: opensearch-backup-claim
       spec:
-        storageClassName: {{ default $global_storage_class_name .opensearch_backup_claim.classNameOverride }}
+        {{- with (default $global_storage_class_name .opensearch_backup_claim.classNameOverride) }}
+        storageClassName: {{ . }}
+        {{- end }}
         accessModes:
           - ReadWriteOnce
         volumeMode: Filesystem
