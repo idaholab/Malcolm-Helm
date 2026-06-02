@@ -93,6 +93,15 @@ metadata:
   name: arkime-env
 
 ---
+{{- $arkime_secret_existing := (lookup "v1" "Secret" .Release.Namespace "arkime-secret-env") -}}
+{{- $arkime_hash_password := "" -}}
+{{- if .Values.auth.arkime_password -}}
+  {{- $arkime_hash_password = .Values.auth.arkime_password -}}
+{{- else if $arkime_secret_existing -}}
+  {{- $arkime_hash_password = index $arkime_secret_existing.data "ARKIME_PASSWORD_SECRET" | b64dec -}}
+{{- else -}}
+  {{- $arkime_hash_password = randAlphaNum 32 -}}
+{{- end -}}
 apiVersion: v1
 stringData:
   # MaxMind GeoIP database update API key
@@ -100,7 +109,7 @@ stringData:
   # Alternate download URL for MaxMind MMDB tarballs
   MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL: "{{ .Values.maxmind.alternate_url }}"
   # Internal password hash secret for Arkime viewer cluster (see https://arkime.com/settings#passwordSecret)
-  ARKIME_PASSWORD_SECRET: "{{ .Values.auth.arkime_password }}"
+  ARKIME_PASSWORD_SECRET: "{{ $arkime_hash_password }}"
   # If the Arkime WISE plugin is in use, this sets the configuration PIN for the WISE GUI
   ARKIME_WISE_CONFIG_PIN_CODE: "{{ .Values.auth.arkime_wise_pin }}"
 
