@@ -120,7 +120,7 @@ auth:
   htpassCredKey: "htpass_cred"
 
   # Internal password hash secret for Arkime viewer cluster (see https://arkime.com/settings#passwordSecret)
-  arkime_password: malcolm
+  arkime_password: ""
 
   # If the Arkime WISE plugin is in use, this sets the configuration PIN for the WISE GUI
   # Users should change this value if using the WISE plugin GUI
@@ -976,6 +976,7 @@ keycloak:
   keycloak_auth_url: ""
   keycloak_client_id: ""
   keycloak_client_secret: ""
+  keycloak_ssl_verify: "false"
   kc_cache: "local"
   kc_health_enabled: "true"
   kc_hostname: ""
