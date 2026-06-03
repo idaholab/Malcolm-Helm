@@ -87,9 +87,33 @@ spec:
           - mountPath: "/opt/suricata/include-configs/configmap"
             name: suricata-custom-configs-volume
           {{- end }}
-      {{- if ne (len .Values.suricata_chart_overrides.sideCars) 0 }}
-      {{- toYaml .Values.suricata_chart_overrides.sideCars | nindent 6 }}
+
+      {{/* Sidecar injections */}}
+      {{- range $sidecar := .Values.suricata_chart_overrides.sideCars }}
+      - name: {{ $sidecar.name }}
+        {{- toYaml (omit $sidecar "name" "env" "volumeMounts") | nindent 8 }}
+        {{- if or $sidecar.env $.Values.enable_coverage }}
+        env:
+          {{- if $sidecar.env }}
+          {{- toYaml $sidecar.env | nindent 10 }}
+          {{- end }}
+          {{- if $.Values.enable_coverage }}
+          - name: COVERAGE_PROCESS_START
+            value: /etc/coverage/.coveragerc
+          {{- end }}
+        {{- end }}
+        {{- if or $sidecar.volumeMounts $.Values.enable_coverage }}
+        volumeMounts:
+          {{- if $sidecar.volumeMounts }}
+          {{- toYaml $sidecar.volumeMounts | nindent 10 }}
+          {{- end }}
+          {{- if $.Values.enable_coverage }}
+          - name: coverage-config-volume
+            mountPath: /etc/coverage
+          {{- end }}
+        {{- end }}
       {{- end }}
+
       initContainers:
       - name: suricata-offline-dirinit-container
         image: "{{ $dirinit_image }}"
@@ -127,4 +151,9 @@ spec:
         - name: suricata-custom-configs-volume
           configMap:
             name: suricata-configs
+        {{- end }}
+        {{- if .Values.enable_coverage }}
+        - name: coverage-config-volume
+          configMap:
+            name: coverage-config-{{ .Release.Name }}
         {{- end }}

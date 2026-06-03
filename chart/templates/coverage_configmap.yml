@@ -1,0 +1,10 @@
+{{- if .Values.enable_coverage }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coverage-config-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+data:
+  .coveragerc: |
+{{ .Values.coveragerc | indent 4 }}
+{{- end }}
