@@ -993,6 +993,8 @@ keycloak:
 nginx:
   log_level: ""
   log_access_and_errors: false
+  # Set to https when NGINX_SSL=false and Malcolm sits behind a TLS-terminating proxy (e.g. Istio tenant gateway).
+  x_forwarded_proto_override: ""
   # use "type: ClusterIP" when Malcolm is exposed through a Kubernetes ingress controller
   # use "type: LoadBalancer" when exposing Malcolm directly via a cloud/provider load balancer
   type: "ClusterIP"
