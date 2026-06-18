@@ -64,9 +64,10 @@ spec:
             name: htadmin-config-volume
             subPath: "htadmin"
         livenessProbe:
-          exec:
-            command:
-            - /usr/local/bin/container_health.sh
+          # todo: restore container health check script once v26.07.0 is out and restores curl
+          httpGet:
+            path: /
+            port: 80
           initialDelaySeconds: 60
           periodSeconds: 60
           timeoutSeconds: 15

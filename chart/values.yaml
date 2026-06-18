@@ -775,6 +775,7 @@ zeek_env:
 
 
 maxmind:
+  account_id: ""
   license_key: ""
   alternate_url: ""
 

@@ -104,7 +104,8 @@ metadata:
 {{- end -}}
 apiVersion: v1
 stringData:
-  # MaxMind GeoIP database update API key
+  # MaxMind GeoIP database update account ID and API key
+  MAXMIND_GEOIP_DB_ACCOUNT_ID: "{{ .Values.maxmind.account_id }}"
   MAXMIND_GEOIP_DB_LICENSE_KEY: "{{ .Values.maxmind.license_key }}"
   # Alternate download URL for MaxMind MMDB tarballs
   MAXMIND_GEOIP_DB_ALTERNATE_DOWNLOAD_URL: "{{ .Values.maxmind.alternate_url }}"
