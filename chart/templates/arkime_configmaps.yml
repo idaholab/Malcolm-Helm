@@ -92,7 +92,6 @@ kind: ConfigMap
 metadata:
   name: arkime-env
 
----
 {{- $arkime_secret_existing := (lookup "v1" "Secret" .Release.Namespace "arkime-secret-env") -}}
 {{- $arkime_hash_password := "" -}}
 {{- if .Values.auth.arkime_password -}}
@@ -102,6 +101,7 @@ metadata:
 {{- else -}}
   {{- $arkime_hash_password = randAlphaNum 32 -}}
 {{- end -}}
+---
 apiVersion: v1
 stringData:
   # MaxMind GeoIP database update account ID and API key
