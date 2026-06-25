@@ -1,11 +1,7 @@
-{{- $arkime_secret_existing := (lookup "v1" "Secret" .Release.Namespace "arkime-secret-env") -}}
-{{- $arkime_hash_password := "" -}}
-{{- if .Values.auth.arkime_password -}}
-  {{- $arkime_hash_password = .Values.auth.arkime_password -}}
-{{- else if $arkime_secret_existing -}}
-  {{- $arkime_hash_password = index $arkime_secret_existing.data "ARKIME_PASSWORD_SECRET" | b64dec -}}
-{{- else -}}
-  {{- $arkime_hash_password = randAlphaNum 32 -}}
+{{- $existing := lookup "v1" "Secret" .Release.Namespace "arkime-secret-env" -}}
+{{- $arkime_hash_password := .Values.auth.arkime_password | default (randAlphaNum 32) -}}
+{{- if and $existing (not .Values.auth.arkime_password) -}}
+  {{- $arkime_hash_password = index $existing.data "ARKIME_PASSWORD_SECRET" | b64dec -}}
 {{- end -}}
 ---
 apiVersion: v1
