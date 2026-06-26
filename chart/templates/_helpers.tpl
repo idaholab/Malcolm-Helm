@@ -93,7 +93,7 @@ Used for secret generation for the opensearch-curlrc Kubernetes secret
         {{- printf "--user %s \n--insecure " .Values.external_elasticsearch.username | b64enc | quote }}
     {{- end }}
 {{- else }}
-    {{- printf "" }}
+    {{- "" | b64enc }}
 {{- end }}
 {{- end }}
 

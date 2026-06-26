@@ -112,6 +112,11 @@ spec:
         - name: nginx-runtime-logs-volume
           mountPath: /var/log/nginx
           subPath: "nginx"
+        {{- if eq .Values.auth.mode "keycloak_remote" }}
+        - name: nginx-auth-keycloak-override-volume
+          mountPath: /etc/nginx/nginx_auth_keycloak.conf
+          subPath: nginx_auth_keycloak.conf
+        {{- end }}
       initContainers:
       {{ include "malcolm.dirinit.initContainer" (dict
            "root" $
@@ -146,6 +151,11 @@ spec:
       - name: nginx-runtime-logs-volume
         persistentVolumeClaim:
           claimName: runtime-logs-claim
+      {{- if eq .Values.auth.mode "keycloak_remote" }}
+      - name: nginx-auth-keycloak-override-volume
+        configMap:
+          name: nginx-auth-keycloak-override
+      {{- end }}
 
 
 

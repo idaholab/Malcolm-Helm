@@ -1,4 +1,3 @@
-{{- if eq .Values.capture_mode "live" }}
 ---
 apiVersion: v1
 data:
@@ -303,4 +302,3 @@ spec:
           configMap:
             name: zeek-custom
         {{- end }}
-{{- end }}

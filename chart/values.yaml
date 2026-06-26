@@ -7,11 +7,6 @@ is_production: false
 # internal communication (and optional exceptions for Istio or external Elasticsearch).
 enable_network_policies: false
 
-# Determines how network traffic is captured and processed.
-# Set to `live` for Arkime, Zeek, and Suricata to capture directly from the network interface,
-# or `pipeline` to have Zeek and Suricata ingest PCAP data streamed from Arkime.
-capture_mode: live
-
 cluster:
   # Set to a CIDR mask that covers all the cluster nodes.
   node_cidr: "10.0.0.0/8"
@@ -361,8 +356,8 @@ postgres:
   # Hostname of the PostgreSQL service
   host: postgres
 
-  # Default PostgreSQL password
-  password: "ChangeMe"
+  # If not provided, a random password is assigned.
+  password: ""
 
   # Database names for applications
   netbox_db_name: "netbox"
@@ -939,11 +934,6 @@ process_env:
 rule_mount_override:
   enabled: false
 
-# Settings specific to 26-pcap-processor.yml manifest
-pcap_processor_env:
-  nodeSelector:
-    cnaps.io/arkime-capture: "true"
-  
 zeek_chart_overrides:
   serviceAccountName: ""
   sideCars: []
@@ -993,6 +983,23 @@ keycloak:
 nginx:
   log_level: ""
   log_access_and_errors: false
+  # Set to https when NGINX_SSL=false and Malcolm sits behind a TLS-terminating proxy (e.g. Istio tenant gateway).
+  x_forwarded_proto_override: ""
   # use "type: ClusterIP" when Malcolm is exposed through a Kubernetes ingress controller
   # use "type: LoadBalancer" when exposing Malcolm directly via a cloud/provider load balancer
   type: "ClusterIP"
+
+# If true, the sidecars for suricata-live, suricata-offline, and zeek-offline will be
+# instrumented for code coverage using the Python coverage library. NOTE: The sidecar's image
+# must include the coverage package and should start coverage collection when any python process
+# is started.
+enable_coverage: false
+
+# If coverage is enabled, this value is the contents of the .coveragerc file used for code
+# coverage collection.
+coveragerc: |
+  [run]
+  concurrency = thread
+  data_file = /tmp/coverage/.coverage
+  parallel = true
+  relative_files = false

@@ -1,5 +1,13 @@
+{{- $existing := lookup "v1" "Secret" .Release.Namespace "arkime-secret-env" -}}
+{{- $arkime_hash_password := .Values.auth.arkime_password | default (randAlphaNum 32) -}}
+{{- if and $existing (not .Values.auth.arkime_password) -}}
+  {{- $arkime_hash_password = index $existing.data "ARKIME_PASSWORD_SECRET" | b64dec -}}
+{{- end -}}
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arkime-offline-env
 data:
   # Whether or not Arkime should analyze uploaded PCAP files
   ARKIME_AUTO_ANALYZE_PCAP_FILES: "true"
@@ -16,12 +24,12 @@ data:
   ARKIME_EXPOSE_WISE_GUI: "true"
   # Controls whether the WISE configuration GUI is read-only or editable
   ARKIME_ALLOW_WISE_GUI_CONFIG: "false"
-kind: ConfigMap
-metadata:
-  name: arkime-offline-env
 
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arkime-env
 data:
   ARKIME_SSL: "false"
   ARKIME_VIEWER_PORT: "8005"
@@ -88,21 +96,13 @@ data:
   ARKIME_SPI_DATA_MAX_INDICES: "{{ .spi_data_max_indices }}"
   {{- end }}
 {{- end }}
-kind: ConfigMap
-metadata:
-  name: arkime-env
 
 ---
-{{- $arkime_secret_existing := (lookup "v1" "Secret" .Release.Namespace "arkime-secret-env") -}}
-{{- $arkime_hash_password := "" -}}
-{{- if .Values.auth.arkime_password -}}
-  {{- $arkime_hash_password = .Values.auth.arkime_password -}}
-{{- else if $arkime_secret_existing -}}
-  {{- $arkime_hash_password = index $arkime_secret_existing.data "ARKIME_PASSWORD_SECRET" | b64dec -}}
-{{- else -}}
-  {{- $arkime_hash_password = randAlphaNum 32 -}}
-{{- end -}}
 apiVersion: v1
+kind: Secret
+metadata:
+  name: arkime-secret-env
+type: Opaque
 stringData:
   # MaxMind GeoIP database update account ID and API key
   MAXMIND_GEOIP_DB_ACCOUNT_ID: "{{ .Values.maxmind.account_id }}"
@@ -119,20 +119,19 @@ stringData:
   #   * http://arkime:8081 - for a local cluster
   #   * https://user:password@malcolm/wise - for a remote Malcolm instance
   ARKIME_WISE_SERVICE_URL: "http://arkime:8081"
-kind: Secret
-metadata:
-  name: arkime-secret-env
-type: Opaque
 {{- if .Values.arkime_live.enabled }}
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arkime-live-env
 data:
   # Whether or Arkime should monitor live traffic on a local
   #   interface (PCAP_IFACE in pcap-capture.env specifies interface)
   ARKIME_LIVE_CAPTURE: "true"
-  ARKIME_MAGIC_MODE: basic
+  ARKIME_MAGIC_MODE: "basic"
   ARKIME_PCAP_WRITE_METHOD: "simple"
-  ARKIME_PCAP_READ_METHOD: tpacketv3
+  ARKIME_PCAP_READ_METHOD: "tpacketv3"
   ARKIME_PCAP_PROCESSOR: "false"
   {{- if .Values.is_production }}
     {{- with .Values.arkime_live.production }}
@@ -165,10 +164,6 @@ data:
   ARKIME_TPACKETV3_BLOCK_SIZE: "{{ .arkime_tpacketv3_block_size }}"
     {{- end }}
   {{- end }}
-
-kind: ConfigMap
-metadata:
-  name: arkime-live-env
 {{- end }}
 ---
 apiVersion: v1
