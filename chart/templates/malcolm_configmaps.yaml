@@ -399,6 +399,10 @@ data:
   EXTRA_TAGS: "{{ .Values.upload_common_env.extra_tags }}"
   WATCHER_UPLOAD: "true"
   WATCHER_PUBLISH: "true"
+  # Zeek logs and evtx files may be uploaded in archive files. These variables safeguard against "zip bombs."
+  SAFE_EXTRACT_MAX_ENTRIES: "5000"
+  SAFE_EXTRACT_MAX_DEPTH: "20"
+  SAFE_EXTRACT_MAX_BYTES: "4294967296"
 kind: ConfigMap
 metadata:
   name: upload-common-env
@@ -446,6 +450,7 @@ data:
   ZEEK_DISABLE_ICS_ETHERCAT: ""
   ZEEK_DISABLE_ICS_GENISYS: "true"
   ZEEK_DISABLE_ICS_GE_SRTP: ""
+  ZEEK_DISABLE_ICS_IEC104: ""
   ZEEK_DISABLE_ICS_HART_IP: ""
   ZEEK_DISABLE_ICS_OMRON_FINS: ""
   ZEEK_DISABLE_ICS_OPCUA_BINARY: ""

@@ -2,11 +2,13 @@
 ---
 apiVersion: v1
 data:
-  # Which types of logs will be enriched via NetBox (comma-separated list of provider.dataset, or the string all to enrich all logs)  
-  LOGSTASH_NETBOX_ENRICHMENT_DATASETS: "filescan.strelka,suricata.alert,zeek.conn,zeek.dce_rpc,zeek.dhcp,zeek.dns,zeek.known_hosts,zeek.known_routers,zeek.known_services,zeek.login,zeek.ntlm,zeek.notice,zeek.rdp,zeek.rfb,zeek.signatures,zeek.smb_cmd,zeek.smb_files,zeek.smb_mapping,zeek.software,zeek.ssh,zeek.weird"
+  # Which types of logs will be enriched via NetBox: a comma-separated list which may contain
+  #   provider.dataset pairs (e.g., zeek.dns), the string "default" for the built-in list of log types,
+  #   "ics" (or "ot") to enrich logs with "ics" in their tags, or "all" to enrich all logs.
+  #   Values may be combined (e.g., "default,ics").
+  LOGSTASH_NETBOX_ENRICHMENT_DATASETS: "default"
   # Zeek log types that will be ignored (dropped) by LogStash
-  # Defaults are: analyzer,broker,bsap_ip_unknown,bsap_serial_unknown,capture_loss,cluster,config,ecat_arp_info,loaded_scripts,packet_filter,png,print,prof,reporter,stats,stderr,stdout
-  LOGSTASH_ZEEK_IGNORED_LOGS: "analyzer,broker,cluster,config,loaded_scripts,packet_filter,png,print,prof,reporter,stderr,stdout"
+  LOGSTASH_ZEEK_IGNORED_LOGS: "analyzer,broker,cluster,config,loaded_scripts,packet_filter,png,print,prof,reporter,roc_plus_unknown_data,stderr,stdout"
   # Whether or not Logstash will map MAC addresses to vendors for MAC addresses
   LOGSTASH_OUI_LOOKUP: "true"
   # Whether or not Logstash will perform a reverse DNS lookup for external IP addresses
