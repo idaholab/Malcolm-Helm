@@ -335,6 +335,11 @@ netbox:
 
   # Enable enrichment of data from NetBox
   enrichment: true
+  # Which types of logs will be enriched via NetBox: a comma-separated list which may contain
+  #   provider.dataset pairs (e.g., zeek.dns), the string "default" for the built-in list of log types,
+  #   "ics" (or "ot") to enrich logs with "ics" in their tags, or "all" to enrich all logs.
+  #   Values may be combined (e.g., "default,ics").
+  logstash_netbox_enrichment_datasets: "default"
   netbox_default_site: "Malcolm"
   netbox_auto_populate: true
   netbox_cache_size: "10000"
