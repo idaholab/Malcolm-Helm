@@ -86,7 +86,7 @@ spec:
            "name" "zeek-live-dirinit-container"
            "env" (list
              (dict "name" "PUSER_CHOWN" "value" "/zeek")
-             (dict "name" "PUSER_MKDIR" "value" "/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/zeek:current,extract_files/filescan,live/logs,processed,upload;/zeek-files:extract_files/filescan")
+             (dict "name" "PUSER_MKDIR" "value" "/config:zeek/intel/Mandiant,zeek/intel/Google,zeek/intel/MISP,zeek/intel/STIX;/zeek:current,extract_files/filescan,live/logs,processed,upload;/zeek-files:extract_files/filescan")
            )
            "volumeMounts" (list
              (dict "name" "zeek-intel-volume" "mountPath" "/config")
@@ -239,7 +239,7 @@ spec:
            "name" "zeek-remotesensor-dirinit-container"
            "env" (list
              (dict "name" "PUSER_CHOWN" "value" "/config;/filescan;/valkey;/suricata-live-logs;/zeek-live-logs;/zeek-files")
-             (dict "name" "PUSER_MKDIR" "value" "/suricata-live-logs:live;/filescan:filescan;/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/zeek-live-logs:current,live/logs,processed,upload;/zeek-files:extract_files/filescan;/valkey:data")
+             (dict "name" "PUSER_MKDIR" "value" "/suricata-live-logs:live;/filescan:filescan;/config:zeek/intel/Mandiant,zeek/intel/Google,zeek/intel/MISP,zeek/intel/STIX;/zeek-live-logs:current,live/logs,processed,upload;/zeek-files:extract_files/filescan;/valkey:data")
            )
            "volumeMounts" (list
              (dict "name" "filescan-live-logs-volume" "mountPath" "/filescan")

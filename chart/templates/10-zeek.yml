@@ -82,7 +82,7 @@ spec:
            "root" $
            "name" "zeek-offline-dirinit-container"
            "env" (list
-             (dict "name" "PUSER_MKDIR" "value" "/data/config:zeek/intel/Mandiant,zeek/intel/MISP,zeek/intel/STIX;/data/pcap:processed;/data/zeek-logs:current,extract_files/filescan,live,processed,upload")
+             (dict "name" "PUSER_MKDIR" "value" "/data/config:zeek/intel/Mandiant,zeek/intel/Google,zeek/intel/MISP,zeek/intel/STIX;/data/pcap:processed;/data/zeek-logs:current,extract_files/filescan,live,processed,upload")
            )
            "volumeMounts" (list
              (dict "name" "zeek-intel-volume" "mountPath" "/data/config")

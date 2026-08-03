@@ -752,7 +752,7 @@ zeek_env:
   # `all`        : extract all files
   extract_mode: interesting
 
-  # When querying a TAXII or MISP feed, only process threat indicators
+  # When querying a threat intelligence feed, only process threat indicators
   # created or modified since this value. Can be a fixed date/time (e.g., 01/01/2021)
   # or a relative interval (e.g., 30 days ago). Blank disables filtering.
   zeek_intel_feed_since: ""
