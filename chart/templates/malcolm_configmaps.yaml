@@ -549,6 +549,14 @@ data:
     *
     !.gitignore
 
+  Mandiant_MALDIR_.gitignore: |+
+    *
+    !.gitignore
+
+  Google_MALDIR_.gitignore: |+
+    *
+    !.gitignore
+
 ---
 apiVersion: v1
 kind: ConfigMap
