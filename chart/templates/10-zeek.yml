@@ -12,6 +12,7 @@ data:
   {{- end }}
 {{- end }}
   ZEEK_ROTATED_PCAP: "false"
+  ZEEK_ZAM: "{{ .Values.zeek_offline.zam }}"
   # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
   ZEEK_DISABLE_STATS: "true"
   ZEEK_INTEL_REFRESH_CRON_EXPRESSION: "{{ .Values.zeek_offline.zeek_intel_refresh_cron_expression }}"

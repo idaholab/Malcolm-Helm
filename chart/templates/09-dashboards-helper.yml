@@ -10,6 +10,7 @@ data:
   DASHBOARDS_PREFIX: "{{ .Values.dashboards_helper_env.dashboards_prefix }}"
   DASHBOARDS_TIMEPICKER_FROM: "{{ .Values.dashboards_helper_env.dashboards_timepicker_from }}"
   DASHBOARDS_TIMEPICKER_TO: "{{ .Values.dashboards_helper_env.dashboards_timepicker_to }}"
+  DASHBOARDS_DATA_SOURCES_ENABLED: "{{ .Values.dashboards_helper_env.dashboards_data_sources_enabled }}"
   MALCOLM_URL: "{{ .Values.dashboards_helper_env.malcolm_url }}"
 kind: ConfigMap
 metadata:
