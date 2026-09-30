@@ -92,6 +92,21 @@ image:
   upload_container_override: ""
   zeek_container_override: ""
 
+
+# Configuration for the one-time "secret initialization" Job (templates/00-secret-init.yml).
+# This Job generates and persists the internal service passwords (valkey, the embedded
+# NetBox instance, and the Arkime password hash secret) ONCE, instead of regenerating them
+# on every render. That keeps the resulting Secrets stable across re-renders, which is what
+# lets GitOps tools such as Argo CD stop reporting the Application as perpetually OutOfSync.
+secret_init:
+  # Image used by the Job. Must contain `kubectl` and a POSIX shell with `tr`, `head`
+  # and `base64` (alpine/k8s bundles all of these). Override it to point at your own
+  # registry/mirror for air-gapped deployments.
+  image: docker.io/alpine/k8s:1.33.12
+  # Defaults to image.pullPolicy if left empty.
+  pullPolicy: ""
+
+  
 auth:
   username: malcolm
 
