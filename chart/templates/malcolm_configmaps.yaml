@@ -2,8 +2,8 @@
 apiVersion: v1
 data:
   NGINX_AUTH_MODE: "{{ .Values.auth.mode }}"
-  NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group | join \",\" }}"
-  NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role | join \",\" }}"
+  NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group | join "," }}"
+  NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role | join "," }}"
   ROLE_BASED_ACCESS: "{{ .Values.auth.role_based_access }}"
   ROLE_ADMIN: "{{ .Values.auth.role_admin }}"
   ROLE_READ_ACCESS: "{{ .Values.auth.role_read_access }}"
@@ -44,7 +44,7 @@ apiVersion: v1
 data:
   FREQ_LOOKUP: "{{ .Values.lookup_common.freq_lookup }}"
   FREQ_SEVERITY_THRESHOLD: "{{ .Values.lookup_common.freq_severity_threshold }}"
-  SENSITIVE_COUNTRY_CODES: "{{ .Values.lookup_common.sensitive_country_codes | join \",\" }}"
+  SENSITIVE_COUNTRY_CODES: "{{ .Values.lookup_common.sensitive_country_codes | join "," }}"
   TOTAL_MEGABYTES_SEVERITY_THRESHOLD: "{{ .Values.lookup_common.total_megabytes_severity_threshold }}"
 kind: ConfigMap
 metadata:
@@ -108,7 +108,7 @@ data:
   NETBOX_ENRICHMENT_LOOKUP_SERVICE: "{{ .Values.netbox.netbox_enrichment_lookup_service }}"
   NETBOX_CACHE_SIZE: "{{ .Values.netbox.netbox_cache_size }}"
   NETBOX_CACHE_TTL: "{{ .Values.netbox.netbox_cache_ttl }}"
-  NETBOX_AUTO_POPULATE_SUBNETS: "{{ .Values.netbox.netbox_auto_populate_subnets | join \",\" }}"
+  NETBOX_AUTO_POPULATE_SUBNETS: "{{ .Values.netbox.netbox_auto_populate_subnets | join "," }}"
 kind: ConfigMap
 metadata:
   name: netbox-common-env
@@ -279,7 +279,7 @@ data:
   PCAP_ENABLE_NETSNIFF: "{{ .Values.pcap_capture_env.netsniff }}"
   PCAP_ENABLE_TCPDUMP: "{{ .Values.pcap_capture_env.tcpdump }}"
   PCAP_FILTER: "{{ .Values.pcap_capture_env.pcap_filter }}"
-  PCAP_IFACE: "{{ .Values.pcap_capture_env.pcap_iface | join \",\" }}"
+  PCAP_IFACE: "{{ .Values.pcap_capture_env.pcap_iface | join "," }}"
   PCAP_IFACE_TWEAK: "{{ .Values.pcap_capture_env.pcap_iface_tweak }}"
   PCAP_ROTATE_MEGABYTES: "{{ .Values.pcap_capture_env.pcap_rotate_megabytes }}"
   PCAP_ROTATE_MINUTES: "{{ .Values.pcap_capture_env.pcap_rotate_minutes }}"
@@ -321,10 +321,10 @@ data:
   SURICATA_DISABLE_ICS_ALL: "{{ .Values.suricata_env.disable_ics_all }}"
   SURICATA_UPDATE_SOURCES: "{{ .Values.suricata_env.update_sources }}"
   SURICATA_UPDATE_RULES: "{{ .Values.suricata_env.update_rules }}"
-  SURICATA_UPDATE_ENABLE_SOURCES: "{{ .Values.suricata_env.update_enable_sources | join \",\" }}"
+  SURICATA_UPDATE_ENABLE_SOURCES: "{{ .Values.suricata_env.update_enable_sources | join "," }}"
   SURICATA_UPDATE_CRON_EXPRESSION: "{{ .Values.suricata_env.update_cron_expression }}"
-  SURICATA_DISABLE_SIDS: "{{ .Values.suricata_env.disable_sids | join \",\" }}"
-  SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net | join \",\" }}]'"
+  SURICATA_DISABLE_SIDS: "{{ .Values.suricata_env.disable_sids | join "," }}"
+  SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net | join "," }}]'"
   LUA_PATH: "{{ .Values.suricata_env.lua_path }}"
   PCAP_PROCESSED_DIRECTORY: "/data/pcap/processed"
 {{- if .Values.is_production }}
@@ -360,7 +360,7 @@ data:
   PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
   PCAP_PIPELINE_VERBOSITY: "{{ .Values.upload_common_env.pcap_pipeline_verbosity }}"
   PCAP_UPLOAD_MAX_FILE_GB: "{{ .Values.upload_common_env.pcap_upload_max_file_gb }}"
-  EXTRA_TAGS: "{{ .Values.upload_common_env.extra_tags | join \",\" }}"
+  EXTRA_TAGS: "{{ .Values.upload_common_env.extra_tags | join "," }}"
   WATCHER_UPLOAD: "true"
   WATCHER_PUBLISH: "true"
   SAFE_EXTRACT_MAX_ENTRIES: "{{ .Values.upload_common_env.safe_extract_max_entries }}"
@@ -454,7 +454,7 @@ data:
   ZEEK_SYNCHROPHASOR_DETAILED: "{{ .Values.zeek_env.zeek_synchrophasor_detailed }}"
   ZEEK_OMRON_FINS_DETAILED: "{{ .Values.zeek_env.zeek_omron_fins_detailed }}"
   ZEEK_SYNCHROPHASOR_PORTS: "{{ .Values.zeek_env.zeek_synchrophasor_ports }}"
-  ZEEK_LOCAL_NETS: "{{ .Values.pcap_capture_env.home_net | join \",\" }}"
+  ZEEK_LOCAL_NETS: "{{ .Values.pcap_capture_env.home_net | join "," }}"
   ZEEK_JSON: "{{ .Values.zeek_env.zeek_json }}"
   PCAP_PROCESSED_DIRECTORY: "/pcap/processed"
   ZEEK_UPLOAD_DIRECTORY: "/zeek/upload"
@@ -469,7 +469,7 @@ metadata:
   name: kafka-config
 data:
   ZEEK_KAFKA_ENABLED: "{{ .Values.kafka.enabled }}"
-  ZEEK_KAFKA_BROKERS: "{{ .Values.kafka.brokers | join \",\" }}"
+  ZEEK_KAFKA_BROKERS: "{{ .Values.kafka.brokers | join "," }}"
   ZEEK_KAFKA_TOPIC: "{{ .Values.kafka.topic }}"
 
 ---
