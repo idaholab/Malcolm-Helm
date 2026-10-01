@@ -3,12 +3,13 @@ apiVersion: v1
 data:
   EXTRACT_FILES_PATH: /zeek/extract_files
   ZEEK_INTEL_PATH: /usr/local/zeek/share/zeek/site/intel
+  # Whether or not Zeek should monitor live traffic on a local
+  #   interface (PCAP_IFACE variable below specifies capture interfaces)
   ZEEK_LIVE_CAPTURE: "true"
   ZEEK_LOG_PATH: "/zeek/live"
   ZEEK_PCAP_PROCESSOR: "false"
   ZEEK_CLUSTER_BACKEND: "ZeroMQ"
   ZEEK_ZAM: "{{ .Values.zeek_live.zam }}"
-  # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log
   ZEEK_DISABLE_STATS: "{{ .Values.zeek_live.zeek_disable_stats }}"
   ZEEK_DISABLE_INTEL_LIVE: "{{ .Values.zeek_live.zeek_disable_intel_live }}"
   {{- if .Values.is_production }}

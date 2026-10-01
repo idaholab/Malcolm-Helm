@@ -20,15 +20,11 @@ data:
   FILESCAN_PRUNE_INTERVAL_SECONDS: "{{ .extracted_file_prune_interval_seconds }}"
     {{- end }}
   {{- end }}
-  # Whether or not to serve the directory containing Zeek-extracted over HTTP at ./extracted-files/
   FILESCAN_HTTP_SERVER_ENABLE: "{{ .Values.filescan_env.extracted_file_http_server_enable.local }}"
-  # Whether or not Zeek-extracted files served over HTTP will be archived in a Zip file
   FILESCAN_HTTP_SERVER_ZIP: "{{ .Values.filescan_env.extracted_file_http_server_zip }}"
-  # Whether or not to use libmagic to show MIME types for Zeek-extracted files served
   FILESCAN_HTTP_SERVER_MAGIC: "{{ .Values.filescan_env.extracted_file_http_server_magic }}"
   FILESCAN_HTTP_SERVER_RECURSIVE: "{{ .Values.filescan_env.extracted_file_http_server_recursive }}"
   FILESCAN_VERBOSITY: {{ .Values.filescan_env.verbosity }}
-  # Determines the behavior for preservation of Zeek-extracted files
   FILESCAN_PRESERVATION: {{ .Values.filescan_env.extracted_file_preservation.local }}
   FILESCAN_OUTPUT_PATH: "/filescan/data/logs/filescan-%(ts)s.log"
   FILESCAN_HEALTH_PORT: "8001"
@@ -41,29 +37,19 @@ metadata:
 ---
 apiVersion: v1
 data:
-  # Set to true to disable file scanning with Strelka
   PIPELINE_DISABLED: "{{ .Values.filescan_env.disable }}"
-  # Whether or not to regularly update rule definitions for file scanning engines
-  RULES_UPDATE_ENABLED: "false"
-  # Whether or not the default YARA ruleset will be ignored and only custom rules used
-  YARA_CUSTOM_RULES_ONLY: "false"
-  # Scan within archives and compressed files. With Strelka's archive scanners enabled,
-  #   this should be "false" to avoid duplicate processing.
-  CLAMD_SCAN_ARCHIVE: "false"
+  RULES_UPDATE_ENABLED: "{{ .Values.filescan_env.rules_update_enabled }}"
+  YARA_CUSTOM_RULES_ONLY: "{{ .Values.filescan_env.yara_custom_rules_only }}"
+  CLAMD_SCAN_ARCHIVE: "{{ .Values.filescan_env.clamd_scan_archive }}"
   {{- $scanners := .Values.filescan_env.scanners | default (list) }}
   {{- if $scanners }}
   STRELKA_SCANNERS: {{ $scanners | join "," | quote }}
   {{- end }}
-  # The number of strelka backend processes to run
   {{- if .Values.is_production }}
     {{- with .Values.filescan_env.production }}
   STRELKA_BACKEND_PROCS: "{{ .backend_procs }}"
-  # values for tuning clamd (others are available, see strelka/docker-entrypoint.sh)
-  # Maximum number of concurrent clamd threads (MaxThreads)
   CLAMD_MAX_THREADS: "{{ .clamd_max_threads }}"
-  # Maximum number of queued items for clamd (MaxQueue)
   CLAMD_MAX_QUEUE: "{{ .clamd_max_queue }}"
-  # Maximum length the queue of pending connections may grow to for clamd (MaxConnectionQueueLength)
   CLAMD_MAX_CONN_QUEUE: "{{ .clamd_max_conn_queue }}"
     {{- end }}
   {{- else }}

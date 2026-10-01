@@ -1,7 +1,7 @@
 ---
 apiVersion: v1
 data:
-  ZEEK_AUTO_ANALYZE_PCAP_FILES: "true"
+  ZEEK_AUTO_ANALYZE_PCAP_FILES: "{{ .Values.zeek_offline.auto_analyze_pcap_files }}"
 {{- if .Values.is_production }}
   {{- with .Values.zeek_offline.production }}
   ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
@@ -11,6 +11,10 @@ data:
   ZEEK_AUTO_ANALYZE_PCAP_THREADS: "{{ .zeek_auto_analyze_pcap_threads }}"
   {{- end }}
 {{- end }}
+  # Whether or not Zeek should analyze captured PCAP files captured
+  #   by netsniff-ng/tcpdump (see PCAP_ENABLE_NETSNIFF and PCAP_ENABLE_TCPDUMP
+  #   below). If ZEEK_LIVE_CAPTURE is true, this should be false: otherwise
+  #   Zeek will see duplicate traffic.
   ZEEK_ROTATED_PCAP: "false"
   ZEEK_ZAM: "{{ .Values.zeek_offline.zam }}"
   # Set ZEEK_DISABLE_STATS to blank to generate stats.log and capture_loss.log

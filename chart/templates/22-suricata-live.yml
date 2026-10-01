@@ -6,14 +6,11 @@ data:
   #   interface (PCAP_IFACE variable below specifies capture interfaces)
   SURICATA_LIVE_CAPTURE: "true"
   SURICATA_PCAP_PROCESSOR: "false"
-  # Specifies the Suricata runmode for live capture (see
-  #   https://suricata.readthedocs.io/en/latest/performance/runmodes.html)
-  SURICATA_RUNMODE: workers
-  # Whether or not enable capture statistics and include them in eve.json
+  SURICATA_RUNMODE: "{{ .Values.suricata_live.suricata_runmode }}"
   SURICATA_STATS_ENABLED: "{{ .Values.suricata_live.suricata_stats_enabled }}"
   SURICATA_STATS_EVE_ENABLED: "{{ .Values.suricata_live.suricata_stats_enabled }}"
-  SURICATA_STATS_INTERVAL: "30"
-  SURICATA_STATS_DECODER_EVENTS: "false"
+  SURICATA_STATS_INTERVAL: "{{ .Values.suricata_live.suricata_stats_interval }}"
+  SURICATA_STATS_DECODER_EVENTS: "{{ .Values.suricata_live.suricata_stats_decoder_events }}"
 {{- if .Values.is_production }}
   {{- with .Values.suricata_live.production }}
   SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"

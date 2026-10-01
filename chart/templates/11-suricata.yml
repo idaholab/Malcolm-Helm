@@ -2,10 +2,9 @@
 ---
 apiVersion: v1
 data:
-  SURICATA_AUTO_ANALYZE_PCAP_FILES: "true"
+  SURICATA_AUTO_ANALYZE_PCAP_FILES: "{{ .Values.suricata_offline.auto_analyze_pcap_files }}"
 {{- if .Values.is_production }}
   {{- with .Values.suricata_offline.production }}
-  # The number of threads per Suricata process (0 means "default behavior")
   SURICATA_AUTO_ANALYZE_PCAP_PROCESSES: "{{ .suricata_auto_analyze_pcap_processes }}"
   SURICATA_AUTO_ANALYZE_PCAP_THREADS: "{{ .suricata_auto_analyze_pcap_threads }}"
   {{- end }}
@@ -15,6 +14,10 @@ data:
   SURICATA_AUTO_ANALYZE_PCAP_PROCESSES: "{{ .suricata_auto_analyze_pcap_processes }}"
   {{- end }}
 {{- end }}
+  # Whether or not Suricata should analyze captured PCAP files captured
+  #   by netsniff-ng/tcpdump (see PCAP_ENABLE_NETSNIFF and PCAP_ENABLE_TCPDUMP
+  #   below). If SURICATA_LIVE_CAPTURE is true, this should be false: otherwise
+  #   Suricata will see duplicate traffic.
   SURICATA_ROTATED_PCAP: "false"
 kind: ConfigMap
 metadata:
