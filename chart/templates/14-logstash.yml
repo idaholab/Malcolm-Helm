@@ -11,6 +11,17 @@ data:
   LOGSTASH_REVERSE_DNS: "false"
   # Whether or not Logstash will perform severity scoring on network traffic metadata
   LOGSTASH_SEVERITY_SCORING: "true"
+
+  # Enrich with MITRE OTKB
+  OTKB_ENRICHMENT: "{{ .Values.logstash.otkb.enrichment }}"
+  OTKB_ENRICHMENT_TTL: "{{ .Values.logstash.otkb.enrichment_ttl }}"
+  OTKB_SSL_VERIFY: "{{ .Values.logstash.otkb.ssl_verify }}"
+  OTKB_ENRICHMENT_VERBOSE: "{{ .Values.logstash.otkb.enrichment_verbose }}"
+  OTKB_ENRICHMENT_DEBUG: "{{ .Values.logstash.otkb.enrichment_debug }}"
+  OTKB_ENRICHMENT_DEBUG_TIMINGS: "{{ .Values.logstash.otkb.enrichment_debug_timings }}"
+  # OTKB_TOKEN (from .Values.logstash.otkb.token) is in logstash-secret-env
+  OTKB_URL: "{{ .Values.logstash.otkb.url }}"
+
   {{- if .Values.is_production }}
     {{- with .Values.logstash.production }}
   LS_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
@@ -126,6 +137,8 @@ spec:
               name: lookup-common-env
           - configMapRef:
               name: logstash-env
+          - secretRef:
+              name: logstash-secret-env
         livenessProbe:
           exec:
             command:
