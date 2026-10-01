@@ -2,7 +2,7 @@
 ---
 apiVersion: v1
 data:
-  LOGSTASH_NETBOX_ENRICHMENT_DATASETS: "{{ .Values.netbox.logstash_netbox_enrichment_datasets }}"
+  LOGSTASH_NETBOX_ENRICHMENT_DATASETS: "{{ .Values.netbox.logstash_netbox_enrichment_datasets | join \",\" }}"
   # Zeek log types that will be ignored (dropped) by LogStash
   LOGSTASH_ZEEK_IGNORED_LOGS: "analyzer,broker,cluster,config,loaded_scripts,packet_filter,png,print,prof,reporter,roc_plus_unknown_data,stderr,stdout"
   LOGSTASH_OUI_LOOKUP: "{{ .Values.logstash.oui_lookup }}"

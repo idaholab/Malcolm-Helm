@@ -151,8 +151,8 @@ auth:
   mode: "basic"
 
   # For `keycloak` or `keycloak_remote` modes: define required group/role and role-based access settings
-  require_group: ""
-  require_role: ""  
+  require_group: []
+  require_role: []
   role_based_access: "false"
   # General access roles
   # ROLE_ADMIN - Unrestricted access
@@ -391,9 +391,37 @@ lookup_common:
   # When severity scoring is enabled, this variable indicates the size threshold (in megabytes)
   #   for assigning severity to large connections or file transfers
   total_megabytes_severity_threshold: "1000"
-  # When severity scoring is enabled, this variable defines a comma-separated list of
+  # When severity scoring is enabled, this list defines
   #   sensitive countries (using ISO 3166-1 alpha-2 codes)
-  sensitive_country_codes: AM,AZ,BY,CN,CU,DZ,GE,HK,IL,IN,IQ,IR,KG,KP,KZ,LY,MD,MO,PK,RU,SD,SS,SY,TJ,TM,TW,UA,UZ
+  sensitive_country_codes:
+    - AM
+    - AZ
+    - BY
+    - CN
+    - CU
+    - DZ
+    - GE
+    - HK
+    - IL
+    - IN
+    - IQ
+    - IR
+    - KG
+    - KP
+    - KZ
+    - LY
+    - MD
+    - MO
+    - PK
+    - RU
+    - SD
+    - SS
+    - SY
+    - TJ
+    - TM
+    - TW
+    - UA
+    - UZ
 
 logstash:
   # Whether or not Logstash will map MAC addresses to vendors for MAC addresses
@@ -442,11 +470,12 @@ netbox:
 
   # Enable enrichment of data from NetBox
   enrichment: true
-  # Which types of logs will be enriched via NetBox: a comma-separated list which may contain
+  # Which types of logs will be enriched via NetBox: a list which may contain
   #   provider.dataset pairs (e.g., zeek.dns), the string "default" for the built-in list of log types,
   #   "ics" (or "ot") to enrich logs with "ics" in their tags, or "all" to enrich all logs.
-  #   Values may be combined (e.g., "default,ics").
-  logstash_netbox_enrichment_datasets: "default"
+  #   Values may be combined (e.g., ["default", "ics"]).
+  logstash_netbox_enrichment_datasets:
+    - "default"
   # The name of the default "site" to be created upon NetBox initialization, and to be used for enrichment
   #   if not otherwise specified for the source of the network traffic data
   netbox_default_site: "Malcolm"
@@ -462,7 +491,7 @@ netbox:
   # Caching parameters for NetBox's LogStash lookups
   netbox_cache_size: "10000"
   netbox_cache_ttl: "300"
-  # Comma-separated list of CIDR subnets that control which IP addresses are eligible for NetBox autopopulation.
+  # List of CIDR subnets that control which IP addresses are eligible for NetBox autopopulation.
   #   See "Subnets considered for autopopulation" in the documentation for examples.
   # Behavior:
   #   * If left blank, only private IPv4 and IPv6 ranges get autopopulated. Public space is never touched.
@@ -473,7 +502,7 @@ netbox:
   #   * If the list mixes inclusions and exclusions, entries are evaluated in order, and the last entry that
   #       matches a given address decides whether it's eligible. An address that doesn't match anything
   #       in the list is not autopopulated.
-  netbox_auto_populate_subnets: ""
+  netbox_auto_populate_subnets: []
 
   # URL of the remote NetBox instance (only used if `mode` is `remote`)
   url: ""
@@ -633,10 +662,13 @@ suricata_env:
   update_rules: false
   update_debug: false
 
-  # Comma-separated suricata-update indexed sources to enable. Optional source parameters
+  # List of suricata-update indexed sources to enable. Optional source parameters
   # may follow the source name separated by '|', e.g.:
-  #   et/open,ptresearch/attackdetection,et/pro|secret-code=REDACTED
-  update_enable_sources: "et/open"
+  #   - et/open
+  #   - ptresearch/attackdetection
+  #   - et/pro|secret-code=REDACTED
+  update_enable_sources:
+    - "et/open"
 
   # Cron expression for updating Suricata rules
   update_cron_expression: "0 0 * * *"
@@ -646,8 +678,8 @@ suricata_env:
 
   # Lua path for Suricata rules
   lua_path: "/opt/suricata/rules/?.lua;;"
-  # Comma-separated list of SIDs to disable
-  disable_sids: ""
+  # List of SIDs to disable
+  disable_sids: []
   development:
     # Memory caps for various Suricata components in development
     stream_memcap: "1gb"
@@ -1152,8 +1184,9 @@ pcap_live:
 pcap_capture_env:
   # Specifies local network interface(s) for local packet capture if PCAP_ENABLE_NETSNIFF,
   #   PCAP_ENABLE_TCPDUMP, ZEEK_LIVE_CAPTURE or SURICATA_LIVE_CAPTURE are 'true
-  # `pcap_iface` can accept comma-separated values.
-  pcap_iface: ens192
+  # `pcap_iface` can accept multiple interfaces, one per list item.
+  pcap_iface:
+    - ens192
   # Specifies a tcpdump-style filter expression for local packet capture ('' to capture all traffic)
   pcap_filter: ""
   # Whether or not netsniff-ng should create PCAP files from live traffic on a local
@@ -1172,10 +1205,13 @@ pcap_capture_env:
   #   will be closed for processing and a new PCAP file created
   pcap_rotate_minutes: 10
   # Shared "local"/"home" network definition used for both Zeek's Site::local_nets
-  #   (ZEEK_LOCAL_NETS) and Suricata's HOME_NET. Comma-separated list of networks,
-  #   e.g., 1.2.3.0/24,5.6.7.0/24. Note that by default, Zeek considers IANA-registered
+  #   (ZEEK_LOCAL_NETS) and Suricata's HOME_NET. List of networks,
+  #   e.g., 1.2.3.0/24, 5.6.7.0/24. Note that by default, Zeek considers IANA-registered
   #   private address space such as 10/8 and 192.168/16 site-local.
-  home_net: "192.168.0.0/16,10.0.0.0/8,172.16.0.0/12"
+  home_net:
+    - "192.168.0.0/16"
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
   # Whether or not ethtool will disable NIC hardware offloading features and adjust
   #   ring buffer sizes for capture interface(s) (should be 'true' if the interface(s) are
   #   being used for capture only, 'false' if they are being used for management/communication)
@@ -1189,8 +1225,8 @@ live_capture:
   tolerations: []
 
 upload_common_env:
-  # Comma-separated list of tags for data generated by Malcolm
-  extra_tags: ""
+  # List of tags for data generated by Malcolm
+  extra_tags: []
   # The maximum uploadable file size in whole gigabytes (e.g., 50)
   pcap_upload_max_file_gb: 50
   # Whether or not to automatically apply tags based (on the PCAP filename) to network traffic metadata
@@ -1333,8 +1369,9 @@ suricata_chart_overrides:
 kafka:
   # If set to true, Zeek will send all active logs to Kafka via the zeek-kafka plugin, in JSON format
   enabled: false
-  # Bootstrap broker or a comma-separated list of broker values (IP:PORT in both cases)
-  brokers: "kafka.local:9091"
+  # Bootstrap broker, or a list of broker values (IP:PORT in both cases)
+  brokers:
+    - "kafka.local:9091"
   topic: "zeek"  
 
 # Keycloak settings below apply only when `auth.mode` is `keycloak` or `keycloak_remote`
@@ -1367,9 +1404,9 @@ nginx:
   log_access_and_errors: false
   # Set to https when NGINX_SSL=false and Malcolm sits behind a TLS-terminating proxy (e.g. Istio tenant gateway).
   x_forwarded_proto_override: ""
-  # Space-separated list of additional CSP form submission targets.
+  # List of additional CSP form submission targets.
   # Set this for cross-origin form-based authentication such as SAML HTTP-POST.
-  csp_form_action_extra: ""
+  csp_form_action_extra: []
   # use "type: ClusterIP" when Malcolm is exposed through a Kubernetes ingress controller
   # use "type: LoadBalancer" when exposing Malcolm directly via a cloud/provider load balancer
   type: "ClusterIP"
