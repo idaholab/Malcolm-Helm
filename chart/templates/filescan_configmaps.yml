@@ -47,6 +47,9 @@ data:
   RULES_UPDATE_ENABLED: "false"
   # Whether or not the default YARA ruleset will be ignored and only custom rules used
   YARA_CUSTOM_RULES_ONLY: "false"
+  # Scan within archives and compressed files. With Strelka's archive scanners enabled,
+  #   this should be "false" to avoid duplicate processing.
+  CLAMD_SCAN_ARCHIVE: "false"
   {{- $scanners := .Values.filescan_env.scanners | default (list) }}
   {{- if $scanners }}
   STRELKA_SCANNERS: {{ $scanners | join "," | quote }}

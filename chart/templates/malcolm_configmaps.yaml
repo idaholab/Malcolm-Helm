@@ -183,10 +183,10 @@ data:
   MEDIA_ROOT: /opt/netbox/netbox/media
   METRICS_ENABLED: "false"
   NAPALM_TIMEOUT: "10"
-  VALKEY_CACHE_INSECURE_SKIP_TLS_VERIFY: "false"
-  VALKEY_CACHE_SSL: "false"
-  VALKEY_INSECURE_SKIP_TLS_VERIFY: "false"
-  VALKEY_SSL: "false"
+  REDIS_CACHE_INSECURE_SKIP_TLS_VERIFY: "false"
+  REDIS_CACHE_SSL: "false"
+  REDIS_INSECURE_SKIP_TLS_VERIFY: "false"
+  REDIS_SSL: "false"
   RELEASE_CHECK_URL: ""
   # these group names should match role names from auth-common.env
   REMOTE_AUTH_AUTO_CREATE_GROUPS: "False"
@@ -209,6 +209,7 @@ data:
   SKIP_SUPERUSER: "false"
   SUPERUSER_EMAIL: admin@example.com
   WEBHOOKS_ENABLED: "true"
+  GRANIAN_EXTRA_ARGS: "--host=0.0.0.0"
   OPENSSL_FORCE_FIPS_MODE: "0"
 kind: ConfigMap
 metadata:
@@ -330,6 +331,8 @@ data:
   PCAP_ROTATE_MEGABYTES: "{{ .Values.pcap_capture_env.pcap_rotate_megabytes }}"
   PCAP_ROTATE_MINUTES: "{{ .Values.pcap_capture_env.pcap_rotate_minutes }}"
   PCAP_ROTATE_SECONDS: "{{ mul .Values.pcap_capture_env.pcap_rotate_minutes 60 }}"
+  # Get OS-level stats for network interfaces periodically (leave blank to disable)
+  PCAP_IFACE_STATS_CRON_EXPRESSION: ""
 kind: ConfigMap
 metadata:
   name: pcap-capture-env
@@ -445,6 +448,8 @@ data:
   ZEEK_LONG_CONN_REPEAT_LAST_DURATION: "true"
   ZEEK_LONG_CONN_DO_NOTICE: "true"
   ZEEK_LONG_CONN_DURATIONS: "600,1800,3600,43200,86400"
+  # Change zeek metrics port from default
+  ZEEK_METRICS_PORT: ""
   ZEEK_DISABLE_BEST_GUESS_ICS: ""
   ZEEK_DISABLE_ICS_ALL: ""
   ZEEK_DISABLE_ICS_BACNET: ""
@@ -479,6 +484,7 @@ data:
   ZEEK_DISABLE_SPICY_IPSEC: ""
   ZEEK_DISABLE_SPICY_LDAP: ""
   ZEEK_DISABLE_SPICY_OPENVPN: ""
+  ZEEK_DISABLE_SPICY_QUIC: "true"
   ZEEK_DISABLE_SPICY_STUN: ""
   ZEEK_DISABLE_SPICY_TAILSCALE: ""
   ZEEK_DISABLE_SPICY_TFTP: ""
