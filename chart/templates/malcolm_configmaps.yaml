@@ -138,15 +138,17 @@ data:
   # Customize manufacturer matching/creation with NETBOX_AUTO_POPULATE
   NETBOX_CACHE_SIZE: "{{ .Values.netbox.netbox_cache_size }}"
   NETBOX_CACHE_TTL: "{{ .Values.netbox.netbox_cache_ttl }}"
-  # Comma-separated list of private CIDR subnets to control NetBox IP autopopulation.
+  # Comma-separated list of CIDR subnets that control which IP addresses are eligible for NetBox autopopulation.
   #   See "Subnets considered for autopopulation" in the documentation for examples.
   # Behavior:
-  #   * If left blank, *all private* IPv4 and IPv6 address ranges will be autopopulated.
-  #   * Use an exclamation point (`!`) before a CIDR to explicitly *exclude* that subnet.
-  #   * If only exclusions are listed, all private IPs are allowed *except* those excluded.
-  #   * If both inclusions and exclusions are listed:
-  #       * Only addresses matching the allowed subnets will be considered.
-  #       * Among those, any matching excluded subnets will be rejected.
+  #   * If left blank, only private IPv4 and IPv6 ranges get autopopulated. Public space is never touched.
+  #   * Listing a CIDR here, private or public, makes addresses in it eligible.
+  #   * Prefix a CIDR with "!" to exclude it instead.
+  #   * If the list has only exclusions, all private IPs are eligible except those excluded.
+  #       Public IPs stay ineligible regardless.
+  #   * If the list mixes inclusions and exclusions, entries are evaluated in order, and the last entry that
+  #       matches a given address decides whether it's eligible. An address that doesn't match anything
+  #       in the list is not autopopulated.
   NETBOX_AUTO_POPULATE_SUBNETS: "{{ .Values.netbox.netbox_auto_populate_subnets }}"
 kind: ConfigMap
 metadata:
@@ -355,13 +357,15 @@ metadata:
 ---
 apiVersion: v1
 data:
-  SURICATA_CUSTOM_RULES_ONLY: "false"
-  SURICATA_UPDATE_DEBUG: "false"
-  SURICATA_DISABLE_ICS_ALL: "false"
-  SURICATA_UPDATE_ETOPEN: "true"
-  SURICATA_UPDATE_RULES: "false"
-  SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net }}]'"
+  SURICATA_CUSTOM_RULES_ONLY: "{{ .Values.suricata_env.custom_rules_only }}"
+  SURICATA_UPDATE_DEBUG: "{{ .Values.suricata_env.update_debug }}"
+  SURICATA_DISABLE_ICS_ALL: "{{ .Values.suricata_env.disable_ics_all }}"
+  SURICATA_UPDATE_SOURCES: "{{ .Values.suricata_env.update_sources }}"
+  SURICATA_UPDATE_RULES: "{{ .Values.suricata_env.update_rules }}"
+  SURICATA_UPDATE_ENABLE_SOURCES: "{{ .Values.suricata_env.update_enable_sources }}"
+  SURICATA_UPDATE_CRON_EXPRESSION: "{{ .Values.suricata_env.update_cron_expression }}"
   SURICATA_DISABLE_SIDS: "{{ .Values.suricata_env.disable_sids }}"
+  SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net }}]'"
   LUA_PATH: "{{ .Values.suricata_env.lua_path }}"
   PCAP_PROCESSED_DIRECTORY: "/data/pcap/processed"
 {{- if .Values.is_production }}
