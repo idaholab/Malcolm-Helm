@@ -2,15 +2,22 @@
 ---
 apiVersion: v1
 data:
-  LOGSTASH_NETBOX_ENRICHMENT_DATASETS: "{{ .Values.netbox.logstash_netbox_enrichment_datasets }}"
+  LOGSTASH_NETBOX_ENRICHMENT_DATASETS: "{{ .Values.netbox.logstash_netbox_enrichment_datasets | join "," }}"
   # Zeek log types that will be ignored (dropped) by LogStash
   LOGSTASH_ZEEK_IGNORED_LOGS: "analyzer,broker,cluster,config,loaded_scripts,packet_filter,png,print,prof,reporter,roc_plus_unknown_data,stderr,stdout"
-  # Whether or not Logstash will map MAC addresses to vendors for MAC addresses
-  LOGSTASH_OUI_LOOKUP: "true"
-  # Whether or not Logstash will perform a reverse DNS lookup for external IP addresses
-  LOGSTASH_REVERSE_DNS: "false"
-  # Whether or not Logstash will perform severity scoring on network traffic metadata
-  LOGSTASH_SEVERITY_SCORING: "true"
+  LOGSTASH_OUI_LOOKUP: "{{ .Values.logstash.oui_lookup }}"
+  LOGSTASH_REVERSE_DNS: "{{ .Values.logstash.reverse_dns }}"
+  LOGSTASH_SEVERITY_SCORING: "{{ .Values.logstash.severity_scoring }}"
+
+  OTKB_ENRICHMENT: "{{ .Values.logstash.otkb.enrichment }}"
+  OTKB_ENRICHMENT_TTL: "{{ .Values.logstash.otkb.enrichment_ttl }}"
+  OTKB_SSL_VERIFY: "{{ .Values.logstash.otkb.ssl_verify }}"
+  OTKB_ENRICHMENT_VERBOSE: "{{ .Values.logstash.otkb.enrichment_verbose }}"
+  OTKB_ENRICHMENT_DEBUG: "{{ .Values.logstash.otkb.enrichment_debug }}"
+  OTKB_ENRICHMENT_DEBUG_TIMINGS: "{{ .Values.logstash.otkb.enrichment_debug_timings }}"
+  # OTKB_TOKEN (from .Values.logstash.otkb.token) is in logstash-secret-env
+  OTKB_URL: "{{ .Values.logstash.otkb.url }}"
+
   {{- if .Values.is_production }}
     {{- with .Values.logstash.production }}
   LS_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
@@ -22,8 +29,6 @@ data:
   {{- else }}
     {{- with .Values.logstash.development }}
   LS_JAVA_OPTS: -server {{ .java_memory }} -XX:-HeapDumpOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom -Dlog4j.formatMsgNoLookups=true
-  # Parameters for tuning Logstash pipelines (see
-  #   https://www.elastic.co/guide/en/logstash/current/logstash-settings-file.html)
   pipeline.batch.delay: "{{ .batch_delay }}"
   pipeline.batch.size: "{{ .batch_size }}"
   pipeline.workers: "{{ .workers }}"
@@ -126,6 +131,8 @@ spec:
               name: lookup-common-env
           - configMapRef:
               name: logstash-env
+          - secretRef:
+              name: logstash-secret-env
         livenessProbe:
           exec:
             command:

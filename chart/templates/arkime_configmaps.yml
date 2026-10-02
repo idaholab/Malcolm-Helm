@@ -4,21 +4,15 @@ kind: ConfigMap
 metadata:
   name: arkime-offline-env
 data:
-  # Whether or not Arkime should analyze uploaded PCAP files
-  ARKIME_AUTO_ANALYZE_PCAP_FILES: "true"
+  ARKIME_AUTO_ANALYZE_PCAP_FILES: "{{ .Values.arkime_offline.auto_analyze_pcap_files }}"
   # Whether or not Arkime should analyze captured PCAP files captured
   #   by netsniff-ng/tcpdump (see PCAP_ENABLE_NETSNIFF and PCAP_ENABLE_TCPDUMP
   #   below). If ARKIME_LIVE_CAPTURE is true, this should be false: otherwise
   #   Arkime will see duplicate traffic.
   ARKIME_ROTATED_PCAP: "true"
-  # The number of Arkime processes for analyzing uploaded PCAP files allowed
-  #   to run concurrently
-  ARKIME_AUTO_ANALYZE_PCAP_THREADS: "1"
-  # These variables control whether the Wise GUI is exposed as an additional endpoint.
-  # Controls whether the WISE configuration GUI is exposed via the nginx proxy
-  ARKIME_EXPOSE_WISE_GUI: "true"
-  # Controls whether the WISE configuration GUI is read-only or editable
-  ARKIME_ALLOW_WISE_GUI_CONFIG: "false"
+  ARKIME_AUTO_ANALYZE_PCAP_THREADS: "{{ .Values.arkime_offline.auto_analyze_pcap_threads }}"
+  ARKIME_EXPOSE_WISE_GUI: "{{ .Values.arkime_offline.expose_wise_gui }}"
+  ARKIME_ALLOW_WISE_GUI_CONFIG: "{{ .Values.arkime_offline.allow_wise_gui_config }}"
 
 ---
 apiVersion: v1
@@ -28,12 +22,8 @@ metadata:
 data:
   ARKIME_SSL: "false"
   ARKIME_VIEWER_PORT: "8005"
-  # Whether or not Arkime is allowed to delete uploaded/captured PCAP
-  #   https://arkime.com/faq#pcap-deletion
-  MANAGE_PCAP_FILES: "true"
-  # Revert to older libpcap mode for PCAP file processing rather than faster scheme processing
-  ARKIME_PCAP_LIBPCAP: "false"
-  # debug flag for config.ini (https://arkime.com/settings#debug)
+  MANAGE_PCAP_FILES: "{{ .Values.arkime_env.manage_pcap_files }}"
+  ARKIME_PCAP_LIBPCAP: "{{ .Values.arkime_env.pcap_libpcap }}"
   ARKIME_DEBUG_LEVEL: "{{ .Values.arkime_env.arkime_debug_level }}"
 {{- if ne .Values.siem_env.malcolm_network_index_pattern "arkime_sessions3-*" }}
   # Always query all indices instead of trying to calculate which ones
@@ -51,27 +41,14 @@ data:
   {{- end }}
   {{- with .Values.arkime_env.production }}
   ARKIME_FREESPACEG: "{{ .free_space_g }}"
-  # How often to create a new index in OpenSearch/Elasticsearch
-  #   https://arkime.com/settings#rotateIndex
   ARKIME_ROTATE_INDEX: "{{ .rotate_index }}"
-  # These variables manage setting for Arkime's ILM/ISM features (https://arkime.com/faq#ilm)
-  # Whether or not Arkime should perform index management
   INDEX_MANAGEMENT_ENABLED: "{{ .index_management_enabled }}"
-  # Time in hours/days before moving to warm and force merge (number followed by h or d)
   INDEX_MANAGEMENT_OPTIMIZATION_PERIOD: "{{ .index_management_optimization_period }}"
-  # Time in hours/days before deleting index (number followed by h or d)
   INDEX_MANAGEMENT_RETENTION_TIME: "{{ .index_management_retention_time }}"
-  # Number of replicas for older sessions indices
   INDEX_MANAGEMENT_OLDER_SESSION_REPLICAS: "{{ .index_management_older_session_replicas }}"
-  # Number of weeks of history to retain
   INDEX_MANAGEMENT_HISTORY_RETENTION_WEEKS: "{{ .index_management_history_retention_weeks }}"
-  # Number of segments to optimize sessions for
   INDEX_MANAGEMENT_SEGMENTS: "{{ .index_management_segments }}"
-  # Whether or not Arkime should use a hot/warm design (storing non-session data in a warm index)
   INDEX_MANAGEMENT_HOT_WARM_ENABLED: "{{ .index_management_hot_warm_enabled }}"
-  # Specify the max number of indices for querying SPI data, or set to -1 to disable any max.
-  #   The Arkime documentation warns "OpenSearch/Elasticsearch MAY blow up if we ... search too many indices."
-  #   https://arkime.com/settings#spiDataMaxIndices
   ARKIME_SPI_DATA_MAX_INDICES: "{{ .spi_data_max_indices }}"
   {{- end }}
 {{- else }}
@@ -102,27 +79,22 @@ data:
   # Whether or Arkime should monitor live traffic on a local
   #   interface (PCAP_IFACE in pcap-capture.env specifies interface)
   ARKIME_LIVE_CAPTURE: "true"
-  ARKIME_MAGIC_MODE: "basic"
-  ARKIME_PCAP_WRITE_METHOD: "simple"
-  ARKIME_PCAP_READ_METHOD: "tpacketv3"
+  ARKIME_LIVE_NODE_HOST: "{{ .Values.arkime_live.arkime_live_node_host }}"
+  ARKIME_MAGIC_MODE: "{{ .Values.arkime_live.magic_mode }}"
+  ARKIME_PCAP_WRITE_METHOD: "{{ .Values.arkime_live.pcap_write_method }}"
+  ARKIME_PCAP_READ_METHOD: "{{ .Values.arkime_live.pcap_read_method }}"
   ARKIME_PCAP_PROCESSOR: "false"
+  # Indicates if the WISE service is on or off
+  WISE: "off"
   {{- if .Values.is_production }}
     {{- with .Values.arkime_live.production }}
-  # Live capture tuning parameters
-  #(since 4.0.0) The type of seekable compression to use on pcap files. Zstd (don't use before 4.5.1) will has better compression for less cpu than glib. Valid values are: none, gzip, zstd (>= 4.5.1)
   ARKIME_COMPRESSION_TYPE: "{{ .arkime_compression_type }}"
   ARKIME_COMPRESSION_LEVEL: "{{ .arkime_compression_level }}"
-  #Size of indexing request to send to OpenSearch/Elasticsearch. Increase if monitoring a high bandwidth network.
   ARKIME_DB_BULK_SIZE: "{{ .arkime_db_bulk_size }}"
-  #How many packets per packet thread that can be waiting to be processed. Arkime will start dropping packets if the queue fills up.
   ARKIME_MAX_PACKETS_IN_QUEUE: "{{ .arkime_max_packets_in_queue }}"
-  #Number of threads to use to process packets AFTER the reader has received the packets. This also controls how many packet queues there are, since each thread has its own queue. Basically how much CPU to dedicate to parsing the packets. Increase this if you get errors about dropping packets or the packetQ is over flowing. If using the simple writer, this also controls how many pcap files are open for writing. We recommend about 2 x Gbps. Making this value too large may cause issues with Arkime.
   ARKIME_PACKET_THREADS: "{{ .arkime_packet_threads }}"
-  #Buffer size when writing pcap files. Should be a multiple of the raid 5/xfs stripe size and multiple of 4096 if using direct/thread-direct pcapWriteMethod
   ARKIME_PCAP_WRITE_SIZE: "{{ .arkime_pcap_write_size }}"
-  #The number of threads used to read packets from each interface. These threads take the packets from the AF packet interface and place them into the packet queues.
   ARKIME_TPACKETV3_NUM_THREADS: "{{ .arkime_tpacketv3_num_threads }}"
-  #The block size in bytes used for reads from each interface. There are 120 blocks per interface.
   ARKIME_TPACKETV3_BLOCK_SIZE: "{{ .arkime_tpacketv3_block_size }}"
     {{- end }}
   {{- else }}

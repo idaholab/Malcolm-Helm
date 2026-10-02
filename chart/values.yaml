@@ -108,6 +108,7 @@ secret_init:
 
   
 auth:
+  # Malcolm Administrator username and encrypted password for nginx reverse proxy (and upload server's SFTP access)
   username: malcolm
 
   # Password for HTTP basic auth login, generated with `openssl passwd -1 <your password>`
@@ -136,6 +137,13 @@ auth:
   # Users should change this value if using the WISE plugin GUI
   arkime_wise_pin: WISE2019
 
+  # ARKIME_WISE_SERVICE_URL is used for the Arkime WISE plugin
+  #   if Arkime is performing live capture.
+  #   Supply the appropriate WISE service URL (and credentials, if needed), e.g.:
+  #   * http://arkime:8081 - for a local cluster
+  #   * https://user:password@malcolm/wise - for a remote Malcolm instance
+  arkime_wise_service_url: http://arkime:8081
+
   # Authentication mode for accessing services. Options:
   #   - `basic` : htadmin auth
   #   - `keycloak` : embedded Keycloak
@@ -143,32 +151,78 @@ auth:
   mode: "basic"
 
   # For `keycloak` or `keycloak_remote` modes: define required group/role and role-based access settings
-  require_group: ""
-  require_role: ""  
+  require_group: []
+  require_role: []
   role_based_access: "false"
+  # General access roles
+  # ROLE_ADMIN - Unrestricted access
   role_admin: "admin"
+  # ROLE_READ_ACCESS - Read-only access across all components
   role_read_access: "read_access"
+  # ROLE_READ_WRITE_ACCESS - Read/write access across all components, excluding some admin functions
   role_read_write_access: "read_write_access"  
+  # Specific access roles
+  # ROLE_ARKIME_ADMIN - Maps to the built-in arkimeAdmin role
   role_arkime_admin: "arkime_admin"
+  # ROLE_ARKIME_READ_ACCESS - Maps to a user-defined role with read-only Viewer access
   role_arkime_read_access: "arkime_read_access"
+  # ROLE_ARKIME_READ_WRITE_ACCESS - Maps to a user-defined role with read/write Viewer access
   role_arkime_read_write_access: "arkime_read_write_access"
+  # ROLE_ARKIME_PCAP_ACCESS - Maps to a user-defined role with access to viewing/exporting PCAP payloads in Viewer
   role_arkime_pcap_access: "arkime_pcap_access"
+  # ROLE_ARKIME_HUNT_ACCESS - Maps to a user-defined role with access to packet search ("Hunt") in Viewer
   role_arkime_hunt_access: "arkime_hunt_access"  
+  # ROLE_ARKIME_WISE_READ_ACCESS - Maps to the built-in wiseUser role
   role_arkime_wise_read_access: "arkime_wise_read_access"
+  # ROLE_ARKIME_WISE_READ_WRITE_ACCESS - Maps to the built-in wiseAdmin role
   role_arkime_wise_read_write_access: "arkime_wise_read_write_access"  
+  # ROLE_DASHBOARDS_READ_ACCESS - Read-only access to OpenSearch Dashboards visualizations, but not all Dashboards apps
   role_dashboards_read_access: "dashboards_read_access"  
+  # ROLE_DASHBOARDS_READ_ALL_APPS_ACCESS - Read-only access to all OpenSearch Dashboards visualizations and apps
   role_dashboards_read_all_apps_access: "dashboards_read_all_apps_access"  
+  # ROLE_DASHBOARDS_READ_WRITE_ACCESS - Read/write access to OpenSearch Dashboards visualizations, but not all Dashboards apps
   role_dashboards_read_write_access: "dashboards_read_write_access"  
+  # ROLE_DASHBOARDS_READ_WRITE_ALL_APPS_ACCESS - Read/write access to OpenSearch Dashboards visualizations and apps
   role_dashboards_read_write_all_apps_access: "dashboards_read_write_all_apps_access"  
+  # ROLE_EXTRACTED_FILES - Access to extracted file downloads
   role_extracted_files: "extracted_files"  
+  # ROLE_NETBOX_READ_ACCESS - Read-only access to NetBox
   role_netbox_read_access: "netbox_read_access"  
+  # ROLE_NETBOX_READ_WRITE_ACCESS - Read/write access to NetBox
   role_netbox_read_write_access: "netbox_read_write_access"  
+  # ROLE_UPLOAD - Access to upload artifact interface
   role_upload: "upload"
+  # ROLE_CAPTURE_SERVICE - Internal-use role for service account used by Arkime capture on remote network sensor
   role_capture_service: "capture_service"
 
 opensearch:
   enabled: true
   url: https://opensearch:9200
+  # Whether or not connections to the primary remote OpenSearch instance require full
+  #  TLS certificate validation for the connection (this may fail if using self-signed
+  #  certificates).
+  ssl_certificate_verification: "false"
+  # The memlock limit for the OpenSearch container, used in conjunction with bootstrap.memory_lock
+  #   to let OpenSearch lock its heap into memory and avoid it being swapped out
+  max_locked_memory: unlimited
+
+  # 'opensearch-remote' or 'elasticsearch-remote' indicate that Malcolm's Logstash instance
+  #   should forward logs to a secondary remote OpenSearch instance in addition to the
+  #   (local or remote) primary instance.
+  secondary: "false"
+  # URL for connecting to the secondary remote OpenSearch instance, specified
+  #   in the format 'protocol://host:port'.
+  secondary_url: ""
+  # Whether or not connections to the secondary remote OpenSearch instance require full
+  #  TLS certificate validation for the connection (this may fail if using self-signed
+  #  certificates).
+  secondary_ssl_certificate_verification: "false"
+
+  # URL for connecting to OpenSearch Dashboards instance. When using Malcolm's internal
+  #   instance of OpenSearch Dashboards (i.e., OPENSEARCH_PRIMARY from opensearch.env
+  #   is 'opensearch-local' or 'opensearch-remote') this should be
+  #   'http://dashboards:5601/dashboards'; otherwise, specify the Dashboards URL
+  #   in the format 'protocol://host:port/uri'.
   dashboards_url: http://dashboards:5601/dashboards
   development:
     java_memory: -Xmx10g -Xms10g -Xss256k
@@ -321,7 +375,74 @@ siem_env:
   malcolm_beats_template_lifecycle_name: ""
   malcolm_beats_template_lifecycle_rollover_alias: ""
 
+beats_common:
+  # Whether or not Logstash will use require encrypted communications for any external
+  #   Beats-based forwarders from which it will accept logs
+  ssl: "false"
+
+lookup_common:
+  # Whether or not domain names (from DNS queries and SSL server names) will be assigned entropy scores
+  #   as calculated by freq
+  freq_lookup: "true"
+  # When severity scoring is enabled, this variable indicates the entropy threshold for
+  #   assigning severity to events with entropy scores calculated by freq;
+  #   a lower value will only assign severity scores to fewer domain names with higher entropy
+  freq_severity_threshold: "2.0"
+  # When severity scoring is enabled, this variable indicates the size threshold (in megabytes)
+  #   for assigning severity to large connections or file transfers
+  total_megabytes_severity_threshold: "1000"
+  # When severity scoring is enabled, this list defines
+  #   sensitive countries (using ISO 3166-1 alpha-2 codes)
+  sensitive_country_codes:
+    - AM
+    - AZ
+    - BY
+    - CN
+    - CU
+    - DZ
+    - GE
+    - HK
+    - IL
+    - IN
+    - IQ
+    - IR
+    - KG
+    - KP
+    - KR
+    - KZ
+    - LY
+    - MD
+    - MO
+    - PK
+    - RU
+    - SD
+    - SS
+    - SY
+    - TJ
+    - TM
+    - TW
+    - UA
+    - UZ
+
 logstash:
+  # Whether or not Logstash will map MAC addresses to vendors for MAC addresses
+  oui_lookup: "true"
+  # Whether or not Logstash will perform a reverse DNS lookup for external IP addresses
+  reverse_dns: "false"
+  # Whether or not Logstash will perform severity scoring on network traffic metadata
+  severity_scoring: "true"
+
+  otkb:
+    # Enrich with MITRE OTKB
+    enrichment: false
+    enrichment_ttl: 3600
+    ssl_verify: false
+    enrichment_verbose: false
+    enrichment_debug: false
+    enrichment_debug_timings: false
+    url: ""
+    token: ""
+
   # Number of Logstash instances is determined by the number of nodes in your Kubernetes cluster.
   development:
     # Java memory settings for Logstash (heap size and stack size)
@@ -350,16 +471,39 @@ netbox:
 
   # Enable enrichment of data from NetBox
   enrichment: true
-  # Which types of logs will be enriched via NetBox: a comma-separated list which may contain
+  # Which types of logs will be enriched via NetBox: a list which may contain
   #   provider.dataset pairs (e.g., zeek.dns), the string "default" for the built-in list of log types,
   #   "ics" (or "ot") to enrich logs with "ics" in their tags, or "all" to enrich all logs.
-  #   Values may be combined (e.g., "default,ics").
-  logstash_netbox_enrichment_datasets: "default"
+  #   Values may be combined (e.g., ["default", "ics"]).
+  logstash_netbox_enrichment_datasets:
+    - "default"
+  # The name of the default "site" to be created upon NetBox initialization, and to be used for enrichment
+  #   if not otherwise specified for the source of the network traffic data
   netbox_default_site: "Malcolm"
+  # Whether or not unobserved network entities in Logstash data will be used to populate NetBox
   netbox_auto_populate: true
+  # Whether or not unobserved network subnets in Logstash data will be created automatically in NetBox
+  netbox_auto_create_prefix: "false"
+  # Whether or not services (i.e., destination IP/port) will be looked up during NetBox enrichment
+  netbox_enrichment_lookup_service: "true"
+  # Customize manufacturer matching/creation with NETBOX_AUTO_POPULATE
+  netbox_default_autocreate_manufacturer: "true"
+  netbox_default_fuzzy_threshold: "0.95"
+  # Caching parameters for NetBox's LogStash lookups
   netbox_cache_size: "10000"
   netbox_cache_ttl: "300"
-  netbox_auto_populate_subnets: ""
+  # List of CIDR subnets that control which IP addresses are eligible for NetBox autopopulation.
+  #   See "Subnets considered for autopopulation" in the documentation for examples.
+  # Behavior:
+  #   * If left blank, only private IPv4 and IPv6 ranges get autopopulated. Public space is never touched.
+  #   * Listing a CIDR here, private or public, makes addresses in it eligible.
+  #   * Prefix a CIDR with "!" to exclude it instead.
+  #   * If the list has only exclusions, all private IPs are eligible except those excluded.
+  #       Public IPs stay ineligible regardless.
+  #   * If the list mixes inclusions and exclusions, entries are evaluated in order, and the last entry that
+  #       matches a given address decides whether it's eligible. An address that doesn't match anything
+  #       in the list is not autopopulated.
+  netbox_auto_populate_subnets: []
 
   # URL of the remote NetBox instance (only used if `mode` is `remote`)
   url: ""
@@ -369,6 +513,23 @@ netbox:
 
   # Reverse proxy URL for CSRF protection. Leave blank if not using a reverse proxy.
   csrf_trusted_origins: https://malcolm.vp.bigbang.dev
+
+  email_from: netbox@bar.com
+  email_port: "25"
+  email_server: localhost
+  email_ssl_certfile: ""
+  email_ssl_keyfile: ""
+  email_timeout: "5"
+  # EMAIL_USE_SSL and EMAIL_USE_TLS are mutually exclusive, i.e. they can't both be `true`!
+  email_use_ssl: "false"
+  email_use_tls: "false"
+
+  webhooks_enabled: "true"
+
+  redis_ssl: "false"
+  redis_cache_ssl: "false"
+  redis_insecure_skip_tls_verify: "false"
+  redis_cache_insecure_skip_tls_verify: "false"
 
 postgres:
   enabled: true
@@ -495,10 +656,31 @@ istio:
 
 # Configuration for Suricata, affecting both live and offline deployments
 suricata_env:
+  # Whether or not the default Suricata ruleset will be ignored and only custom rules used
+  custom_rules_only: false
+  # Whether or not to refresh the suricata-update source index before updating rules
+  update_sources: true
+  update_rules: false
+  update_debug: false
+
+  # List of suricata-update indexed sources to enable. Optional source parameters
+  # may follow the source name separated by '|', e.g.:
+  #   - et/open
+  #   - ptresearch/attackdetection
+  #   - et/pro|secret-code=REDACTED
+  update_enable_sources:
+    - "et/open"
+
+  # Cron expression for updating Suricata rules
+  update_cron_expression: "0 0 * * *"
+
+  # Disable Suricata ICS/OT protocol detection
+  disable_ics_all: false
+
   # Lua path for Suricata rules
   lua_path: "/opt/suricata/rules/?.lua;;"
-  # Comma-separated list of SIDs to disable
-  disable_sids: ""
+  # List of SIDs to disable
+  disable_sids: []
   development:
     # Memory caps for various Suricata components in development
     stream_memcap: "1gb"
@@ -519,7 +701,13 @@ suricata_env:
 # Suricata live is enabled by default and will listen on `pcap_iface` defined under `pcap_capture_env`
 # If disabled, PCAPs can still be uploaded using the Malcolm offline upload functionality.
 suricata_live:
+  # Specifies the Suricata runmode for live capture (see
+  #   https://suricata.readthedocs.io/en/latest/performance/runmodes.html)
+  suricata_runmode: workers
+  # Whether or not enable capture statistics and include them in eve.json
   suricata_stats_enabled: true
+  suricata_stats_interval: "30"
+  suricata_stats_decoder_events: "false"
   hostpath: /var/lib/malcolm/suricata-logs
 
   # Suricata live runs as a DaemonSet but schedules only on Kubernetes nodes with the following label
@@ -550,20 +738,52 @@ suricata_live:
     eve_rotate_interval: "1h"
 
 dashboards_helper_env:
+  # The maximum cumulative size of OpenSearch indices containing network traffic metadata
+  #   before which the oldest indices will be deleted ('' to disable storage-based index pruning).
   opensearch_index_size_prune_limit: 0
+  # Whether to determine the "oldest" indices for storage-based index pruning by creation
+  #   date/time ('true') or index name ('false')
   opensearch_index_size_prune_name_sort: false
-  dashboards_prefix: "Malcolm"
+  # Dashboard to open by default. Common Malcolm dashboard IDs:
+  #   Overview:                  0ad3d7c2-3441-485e-9dfe-dbb22e84e576
+  #   Security Overview:         95479950-41f2-11ea-88fa-7151df485405
+  #   ICS/IoT Security Overview: 4a4bde20-4760-11ea-949c-bbb5a9feecbf
+  #   Severity:                  d2dd0180-06b1-11ec-8c6b-353266ade330
+  # For a full list, run:
+  #    find ./dashboards/dashboards/ \
+  #      -type f \
+  #      -name "*.json" \
+  #      -exec jq -r \
+  #        '.objects[] | select(.type == "dashboard") | [.id, .attributes.title] | @tsv' \
+  #        "{}" \; |
+  #      sort -k2,2
+  opensearch_default_dashboard: "0ad3d7c2-3441-485e-9dfe-dbb22e84e576"
+  # A prefix to prepend to the titles of imported Malcolm dashboards
+  dashboards_prefix: ""
+  # Whether or not to set OpenSearch Dashboards to dark mode
   dashboards_dark_mode: true
-  dashboards_timepicker_from: "now-7d"
+  # default "from" and "to" values for the OpenSearch Dashboards query time frame picker
+  dashboards_timepicker_from: "now-24h"
   dashboards_timepicker_to: "now"
+  # Enable/disable Dashboards' multiple data sources feature, letting one Dashboards
+  #    instance query and visualize data from several separate clusters at once.
+  #    Turn this on if you're running a central Dashboards that needs to reach into
+  #    more than one Malcolm OpenSearch backend; leave it false for a standard
+  #    single-cluster deployment. This setting is experimental.
   dashboards_data_sources_enabled: false
   # The base URL of the Malcolm instance (e.g., https://malcolm.home.arpa), only used
   # where a remote Kibana instance needs absolute paths to request, for example, an extracted
   # file download or some other Malcolm-hosted asset.
   malcolm_url: https://malcolm.vp.bigbang.dev
+  # Parameters for the OpenSearch repository used for index snapshots
+  ism_snapshot_compressed: false
+  ism_snapshot_repo: logs
 
 suricata_offline:
+  # Whether or not Suricata should analyze uploaded PCAP files
+  auto_analyze_pcap_files: "true"
   development:
+    # The number of threads per Suricata process (0 means "default behavior")
     suricata_auto_analyze_pcap_threads: 0
     suricata_auto_analyze_pcap_processes: 1
   production:
@@ -573,7 +793,9 @@ suricata_offline:
 # Zeek live is enabled by default and will listen on `pcap_iface` defined under `pcap_capture_env`
 # If disabled, PCAPs can still be uploaded using the Malcolm offline upload functionality.
 zeek_live:
+  # Set ZEEK_DISABLE_STATS to false or blank to generate stats.log and capture_loss.log
   zeek_disable_stats: ""
+  # Set ZEEK_DISABLE_INTEL_LIVE to true to disable @load-ing zeek/intel for live capture
   zeek_disable_intel_live: "false"
 
   # Set to true to enable Zeek's ZAM script optimizer (-O ZAM)
@@ -617,8 +839,11 @@ zeek_live:
 # NOTE: the zeek_intel_refresh_on_startup and zeek_intel_refresh_cron_expression 
 #       is also applied to the zeek remote live sensors.
 zeek_offline:
+  # Whether or not Zeek should analyze uploaded PCAP files
+  auto_analyze_pcap_files: "true"
   # Refresh Zeek Intel data at startup
   zeek_intel_refresh_on_startup: "true"
+  # Set ZEEK_DISABLE_INTEL_OFFLINE to true to disable @load-ing zeek/intel for uploaded PCAP
   zeek_disable_intel_offline: "false"
 
   # Cron expression for refreshing Zeek Intel data
@@ -635,19 +860,34 @@ zeek_offline:
     zeek_auto_analyze_pcap_threads: 3
 
 filescan_env:
+  # Set to true to disable file scanning with Strelka
   disable: false
   verbosity: ""
   hostpath: /var/lib/malcolm/filescan-logs
+  # Whether or not to serve the directory containing Zeek-extracted over HTTP at ./extracted-files/
   extracted_file_http_server_enable:
     local: "true"
     remote: "false"
   extracted_file_http_server_recursive: true
+  # Whether or not to use libmagic to show MIME types for Zeek-extracted files served
   extracted_file_http_server_magic: false
+  # Whether or not Zeek-extracted files served over HTTP will be archived in a Zip file
   extracted_file_http_server_zip: false
+  # Specifies the password for encrypted Zeek-extracted files served over HTTP
+  #   If FILESCAN_HTTP_SERVER_ZIP is true this is the password for the Zip file,
+  #   otherwise it is the AES-256-CBC decryption password
   extracted_file_http_server_encrypt_password: ""
+  # Determines the behavior for preservation of Zeek-extracted files
   extracted_file_preservation:
     local: "quarantined"
     remote: "none"
+  # Whether or not to regularly update rule definitions for file scanning engines
+  rules_update_enabled: "false"
+  # Whether or not the default YARA ruleset will be ignored and only custom rules used
+  yara_custom_rules_only: "false"
+  # Scan within archives and compressed files. With Strelka's archive scanners enabled,
+  #   this should be "false" to avoid duplicate processing.
+  clamd_scan_archive: "false"
   development:
     # Prune ./zeek-logs/extract_files/ when it exceeds this size
     extracted_file_prune_threshold_max_size: 1TB
@@ -655,12 +895,23 @@ filescan_env:
     extracted_file_prune_threshold_total_disk_usage_percent: 0
     # Interval (seconds) to check whether to prune ./zeek-logs/extract_files/
     extracted_file_prune_interval_seconds: 300
+    # The number of strelka backend processes to run
     backend_procs: 1
+    # values for tuning clamd (others are available, see strelka/docker-entrypoint.sh)
+    # Maximum number of concurrent clamd threads (MaxThreads)
+    clamd_max_threads: "8"
+    # Maximum number of queued items for clamd (MaxQueue)
+    clamd_max_queue: "200"
+    # Maximum length the queue of pending connections may grow to for clamd (MaxConnectionQueueLength)
+    clamd_max_conn_queue: "400"
   production:
     extracted_file_prune_threshold_max_size: 1TB
     extracted_file_prune_threshold_total_disk_usage_percent: 0
     extracted_file_prune_interval_seconds: 300
     backend_procs: 4
+    clamd_max_threads: "8"
+    clamd_max_queue: "200"
+    clamd_max_conn_queue: "400"
   # Enabled scanners, see https://idaholab.github.io/Malcolm/docs/file-scanning.html
   # and https://target.github.io/strelka/#/?id=scanner-list
   scanners:
@@ -679,15 +930,23 @@ valkey_env:
   # now I'm setting them to "0" which is the same as the valkey default, which means
   # "don't evict based on memory."
   development:
+    # the maximum amount of memory the `valkey` service is allowed to use, e.g. `100mb` (`0` means no limit)
     max_memory: 0
+    # the eviction policy the `valkey` service uses once max_memory is reached
     max_memory_policy: allkeys-lru
+    # the `valkey-cache` service's equivalents of max_memory/max_memory_policy above; note that
+    #   `valkey-cache` runs with `appendonly no`, i.e. without AOF persistence, since it's a cache
+    #   rather than a durable store
     cache_max_memory: 0
     cache_max_memory_policy: allkeys-lru
+    # the minimum size the append-only file must reach before an automatic AOF rewrite is triggered
+    auto_aof_rewrite_min_size: 64mb
   production:
     max_memory: 0
     max_memory_policy: allkeys-lru
     cache_max_memory: 0
     cache_max_memory_policy: allkeys-lru
+    auto_aof_rewrite_min_size: 64mb
 
 # Affects all Zeek deployments (live and offline)
 zeek_env:
@@ -700,41 +959,128 @@ zeek_env:
   # `all`        : extract all files
   extract_mode: interesting
 
-  # When querying a threat intelligence feed, only process threat indicators
-  # created or modified since this value. Can be a fixed date/time (e.g., 01/01/2021)
-  # or a relative interval (e.g., 30 days ago). Blank disables filtering.
+  # When querying a threat intelligence feed, only process threat indicators that have
+  #   been created or modified since the time represented by this value;
+  #   it may be either a fixed date/time (01/01/2021) or relative interval (30 days ago)
   zeek_intel_feed_since: ""
 
   # Value for Zeek's Intel::item_expiration timeout (-1min to disable)
   # `-1min` means intel items will never expire
   zeek_intel_item_expiration: "-1min"
 
+  # Whether or not to require SSL certificate verification when querying an intelligence feed
+  zeek_intel_feed_ssl_certificate_verification: "false"
+  # Number of threads to use for querying feeds for generating Zeek Intelligence Framework files
+  zeek_intel_refresh_threads: "2"
+
+  # Adjust how often the JA4SSH hash is calculated
+  zeek_ja4ssh_packet_count: "200"
+  # Default amount of time a file can be inactive before the file analysis
+  #   gives up and discards any internal state related to the file.
+  zeek_file_analyzer_timeout_sec: "5"
+
+  # for zeek-long-connections plugin
+  zeek_long_conn_repeat_last_duration: "true"
+  zeek_long_conn_do_notice: "true"
+  zeek_long_conn_durations: "600,1800,3600,43200,86400"
+
+  # Change zeek metrics port from default
+  zeek_metrics_port: ""
+
+  # Set to true to indicate that Zeek should output logs in JSON format
+  zeek_json: ""
+
+  # Environment variables for tweaking Zeek at runtime (see local.zeek)
+  #   Set to true to disable the corresponding feature
+  zeek_disable_log_passwords: ""
+  zeek_disable_ssl_validate_certs: ""
+  zeek_disable_track_all_assets: ""
+  zeek_disable_detect_routers: "true"
+  zeek_disable_iana_lookup: ""
+  zeek_disable_spicy_ipsec: ""
+  zeek_disable_spicy_ldap: ""
+  zeek_disable_spicy_openvpn: ""
+  zeek_disable_spicy_quic: "true"
+  zeek_disable_spicy_stun: ""
+  zeek_disable_spicy_tailscale: ""
+  zeek_disable_spicy_tftp: ""
+  zeek_disable_spicy_wireguard: ""
+  # With Strelka's archive scanners enabled, disable spicy-zip to avoid duplicate processing
+  zeek_disable_spicy_zip: "true"
+
+  zeek_disable_ics_all: ""
+  zeek_disable_ics_bacnet: ""
+  zeek_disable_ics_bsap: ""
+  zeek_disable_ics_c1222: ""
+  zeek_disable_ics_dnp3: ""
+  zeek_disable_ics_enip: ""
+  zeek_disable_ics_ethercat: ""
+  zeek_disable_ics_genisys: "true"
+  zeek_disable_ics_ge_srtp: ""
+  zeek_disable_ics_hart_ip: ""
+  zeek_disable_ics_omron_fins: ""
+  zeek_disable_ics_opcua_binary: ""
+  zeek_disable_ics_modbus: ""
+  zeek_disable_ics_profinet: ""
+  zeek_disable_ics_profinet_io_cm: ""
+  zeek_disable_ics_roc_plus: ""
+  zeek_disable_ics_s7comm: ""
+  zeek_disable_ics_iec104: ""
+  zeek_disable_ics_synchrophasor: ""
+
+  zeek_c1222_authentication_value: "true"
+  zeek_c1222_identification_service: "true"
+  zeek_c1222_read_write_service: "true"
+  zeek_c1222_logon_security_service: "true"
+  zeek_c1222_wait_service: "true"
+  zeek_c1222_dereg_reg_service: "true"
+  zeek_c1222_resolve_service: "true"
+  zeek_c1222_trace_service: "true"
+
+  zeek_synchrophasor_ports: ""
+  zeek_synchrophasor_detailed: ""
+  zeek_omron_fins_detailed: "true"
+  zeek_genisys_ports: ""
+  zeek_enip_ports: ""
+  zeek_disable_best_guess_ics: ""
+
   development:
+    # The maximum size (in bytes) for files to be extracted by Zeek
     extracted_file_max_bytes: "134217728"
-    clamd_max_threads: "8"
-    clamd_max_queue: "200"
-    clamd_max_conn_queue: "400"
 
   production:
     extracted_file_max_bytes: "134217728"
-    clamd_max_threads: "8"
-    clamd_max_queue: "200"
-    clamd_max_conn_queue: "400"
 
 
 maxmind:
+  # MaxMind GeoIP database update API key (see
+  #   https://support.maxmind.com/hc/en-us/articles/4407116112539-Using-License-Keys)
   account_id: ""
   license_key: ""
   alternate_url: ""
 
 # Configuration for Arkime, affecting both live and offline deployments
 arkime_env:
+  # debug flag for config.ini (https://arkime.com/settings#debug)
   arkime_debug_level: "0"
+
+  # Whether or not Arkime is allowed to delete uploaded/captured PCAP
+  #   https://arkime.com/faq#pcap-deletion
+  manage_pcap_files: "true"
+  # Revert to older libpcap mode for PCAP file processing rather than faster scheme processing
+  pcap_libpcap: "false"
 
   development:
     free_space_g: "10%"
+    # How often to create a new index in OpenSearch/Elasticsearch
+    #   https://arkime.com/settings#rotateIndex
     rotate_index: daily
+    # Specify the max number of indices for querying SPI data, or set to -1 to disable any max.
+    #   The Arkime documentation warns "OpenSearch/Elasticsearch MAY blow up if we ... search too many indices."
+    #   https://arkime.com/settings#spiDataMaxIndices
     spi_data_max_indices: "7"
+    # These variables, if specified, are used for Arkime's <init opts> for db.pl init and upgrade operations and for the corresponding
+    #   index pattern template created in shared-object-creation.sh
     arkime_init_shards: "1"
     arkime_init_replicas: "1"
     arkime_init_refresh_sec: ""
@@ -775,14 +1121,30 @@ arkime_env:
 arkime_live:
   enabled: true
   hostpath: /var/lib/malcolm/arkime-pcap
+
+  # The node host (e.g., the IP address of the machine running Malcolm) to associate with
+  #   network traffic metadata when ARKIME_LIVE_CAPTURE is true
+  #   (optional, defaults to PCAP_NODE_NAME if unspecified)
+  arkime_live_node_host: ""
+  magic_mode: basic
+  pcap_write_method: simple
+  pcap_read_method: tpacketv3
+
   development:
+    #(since 4.0.0) The type of seekable compression to use on pcap files. Zstd (don't use before 4.5.1) will has better compression for less cpu than glib. Valid values are: none, gzip, zstd (>= 4.5.1)
     arkime_compression_type: none
     arkime_compression_level: "0"
+    #Size of indexing request to send to OpenSearch/Elasticsearch. Increase if monitoring a high bandwidth network.
     arkime_db_bulk_size: "4000000"
+    #How many packets per packet thread that can be waiting to be processed. Arkime will start dropping packets if the queue fills up.
     arkime_max_packets_in_queue: "300000"
+    #Number of threads to use to process packets AFTER the reader has received the packets. This also controls how many packet queues there are, since each thread has its own queue. Basically how much CPU to dedicate to parsing the packets. Increase this if you get errors about dropping packets or the packetQ is over flowing. If using the simple writer, this also controls how many pcap files are open for writing. We recommend about 2 x Gbps. Making this value too large may cause issues with Arkime.
     arkime_packet_threads: "2"
+    #Buffer size when writing pcap files. Should be a multiple of the raid 5/xfs stripe size and multiple of 4096 if using direct/thread-direct pcapWriteMethod
     arkime_pcap_write_size: "2560000"
+    #The number of threads used to read packets from each interface. These threads take the packets from the AF packet interface and place them into the packet queues.
     arkime_tpacketv3_num_threads: "2"
+    #The block size in bytes used for reads from each interface. There are 120 blocks per interface.
     arkime_tpacketv3_block_size: "8388608"
   production:
     # See: https://arkime.com/settings#high-performance-settings
@@ -799,6 +1161,19 @@ arkime_live:
   nodeSelector:
     cnaps.io/arkime-capture: "true"
 
+# Configuration for Arkime's processing of uploaded/imported PCAP files
+arkime_offline:
+  # Whether or not Arkime should analyze uploaded PCAP files
+  auto_analyze_pcap_files: "true"
+  # The number of Arkime processes for analyzing uploaded PCAP files allowed
+  #   to run concurrently
+  auto_analyze_pcap_threads: "1"
+  # Controls whether the WISE configuration GUI is exposed (both internally and as an endpoint via the nginx proxy)
+  # WISE is *only* run in the `arkime` container on a Malcolm instance running the `malcolm` run profile
+  expose_wise_gui: "true"
+  # Controls whether the WISE configuration GUI is read-only (false) or editable (true)
+  allow_wise_gui_config: "false"
+
 pcap_live:
   enabled: false
 
@@ -808,31 +1183,76 @@ pcap_live:
 
 # Sets environment variables across multiple live capture applications (e.g., PCAP capture, Zeek, Suricata)
 pcap_capture_env:
-  # `pcap_iface` can accept comma-separated values.
-  pcap_iface: ens192
+  # Specifies local network interface(s) for local packet capture if PCAP_ENABLE_NETSNIFF,
+  #   PCAP_ENABLE_TCPDUMP, ZEEK_LIVE_CAPTURE or SURICATA_LIVE_CAPTURE are 'true
+  # `pcap_iface` can accept multiple interfaces, one per list item.
+  pcap_iface:
+    - ens192
+  # Specifies a tcpdump-style filter expression for local packet capture ('' to capture all traffic)
   pcap_filter: ""
+  # Whether or not netsniff-ng should create PCAP files from live traffic on a local
+  #   interface for analysis by Arkime capture (should be 'false' if PCAP_ENABLE_TCPDUMP
+  #   is 'true')
+  # Whether or not tcpdump should create PCAP files from live traffic on a local
+  #   interface for analysis by Arkime capture (should be 'false' if PCAP_ENABLE_NETSNIFF
+  #   is 'true')
   # NOTE: netsniff and tcpdump cannot both be true. Only one can run at a time.
   netsniff: false
   tcpdump: true
+  # Specifies how large a locally-captured PCAP file can become (in megabytes) before
+  #   it is closed for processing and a new PCAP file created
   pcap_rotate_megabytes: 4
+  # Specifies a time interval (in minutes) after which a locally-captured PCAP file
+  #   will be closed for processing and a new PCAP file created
   pcap_rotate_minutes: 10
-  home_net: "192.168.0.0/16,10.0.0.0/8,172.16.0.0/12"
+  # Shared "local"/"home" network definition used for both Zeek's Site::local_nets
+  #   (ZEEK_LOCAL_NETS) and Suricata's HOME_NET. List of networks,
+  #   e.g., 1.2.3.0/24, 5.6.7.0/24. Note that by default, Zeek considers IANA-registered
+  #   private address space such as 10/8 and 192.168/16 site-local.
+  home_net:
+    - "192.168.0.0/16"
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+  # Whether or not ethtool will disable NIC hardware offloading features and adjust
+  #   ring buffer sizes for capture interface(s) (should be 'true' if the interface(s) are
+  #   being used for capture only, 'false' if they are being used for management/communication)
   pcap_iface_tweak: true
   pcap_pipeline_verbosity: "-v"
+  # Get OS-level stats for network interfaces periodically (leave blank to disable)
+  pcap_iface_stats_cron_expression: ""
 
 # Shared settings across multiple live capture applications (e.g., PCAP capture, Zeek, Suricata)
 live_capture:
   tolerations: []
 
 upload_common_env:
-  extra_tags: ""
+  # List of tags for data generated by Malcolm
+  extra_tags: []
+  # The maximum uploadable file size in whole gigabytes (e.g., 50)
   pcap_upload_max_file_gb: 50
+  # Whether or not to automatically apply tags based (on the PCAP filename) to network traffic metadata
+  #   parsed from uploaded PCAP files
+  auto_tag: "true"
+  # Whether or not PCAP files extant in ./pcap/ will be ignored on startup
+  pcap_pipeline_ignore_preexisting: "false"
+  # Verbosity flag for pcap pipeline debugging (e.g., -v, -vv, -vvv, etc.)
+  pcap_pipeline_verbosity: ""
+  # Zeek logs and evtx files may be uploaded in archive files. These variables safeguard against "zip bombs."
+  safe_extract_max_entries: "5000"
+  safe_extract_max_depth: "20"
+  safe_extract_max_bytes: "4294967296"
 
 # Filebeat log monitoring
 filebeat:
+  # filebeat parameters used for monitoring log files containing network traffic metadata
+  #   (see https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-input-log.html)
   filebeat_clean_inactive: 180m
+  filebeat_clean_removed: "true"
+  filebeat_close_eof: "true"
   filebeat_close_inactive: 120s
   filebeat_close_inactive_live: 90m
+  filebeat_close_removed: "true"
+  filebeat_close_renamed: "true"
   filebeat_ignore_older: 120m
   filebeat_scan_frequency: 10s
   # Age (in minutes) at which already-processed log files containing network traffic metadata
@@ -841,6 +1261,43 @@ filebeat:
   # Age (in minutes) at which compressed archives of already-processed log files
   # will be pruned from the filesystem
   zip_cleanup_minutes: "90"
+  # Verbosity flag for log/zip file cleanup process (e.g., -v, -vv, -vvv, etc.)
+  filebeat_cleanup_verbosity: ""
+
+  # Whether or not to expose a filebeat TCP input listener (see
+  #    https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-input-tcp.html)
+  filebeat_tcp_listen: "true"
+  # Log format expected for events sent to the filebeat TCP input listener ('json' or 'raw')
+  filebeat_tcp_log_format: json
+  # Source field name to parse (when FILEBEAT_TCP_LOG_FORMAT is 'json') for events sent to the
+  #    filebeat TCP input listener
+  filebeat_tcp_parse_source_field: message
+  # Target field name to store decoded JSON fields (when FILEBEAT_TCP_LOG_FORMAT is 'json') for
+  #    events sent to the filebeat TCP input listener
+  filebeat_tcp_parse_target_field: miscbeat
+  # Name of field to drop (if it exists) in events sent to the filebeat TCP input listener
+  filebeat_tcp_parse_drop_field: message
+  # Tag to append to events sent to the filebeat TCP input listener
+  filebeat_tcp_tag: _malcolm_beats
+
+  # Whether or not to expose a filebeat UDP syslog listener (see
+  #    https://www.elastic.co/guide/en/beats/filebeat/current/syslog.html)
+  filebeat_syslog_udp_listen: "false"
+  # UDP port on which to listen for standard syslog messages
+  filebeat_syslog_udp_port: "0"
+  # Whether or not to expose a filebeat TCP syslog listener (see
+  #    https://www.elastic.co/guide/en/beats/filebeat/current/syslog.html)
+  filebeat_syslog_tcp_listen: "false"
+  # TCP port on which to listen for standard syslog messages
+  filebeat_syslog_tcp_port: "0"
+
+  # file offset for .prospector.scanner.fingerprint
+  filebeat_scanner_fingerprint_offset: "0"
+  # fingerprint length for .prospector.scanner.fingerprint
+  filebeat_scanner_fingerprint_length: "512"
+
+  # Number of processes dedicated to preparing files for ingestion into filebeat
+  filebeat_prepare_process_count: "1"
 
   # Default affinity ensures the Filebeat DaemonSet runs on nodes also running Suricata
   # or Zeek live capture. However, for zeek-remote-capture nodes, the Filebeat container
@@ -880,8 +1337,11 @@ filebeat:
 
 # Sets the GID and UID for unprivileged processes in all containers
 process_env:
+  # containers will run processes as unprivileged user with UID:GID
   pgid: 1000
   puid: 1000
+  # for debugging container init via tini (https://github.com/krallin/tini)
+  tini_verbosity: "1"
 
 # Set to `true` only if you plan to mount rule folders manually via a Kustomize overlay.
 rule_mount_override:
@@ -908,19 +1368,24 @@ suricata_chart_overrides:
   live_volumeMounts: []
 
 kafka:
+  # If set to true, Zeek will send all active logs to Kafka via the zeek-kafka plugin, in JSON format
   enabled: false
-  # Bootstrap broker or a comma-separated list of broker values (IP:PORT in both cases)
-  brokers: "kafka.local:9091"
+  # Bootstrap broker, or a list of broker values (IP:PORT in both cases)
+  brokers:
+    - "kafka.local:9091"
   topic: "zeek"  
 
 # Keycloak settings below apply only when `auth.mode` is `keycloak` or `keycloak_remote`
 keycloak:
+  # variables prefixed by KEYCLOAK_ are used by both external and embedded Keycloak instances
   keycloak_auth_realm: "master"
   keycloak_auth_redirect_uri: "/index.html"
   keycloak_auth_url: ""
   keycloak_client_id: ""
   keycloak_client_secret: ""
   keycloak_ssl_verify: "false"
+
+  # variables prefixed by KC_ are only used by Malcolm's embedded Keycloak instance
   kc_cache: "local"
   kc_health_enabled: "true"
   kc_hostname: ""
@@ -934,16 +1399,38 @@ keycloak:
 
 # These NGINX settings apply to Malcolm's internal proxy, *not* the ingress defined above
 nginx:
+  # Log level for NGINX's error log
   log_level: ""
+  # Whether or not to write nginx's access.log and error.log to OpenSearch
   log_access_and_errors: false
   # Set to https when NGINX_SSL=false and Malcolm sits behind a TLS-terminating proxy (e.g. Istio tenant gateway).
   x_forwarded_proto_override: ""
-  # Space-separated list of additional CSP form submission targets.
+  # List of additional CSP form submission targets.
   # Set this for cross-origin form-based authentication such as SAML HTTP-POST.
-  csp_form_action_extra: ""
+  csp_form_action_extra: []
   # use "type: ClusterIP" when Malcolm is exposed through a Kubernetes ingress controller
   # use "type: LoadBalancer" when exposing Malcolm directly via a cloud/provider load balancer
   type: "ClusterIP"
+
+  # NGINX LDAP (NGINX_AUTH_MODE=ldap) can support LDAP, LDAPS, or LDAP+StartTLS.
+  #   For StartTLS, set NGINX_LDAP_TLS_STUNNEL=true to issue the StartTLS command
+  #   and use stunnel to tunnel the connection.
+  ldap_tls_stunnel: "false"
+  # stunnel will require and verify certificates for StartTLS when one or more
+  #   trusted CA certificate files are placed in the ./nginx/ca-trust directory.
+  #   For additional security, hostname or IP address checking of the associated
+  #   CA certificate(s) can be enabled by providing these values.
+  ldap_tls_stunnel_check_host: ""
+  ldap_tls_stunnel_check_ip: ""
+  ldap_tls_stunnel_verify_level: "2"
+
+  # NGINX resolver directive
+  #   https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver
+  # Overrides the address for the NGINX resolver directive
+  resolver_override: ""
+  # Set to "false" to set the corresponding "off" parameter for NGINX resolver
+  resolver_ipv4: "true"
+  resolver_ipv6: "true"
 
 # If true, the sidecars for suricata-live, suricata-offline, and zeek-offline will be
 # instrumented for code coverage using the Python coverage library. NOTE: The sidecar's image

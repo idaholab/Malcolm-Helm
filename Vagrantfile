@@ -127,10 +127,11 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.35.3+rke2r3 sh -
+    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.37.1+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
     echo "disable: rke2-ingress-nginx" >> /etc/rancher/rke2/config.yaml
+    echo "disable: rke2-traefik" >> /etc/rancher/rke2/config.yaml
     echo "data-dir: ${RKE2_DATA_DIR}" >> /etc/rancher/rke2/config.yaml
   SHELL
 
@@ -209,13 +210,13 @@ EOF
 
     LINUX_CPU=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 
-    YQ_VERSION="4.52.5"
+    YQ_VERSION="4.54.1"
     YQ_URL="https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${LINUX_CPU}"
     curl -fsSL -o /usr/local/bin/yq "${YQ_URL}"
     chmod 755 /usr/local/bin/yq
     chown root:root /usr/local/bin/yq
 
-    STERN_VERSION=1.33.1
+    STERN_VERSION=1.34.0
     STERN_URL="https://github.com/stern/stern/releases/download/v${STERN_VERSION}/stern_${STERN_VERSION}_linux_${LINUX_CPU}.tar.gz"
     cd /tmp
     mkdir -p ./stern
@@ -225,7 +226,7 @@ EOF
     chown root:root /usr/local/bin/stern
     rm -rf /tmp/stern*
 
-    K9S_VERSION=0.50.18
+    K9S_VERSION=0.51.0
     K9S_URL="https://github.com/derailed/K9S/releases/download/v${K9S_VERSION}/k9s_Linux_${LINUX_CPU}.tar.gz"
     cd /tmp
     mkdir -p ./K9S
@@ -235,7 +236,7 @@ EOF
     chown root:root /usr/local/bin/k9s
     rm -rf /tmp/K9S*
 
-    KUBECONFORM_VERSION=0.7.0
+    KUBECONFORM_VERSION=0.8.0
     KUBECONFORM_URL="https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-${LINUX_CPU}.tar.gz"
     cd /tmp
     mkdir -p ./KUBECONFORM
@@ -326,7 +327,7 @@ EOF
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      ISTIO_VERSION=1.29.2
+      ISTIO_VERSION=1.29.8
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
