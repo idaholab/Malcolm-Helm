@@ -432,8 +432,8 @@ logstash:
   # Whether or not Logstash will perform severity scoring on network traffic metadata
   severity_scoring: "true"
 
+  # Enrich with MITRE OTKB
   otkb:
-    # Enrich with MITRE OTKB
     enrichment: false
     enrichment_ttl: 3600
     ssl_verify: false

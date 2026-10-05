@@ -8,7 +8,6 @@ data:
   LOGSTASH_OUI_LOOKUP: "{{ .Values.logstash.oui_lookup }}"
   LOGSTASH_REVERSE_DNS: "{{ .Values.logstash.reverse_dns }}"
   LOGSTASH_SEVERITY_SCORING: "{{ .Values.logstash.severity_scoring }}"
-
   OTKB_ENRICHMENT: "{{ .Values.logstash.otkb.enrichment }}"
   OTKB_ENRICHMENT_TTL: "{{ .Values.logstash.otkb.enrichment_ttl }}"
   OTKB_SSL_VERIFY: "{{ .Values.logstash.otkb.ssl_verify }}"
