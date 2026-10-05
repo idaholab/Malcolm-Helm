@@ -322,6 +322,16 @@ siem_env:
   malcolm_beats_template_lifecycle_rollover_alias: ""
 
 logstash:
+  otkb:
+    enrichment: false
+    enrichment_ttl: 3600
+    ssl_verify: false
+    enrichment_verbose: false
+    enrichment_debug: false
+    enrichment_debug_timings: false
+    url: ""
+    token: ""
+
   # Number of Logstash instances is determined by the number of nodes in your Kubernetes cluster.
   development:
     # Java memory settings for Logstash (heap size and stack size)
@@ -495,6 +505,22 @@ istio:
 
 # Configuration for Suricata, affecting both live and offline deployments
 suricata_env:
+  custom_rules_only: false
+  update_sources: true
+  update_rules: false
+  update_debug: false
+
+  # Comma-separated suricata-update indexed sources to enable. Optional source parameters
+  # may follow the source name separated by '|', e.g.:
+  #   et/open,ptresearch/attackdetection,et/pro|secret-code=REDACTED
+  update_enable_sources: "et/open"
+
+  # Cron expression for updating Suricata rules
+  update_cron_expression: "0 0 * * *"
+
+  # Disable Suricata ICS/OT protocol detection
+  disable_ics_all: false
+
   # Lua path for Suricata rules
   lua_path: "/opt/suricata/rules/?.lua;;"
   # Comma-separated list of SIDs to disable
@@ -552,6 +578,7 @@ suricata_live:
 dashboards_helper_env:
   opensearch_index_size_prune_limit: 0
   opensearch_index_size_prune_name_sort: false
+  opensearch_default_dashboard: "0ad3d7c2-3441-485e-9dfe-dbb22e84e576"
   dashboards_prefix: "Malcolm"
   dashboards_dark_mode: true
   dashboards_timepicker_from: "now-7d"
