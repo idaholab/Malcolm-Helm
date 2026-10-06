@@ -22,11 +22,11 @@ livenessProbe:
 {{- $root := .root -}}
 {{- if $root.Values.is_production -}}
 {{- with $root.Values.valkey_env.production -}}
---dir /data --appendonly yes --appendfsync everysec --no-appendfsync-on-rewrite yes --auto-aof-rewrite-percentage 100 --auto-aof-rewrite-min-size 64mb --save '' --maxmemory {{ .max_memory }} --maxmemory-policy {{ .max_memory_policy }} --requirepass $(VALKEY_PASSWORD)
+--dir /data --appendonly yes --appendfsync everysec --no-appendfsync-on-rewrite yes --auto-aof-rewrite-percentage 100 --auto-aof-rewrite-min-size {{ .auto_aof_rewrite_min_size }} --save '' --maxmemory {{ .max_memory }} --maxmemory-policy {{ .max_memory_policy }} --requirepass $(VALKEY_PASSWORD)
 {{- end -}}
 {{- else -}}
 {{- with $root.Values.valkey_env.development -}}
---dir /data --appendonly yes --appendfsync everysec --no-appendfsync-on-rewrite yes --auto-aof-rewrite-percentage 100 --auto-aof-rewrite-min-size 64mb --save '' --maxmemory {{ .max_memory }} --maxmemory-policy {{ .max_memory_policy }} --requirepass $(VALKEY_PASSWORD)
+--dir /data --appendonly yes --appendfsync everysec --no-appendfsync-on-rewrite yes --auto-aof-rewrite-percentage 100 --auto-aof-rewrite-min-size {{ .auto_aof_rewrite_min_size }} --save '' --maxmemory {{ .max_memory }} --maxmemory-policy {{ .max_memory_policy }} --requirepass $(VALKEY_PASSWORD)
 {{- end -}}
 {{- end -}}
 {{- end -}}

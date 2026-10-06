@@ -2,49 +2,27 @@
 apiVersion: v1
 data:
   NGINX_AUTH_MODE: "{{ .Values.auth.mode }}"
-  NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group }}"
-  NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role }}"
+  NGINX_REQUIRE_GROUP: "{{ .Values.auth.require_group | join "," }}"
+  NGINX_REQUIRE_ROLE: "{{ .Values.auth.require_role | join "," }}"
   ROLE_BASED_ACCESS: "{{ .Values.auth.role_based_access }}"
-  # General access roles
-  # ROLE_ADMIN - Unrestricted access
   ROLE_ADMIN: "{{ .Values.auth.role_admin }}"
-  # ROLE_READ_ACCESS - Read-only access across all components
   ROLE_READ_ACCESS: "{{ .Values.auth.role_read_access }}"
-  # ROLE_READ_WRITE_ACCESS - Read/write access across all components, excluding some admin functions
   ROLE_READ_WRITE_ACCESS: "{{ .Values.auth.role_read_write_access }}"
-  # 
-  # Specific access roles
-  # ROLE_ARKIME_ADMIN - Maps to the built-in arkimeAdmin role
   ROLE_ARKIME_ADMIN: "{{ .Values.auth.role_arkime_admin }}"
-  # ROLE_ARKIME_READ_ACCESS - Maps to a user-defined role with read-only Viewer access
   ROLE_ARKIME_READ_ACCESS: "{{ .Values.auth.role_arkime_read_access }}"
-  # ROLE_ARKIME_READ_WRITE_ACCESS - Maps to a user-defined role with read/write Viewer access
   ROLE_ARKIME_READ_WRITE_ACCESS: "{{ .Values.auth.role_arkime_read_write_access }}"
-  # ROLE_ARKIME_PCAP_ACCESS - Maps to a user-defined role with access to viewing/exporting PCAP payloads in Viewer
   ROLE_ARKIME_PCAP_ACCESS: "{{ .Values.auth.role_arkime_pcap_access }}"
-  # ROLE_ARKIME_HUNT_ACCESS - Maps to a user-defined role with access to packet search ("Hunt") in Viewer
   ROLE_ARKIME_HUNT_ACCESS: "{{ .Values.auth.role_arkime_hunt_access }}"
-  # ROLE_ARKIME_WISE_READ_ACCESS - Maps to the built-in wiseUser role
   ROLE_ARKIME_WISE_READ_ACCESS: "{{ .Values.auth.role_arkime_wise_read_access }}"
-  # ROLE_ARKIME_WISE_READ_WRITE_ACCESS - Maps to the built-in wiseAdmin role
   ROLE_ARKIME_WISE_READ_WRITE_ACCESS: "{{ .Values.auth.role_arkime_wise_read_write_access }}"
-  # ROLE_DASHBOARDS_READ_ACCESS - Read-only access to OpenSearch Dashboards visualizations, but not all Dashboards apps
   ROLE_DASHBOARDS_READ_ACCESS: "{{ .Values.auth.role_dashboards_read_access }}"
-  # ROLE_DASHBOARDS_READ_ALL_APPS_ACCESS - Read-only access to all OpenSearch Dashboards visualizations and apps
   ROLE_DASHBOARDS_READ_ALL_APPS_ACCESS: "{{ .Values.auth.role_dashboards_read_all_apps_access }}"
-  # ROLE_DASHBOARDS_READ_WRITE_ACCESS - Read/write access to OpenSearch Dashboards visualizations, but not all Dashboards apps
   ROLE_DASHBOARDS_READ_WRITE_ACCESS: "{{ .Values.auth.role_dashboards_read_write_access }}"
-  # ROLE_DASHBOARDS_READ_WRITE_ALL_APPS_ACCESS - Read/write access to OpenSearch Dashboards visualizations and apps
   ROLE_DASHBOARDS_READ_WRITE_ALL_APPS_ACCESS: "{{ .Values.auth.role_dashboards_read_write_all_apps_access }}"
-  # ROLE_EXTRACTED_FILES - Access to extracted file downloads
   ROLE_EXTRACTED_FILES: "{{ .Values.auth.role_extracted_files }}"
-  # ROLE_NETBOX_READ_ACCESS - Read-only access to NetBox
   ROLE_NETBOX_READ_ACCESS: "{{ .Values.auth.role_netbox_read_access }}"
-  # ROLE_NETBOX_READ_WRITE_ACCESS - Read/write access to NetBox
   ROLE_NETBOX_READ_WRITE_ACCESS: "{{ .Values.auth.role_netbox_read_write_access }}"
-  # ROLE_UPLOAD - Access to upload artifact interface
   ROLE_UPLOAD: "{{ .Values.auth.role_upload }}"
-  # ROLE_CAPTURE_SERVICE - Internal-use role for service account used by Arkime capture on remote network sensor
   ROLE_CAPTURE_SERVICE: "{{ .Values.auth.role_capture_service }}"
 kind: ConfigMap
 metadata:
@@ -53,7 +31,9 @@ metadata:
 ---
 apiVersion: v1
 data:
-  BEATS_SSL: "false"
+  BEATS_SSL: "{{ .Values.beats_common.ssl }}"
+  # host:port for connecting to Logstash instance. When using Malcolm's internal instance
+  #   of Logstash this should be logstash:5044
   LOGSTASH_HOST: logstash:5044
 kind: ConfigMap
 metadata:
@@ -62,10 +42,10 @@ metadata:
 ---
 apiVersion: v1
 data:
-  FREQ_LOOKUP: "true"
-  FREQ_SEVERITY_THRESHOLD: "2.0"
-  SENSITIVE_COUNTRY_CODES: AM,AZ,BY,CN,CU,DZ,GE,HK,IL,IN,IQ,IR,KG,KP,KZ,LY,MD,MO,PK,RU,SD,SS,SY,TJ,TM,TW,UA,UZ
-  TOTAL_MEGABYTES_SEVERITY_THRESHOLD: "1000"
+  FREQ_LOOKUP: "{{ .Values.lookup_common.freq_lookup }}"
+  FREQ_SEVERITY_THRESHOLD: "{{ .Values.lookup_common.freq_severity_threshold }}"
+  SENSITIVE_COUNTRY_CODES: "{{ .Values.lookup_common.sensitive_country_codes | join "," }}"
+  TOTAL_MEGABYTES_SEVERITY_THRESHOLD: "{{ .Values.lookup_common.total_megabytes_severity_threshold }}"
 kind: ConfigMap
 metadata:
   name: lookup-common-env
@@ -74,23 +54,23 @@ metadata:
 apiVersion: v1
 data:
   FILEBEAT_CLEAN_INACTIVE: {{ .Values.filebeat.filebeat_clean_inactive }}
-  FILEBEAT_CLEAN_REMOVED: "true"
-  FILEBEAT_CLOSE_EOF: "true"
+  FILEBEAT_CLEAN_REMOVED: "{{ .Values.filebeat.filebeat_clean_removed }}"
+  FILEBEAT_CLOSE_EOF: "{{ .Values.filebeat.filebeat_close_eof }}"
   FILEBEAT_CLOSE_INACTIVE: {{ .Values.filebeat.filebeat_close_inactive }}
   FILEBEAT_CLOSE_INACTIVE_LIVE: {{ .Values.filebeat.filebeat_close_inactive_live }}
-  FILEBEAT_CLOSE_REMOVED: "true"
-  FILEBEAT_CLOSE_RENAMED: "true"
+  FILEBEAT_CLOSE_REMOVED: "{{ .Values.filebeat.filebeat_close_removed }}"
+  FILEBEAT_CLOSE_RENAMED: "{{ .Values.filebeat.filebeat_close_renamed }}"
   FILEBEAT_IGNORE_OLDER: {{ .Values.filebeat.filebeat_ignore_older }}
   FILEBEAT_SCAN_FREQUENCY: {{ .Values.filebeat.filebeat_scan_frequency }}
   ZIP_CLEANUP_MINUTES: "{{ .Values.filebeat.zip_cleanup_minutes }}"
   LOG_CLEANUP_MINUTES: "{{ .Values.filebeat.log_cleanup_minutes }}"
-  FILEBEAT_CLEANUP_VERBOSITY: ""
-  FILEBEAT_TCP_LISTEN: "true"
-  FILEBEAT_TCP_LOG_FORMAT: json
-  FILEBEAT_TCP_PARSE_DROP_FIELD: message
-  FILEBEAT_TCP_PARSE_SOURCE_FIELD: message
-  FILEBEAT_TCP_PARSE_TARGET_FIELD: miscbeat
-  FILEBEAT_TCP_TAG: _malcolm_beats
+  FILEBEAT_CLEANUP_VERBOSITY: "{{ .Values.filebeat.filebeat_cleanup_verbosity }}"
+  FILEBEAT_TCP_LISTEN: "{{ .Values.filebeat.filebeat_tcp_listen }}"
+  FILEBEAT_TCP_LOG_FORMAT: "{{ .Values.filebeat.filebeat_tcp_log_format }}"
+  FILEBEAT_TCP_PARSE_DROP_FIELD: "{{ .Values.filebeat.filebeat_tcp_parse_drop_field }}"
+  FILEBEAT_TCP_PARSE_SOURCE_FIELD: "{{ .Values.filebeat.filebeat_tcp_parse_source_field }}"
+  FILEBEAT_TCP_PARSE_TARGET_FIELD: "{{ .Values.filebeat.filebeat_tcp_parse_target_field }}"
+  FILEBEAT_TCP_TAG: "{{ .Values.filebeat.filebeat_tcp_tag }}"
   # Whether or not to use polling vs. native inotify API to watch for files.
   # Also used for to set filebeat filestream's .file_identity and .prospector.scanner.fingerprint, see:
   #  - https://www.elastic.co/blog/introducing-filestream-fingerprint-mode
@@ -98,15 +78,13 @@ data:
   #  - https://www.elastic.co/docs/reference/beats/filebeat/filebeat-input-filestream#filebeat-input-filestream-scan-fingerprint
   FILEBEAT_WATCHER_POLLING: "true"
   FILEBEAT_WATCHER_POLLING_ASSUME_CLOSED_SEC: "10"
-  # file offset for .prospector.scanner.fingerprint
-  FILEBEAT_SCANNER_FINGERPRINT_OFFSET: "0"
-  # fingerprint length for .prospector.scanner.fingerprint
-  FILEBEAT_SCANNER_FINGERPRINT_LENGTH: "512"
-  FILEBEAT_PREPARE_PROCESS_COUNT: "1"
-  FILEBEAT_SYSLOG_UDP_LISTEN: "false"
-  FILEBEAT_SYSLOG_UDP_PORT: "0"
-  FILEBEAT_SYSLOG_TCP_LISTEN: "false"
-  FILEBEAT_SYSLOG_TCP_PORT: "0"
+  FILEBEAT_SCANNER_FINGERPRINT_OFFSET: "{{ .Values.filebeat.filebeat_scanner_fingerprint_offset }}"
+  FILEBEAT_SCANNER_FINGERPRINT_LENGTH: "{{ .Values.filebeat.filebeat_scanner_fingerprint_length }}"
+  FILEBEAT_PREPARE_PROCESS_COUNT: "{{ .Values.filebeat.filebeat_prepare_process_count }}"
+  FILEBEAT_SYSLOG_UDP_LISTEN: "{{ .Values.filebeat.filebeat_syslog_udp_listen }}"
+  FILEBEAT_SYSLOG_UDP_PORT: "{{ .Values.filebeat.filebeat_syslog_udp_port }}"
+  FILEBEAT_SYSLOG_TCP_LISTEN: "{{ .Values.filebeat.filebeat_syslog_tcp_listen }}"
+  FILEBEAT_SYSLOG_TCP_PORT: "{{ .Values.filebeat.filebeat_syslog_tcp_port }}"
 kind: ConfigMap
 metadata:
   name: filebeat-env
@@ -114,12 +92,9 @@ metadata:
 ---
 apiVersion: v1
 data:
-  NETBOX_CRON: "{{ .Values.netbox.enabled }}"
-  # The name of the default "site" to be created upon NetBox initialization, and to be queried for enrichment
   NETBOX_DEFAULT_SITE: "{{ .Values.netbox.netbox_default_site }}"
-  # Customize manufacturer matching/creation with LOGSTASH_NETBOX_AUTO_POPULATE (see logstash.env)
-  NETBOX_DEFAULT_AUTOCREATE_MANUFACTURER: "true"
-  NETBOX_DEFAULT_FUZZY_THRESHOLD: "0.95"
+  NETBOX_DEFAULT_AUTOCREATE_MANUFACTURER: "{{ .Values.netbox.netbox_default_autocreate_manufacturer }}"
+  NETBOX_DEFAULT_FUZZY_THRESHOLD: "{{ .Values.netbox.netbox_default_fuzzy_threshold }}"
   NETBOX_MODE: "{{ .Values.netbox.mode }}"
   {{- if eq .Values.netbox.mode "remote" }}
   NETBOX_URL: "{{ .Values.netbox.url }}"
@@ -127,29 +102,13 @@ data:
   NETBOX_URL: ""
   {{- end }}
 
-  # Whether or not Logstash will enrich network traffic metadata via NetBox API calls
   NETBOX_ENRICHMENT: "{{ .Values.netbox.enrichment }}"
-  # Whether or not unobserved network entities in Logstash data will be used to populate NetBox
   NETBOX_AUTO_POPULATE: "{{ .Values.netbox.netbox_auto_populate }}"
-  # Whether or not unobserved network subnets in Logstash data will be created automatically in NetBox
-  NETBOX_AUTO_CREATE_PREFIX: "{{ .Values.netbox.netbox_auto_populate }}"
-  # Whether or not services (i.e., destination IP/port) will be looked up during NetBox enrichment
-  NETBOX_ENRICHMENT_LOOKUP_SERVICE: "{{ .Values.netbox.enabled }}"
-  # Customize manufacturer matching/creation with NETBOX_AUTO_POPULATE
+  NETBOX_AUTO_CREATE_PREFIX: "{{ .Values.netbox.netbox_auto_create_prefix }}"
+  NETBOX_ENRICHMENT_LOOKUP_SERVICE: "{{ .Values.netbox.netbox_enrichment_lookup_service }}"
   NETBOX_CACHE_SIZE: "{{ .Values.netbox.netbox_cache_size }}"
   NETBOX_CACHE_TTL: "{{ .Values.netbox.netbox_cache_ttl }}"
-  # Comma-separated list of CIDR subnets that control which IP addresses are eligible for NetBox autopopulation.
-  #   See "Subnets considered for autopopulation" in the documentation for examples.
-  # Behavior:
-  #   * If left blank, only private IPv4 and IPv6 ranges get autopopulated. Public space is never touched.
-  #   * Listing a CIDR here, private or public, makes addresses in it eligible.
-  #   * Prefix a CIDR with "!" to exclude it instead.
-  #   * If the list has only exclusions, all private IPs are eligible except those excluded.
-  #       Public IPs stay ineligible regardless.
-  #   * If the list mixes inclusions and exclusions, entries are evaluated in order, and the last entry that
-  #       matches a given address decides whether it's eligible. An address that doesn't match anything
-  #       in the list is not autopopulated.
-  NETBOX_AUTO_POPULATE_SUBNETS: "{{ .Values.netbox.netbox_auto_populate_subnets }}"
+  NETBOX_AUTO_POPULATE_SUBNETS: "{{ .Values.netbox.netbox_auto_populate_subnets | join "," }}"
 kind: ConfigMap
 metadata:
   name: netbox-common-env
@@ -165,14 +124,14 @@ data:
 {{- else }}
   CSRF_TRUSTED_ORIGINS: {{ .Values.netbox.csrf_trusted_origins | default "http://* https://*" | quote }}
 {{- end }}
-  EMAIL_FROM: netbox@bar.com
-  EMAIL_PORT: "25"
-  EMAIL_SERVER: localhost
-  EMAIL_SSL_CERTFILE: ""
-  EMAIL_SSL_KEYFILE: ""
-  EMAIL_TIMEOUT: "5"
-  EMAIL_USE_SSL: "false"
-  EMAIL_USE_TLS: "false"
+  EMAIL_FROM: "{{ .Values.netbox.email_from }}"
+  EMAIL_PORT: "{{ .Values.netbox.email_port }}"
+  EMAIL_SERVER: "{{ .Values.netbox.email_server }}"
+  EMAIL_SSL_CERTFILE: "{{ .Values.netbox.email_ssl_certfile }}"
+  EMAIL_SSL_KEYFILE: "{{ .Values.netbox.email_ssl_keyfile }}"
+  EMAIL_TIMEOUT: "{{ .Values.netbox.email_timeout }}"
+  EMAIL_USE_SSL: "{{ .Values.netbox.email_use_ssl }}"
+  EMAIL_USE_TLS: "{{ .Values.netbox.email_use_tls }}"
   EXEMPT_VIEW_PERMISSIONS: '*'
   LOGIN_REQUIRED : "True"
   LOGIN_PERSISTENCE : "True"
@@ -183,10 +142,10 @@ data:
   MEDIA_ROOT: /opt/netbox/netbox/media
   METRICS_ENABLED: "false"
   NAPALM_TIMEOUT: "10"
-  VALKEY_CACHE_INSECURE_SKIP_TLS_VERIFY: "false"
-  VALKEY_CACHE_SSL: "false"
-  VALKEY_INSECURE_SKIP_TLS_VERIFY: "false"
-  VALKEY_SSL: "false"
+  REDIS_CACHE_INSECURE_SKIP_TLS_VERIFY: "{{ .Values.netbox.redis_cache_insecure_skip_tls_verify }}"
+  REDIS_CACHE_SSL: "{{ .Values.netbox.redis_cache_ssl }}"
+  REDIS_INSECURE_SKIP_TLS_VERIFY: "{{ .Values.netbox.redis_insecure_skip_tls_verify }}"
+  REDIS_SSL: "{{ .Values.netbox.redis_ssl }}"
   RELEASE_CHECK_URL: ""
   # these group names should match role names from auth-common.env
   REMOTE_AUTH_AUTO_CREATE_GROUPS: "False"
@@ -208,7 +167,8 @@ data:
   SKIP_STARTUP_SCRIPTS: "true"
   SKIP_SUPERUSER: "false"
   SUPERUSER_EMAIL: admin@example.com
-  WEBHOOKS_ENABLED: "true"
+  WEBHOOKS_ENABLED: "{{ .Values.netbox.webhooks_enabled }}"
+  GRANIAN_EXTRA_ARGS: "--host=0.0.0.0"
   OPENSSL_FORCE_FIPS_MODE: "0"
 kind: ConfigMap
 metadata:
@@ -219,26 +179,22 @@ apiVersion: v1
 data:
   NGINX_LOG_ACCESS_AND_ERRORS: "{{ .Values.nginx.log_access_and_errors }}"
   NGINX_SSL: "false"
+  # These values are used to handle the Arkime value actions to pivot from Arkime
+  #   to Dashboards. The nginx-proxy container's entrypoint will try to formulate
+  #   them automatically, but they may be specified explicitly here.
   NGINX_DASHBOARDS_PREFIX: ""
   NGINX_DASHBOARDS_PROXY_PASS: ""
-  NGINX_RESOLVER_OVERRIDE: ""
-  NGINX_RESOLVER_IPV4: "true"
-  NGINX_RESOLVER_IPV6: "true"
+  NGINX_RESOLVER_OVERRIDE: "{{ .Values.nginx.resolver_override }}"
+  NGINX_RESOLVER_IPV4: "{{ .Values.nginx.resolver_ipv4 }}"
+  NGINX_RESOLVER_IPV6: "{{ .Values.nginx.resolver_ipv6 }}"
   NGINX_X_FORWARDED_PROTO_OVERRIDE: "{{ .Values.nginx.x_forwarded_proto_override }}"
-  NGINX_CSP_FORM_ACTION_EXTRA: {{ .Values.nginx.csp_form_action_extra | quote }}
+  NGINX_CSP_FORM_ACTION_EXTRA: {{ .Values.nginx.csp_form_action_extra | join " " | quote }}
   NGINX_ERROR_LOG_LEVEL: "{{ .Values.nginx.log_level }}"
 
-  # NGINX LDAP (NGINX_AUTH_MODE=ldap) can support LDAP, LDAPS, or LDAP+StartTLS.
-  #   For StartTLS, set NGINX_LDAP_TLS_STUNNEL=true to issue the StartTLS command
-  #   and use stunnel to tunnel the connection.
-  NGINX_LDAP_TLS_STUNNEL: "false"
-  # stunnel will require and verify certificates for StartTLS when one or more
-  #   trusted CA certificate files are placed in the ./nginx/ca-trust directory.
-  #   For additional security, hostname or IP address checking of the associated
-  #   CA certificate(s) can be enabled by providing these values.
-  NGINX_LDAP_TLS_STUNNEL_CHECK_HOST: ""
-  NGINX_LDAP_TLS_STUNNEL_CHECK_IP: ""
-  NGINX_LDAP_TLS_STUNNEL_VERIFY_LEVEL: "2"
+  NGINX_LDAP_TLS_STUNNEL: "{{ .Values.nginx.ldap_tls_stunnel }}"
+  NGINX_LDAP_TLS_STUNNEL_CHECK_HOST: "{{ .Values.nginx.ldap_tls_stunnel_check_host }}"
+  NGINX_LDAP_TLS_STUNNEL_CHECK_IP: "{{ .Values.nginx.ldap_tls_stunnel_check_ip }}"
+  NGINX_LDAP_TLS_STUNNEL_VERIFY_LEVEL: "{{ .Values.nginx.ldap_tls_stunnel_verify_level }}"
 kind: ConfigMap
 metadata:
   name: nginx-env
@@ -246,10 +202,8 @@ metadata:
 ---
 apiVersion: v1
 data:
-  MAX_LOCKED_MEMORY: unlimited
+  MAX_LOCKED_MEMORY: "{{ .Values.opensearch.max_locked_memory }}"
   OPENSEARCH_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.primary.curlrc
-  # These variables, if specified, are used for Arkime's <init opts> for db.pl init and upgrade operations and for the corresponding
-  #   index pattern template created in shared-object-creation.sh  
 {{- if .Values.is_production }}
   {{- with .Values.arkime_env.production }}
   ARKIME_INIT_SHARDS: "{{ .arkime_init_shards }}"
@@ -274,11 +228,11 @@ data:
   {{- end }}
 {{- end }}
   OPENSEARCH_PRIMARY: "{{ include "malcolm.opensearchprimary" . }}"
-  OPENSEARCH_SECONDARY: "false"
+  OPENSEARCH_SECONDARY: "{{ .Values.opensearch.secondary }}"
   OPENSEARCH_SECONDARY_CREDS_CONFIG_FILE: /var/local/curlrc/.opensearch.secondary.curlrc
-  OPENSEARCH_SECONDARY_SSL_CERTIFICATE_VERIFICATION: "false"
-  OPENSEARCH_SECONDARY_URL: ""
-  OPENSEARCH_SSL_CERTIFICATE_VERIFICATION: "false"
+  OPENSEARCH_SECONDARY_SSL_CERTIFICATE_VERIFICATION: "{{ .Values.opensearch.secondary_ssl_certificate_verification }}"
+  OPENSEARCH_SECONDARY_URL: "{{ .Values.opensearch.secondary_url }}"
+  OPENSEARCH_SSL_CERTIFICATE_VERIFICATION: "{{ .Values.opensearch.ssl_certificate_verification }}"
   OPENSEARCH_URL: "{{ include "malcolm.opensearchprimaryurl" . }}"
   bootstrap.memory_lock: "true"
   cluster.routing.allocation.disk.threshold_enabled: "false"
@@ -325,11 +279,12 @@ data:
   PCAP_ENABLE_NETSNIFF: "{{ .Values.pcap_capture_env.netsniff }}"
   PCAP_ENABLE_TCPDUMP: "{{ .Values.pcap_capture_env.tcpdump }}"
   PCAP_FILTER: "{{ .Values.pcap_capture_env.pcap_filter }}"
-  PCAP_IFACE: "{{ .Values.pcap_capture_env.pcap_iface }}"
+  PCAP_IFACE: "{{ .Values.pcap_capture_env.pcap_iface | join "," }}"
   PCAP_IFACE_TWEAK: "{{ .Values.pcap_capture_env.pcap_iface_tweak }}"
   PCAP_ROTATE_MEGABYTES: "{{ .Values.pcap_capture_env.pcap_rotate_megabytes }}"
   PCAP_ROTATE_MINUTES: "{{ .Values.pcap_capture_env.pcap_rotate_minutes }}"
   PCAP_ROTATE_SECONDS: "{{ mul .Values.pcap_capture_env.pcap_rotate_minutes 60 }}"
+  PCAP_IFACE_STATS_CRON_EXPRESSION: "{{ .Values.pcap_capture_env.pcap_iface_stats_cron_expression }}"
 kind: ConfigMap
 metadata:
   name: pcap-capture-env
@@ -337,11 +292,13 @@ metadata:
 ---
 apiVersion: v1
 data:
+  # for handling configmap/secrets files/directories
   CONFIG_MAP_DIR: configmap;secretmap
+  # profile, for running all Malcolm containers ("malcolm") vs. capture-only containers ("hedgehog")
   MALCOLM_PROFILE: malcolm
   PGID: "{{ .Values.process_env.pgid }}"
   PUID: "{{ .Values.process_env.puid }}"
-  TINI_VERBOSITY: "1"
+  TINI_VERBOSITY: "{{ .Values.process_env.tini_verbosity }}"
 kind: ConfigMap
 metadata:
   name: process-env
@@ -349,6 +306,8 @@ metadata:
 ---
 apiVersion: v1
 data:
+  # When possible, docker containers will automatically add trusted CA certificate files
+  #   found in the ./nginx/ca-trust directory (which is bind mounted to /ca-trust).
   PUSER_CA_TRUST: /var/local/ca-trust
 kind: ConfigMap
 metadata:
@@ -362,10 +321,10 @@ data:
   SURICATA_DISABLE_ICS_ALL: "{{ .Values.suricata_env.disable_ics_all }}"
   SURICATA_UPDATE_SOURCES: "{{ .Values.suricata_env.update_sources }}"
   SURICATA_UPDATE_RULES: "{{ .Values.suricata_env.update_rules }}"
-  SURICATA_UPDATE_ENABLE_SOURCES: "{{ .Values.suricata_env.update_enable_sources }}"
+  SURICATA_UPDATE_ENABLE_SOURCES: "{{ .Values.suricata_env.update_enable_sources | join "," }}"
   SURICATA_UPDATE_CRON_EXPRESSION: "{{ .Values.suricata_env.update_cron_expression }}"
-  SURICATA_DISABLE_SIDS: "{{ .Values.suricata_env.disable_sids }}"
-  SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net }}]'"
+  SURICATA_DISABLE_SIDS: "{{ .Values.suricata_env.disable_sids | join "," }}"
+  SURICATA_HOME_NET: "'[{{ .Values.pcap_capture_env.home_net | join "," }}]'"
   LUA_PATH: "{{ .Values.suricata_env.lua_path }}"
   PCAP_PROCESSED_DIRECTORY: "/data/pcap/processed"
 {{- if .Values.is_production }}
@@ -394,20 +353,19 @@ metadata:
 ---
 apiVersion: v1
 data:
-  AUTO_TAG: "true"
+  AUTO_TAG: "{{ .Values.upload_common_env.auto_tag }}"
   PCAP_MONITOR_HOST: pcap-monitor
-  PCAP_PIPELINE_IGNORE_PREEXISTING: "false"
+  PCAP_PIPELINE_IGNORE_PREEXISTING: "{{ .Values.upload_common_env.pcap_pipeline_ignore_preexisting }}"
   PCAP_PIPELINE_POLLING: "true"
   PCAP_PIPELINE_POLLING_ASSUME_CLOSED_SEC: "10"
-  PCAP_PIPELINE_VERBOSITY: ""
+  PCAP_PIPELINE_VERBOSITY: "{{ .Values.upload_common_env.pcap_pipeline_verbosity }}"
   PCAP_UPLOAD_MAX_FILE_GB: "{{ .Values.upload_common_env.pcap_upload_max_file_gb }}"
-  EXTRA_TAGS: "{{ .Values.upload_common_env.extra_tags }}"
+  EXTRA_TAGS: "{{ .Values.upload_common_env.extra_tags | join "," }}"
   WATCHER_UPLOAD: "true"
   WATCHER_PUBLISH: "true"
-  # Zeek logs and evtx files may be uploaded in archive files. These variables safeguard against "zip bombs."
-  SAFE_EXTRACT_MAX_ENTRIES: "5000"
-  SAFE_EXTRACT_MAX_DEPTH: "20"
-  SAFE_EXTRACT_MAX_BYTES: "4294967296"
+  SAFE_EXTRACT_MAX_ENTRIES: "{{ .Values.upload_common_env.safe_extract_max_entries }}"
+  SAFE_EXTRACT_MAX_DEPTH: "{{ .Values.upload_common_env.safe_extract_max_depth }}"
+  SAFE_EXTRACT_MAX_BYTES: "{{ .Values.upload_common_env.safe_extract_max_bytes }}"
 kind: ConfigMap
 metadata:
   name: upload-common-env
@@ -436,69 +394,68 @@ data:
   EXTRACTED_FILE_MAX_BYTES: "{{ .extracted_file_max_bytes }}"
     {{- end }}
   {{- end }}
-  # Default amount of time a file can be inactive before the file analysis
-  #   gives up and discards any internal state related to the file.
-  ZEEK_FILE_ANALYZER_TIMEOUT_SEC: "5"
-  # Adjust how often the JA4SSH hash is calculated
-  ZEEK_JA4SSH_PACKET_COUNT: "200"
-  # for zeek-long-connections plugin
-  ZEEK_LONG_CONN_REPEAT_LAST_DURATION: "true"
-  ZEEK_LONG_CONN_DO_NOTICE: "true"
-  ZEEK_LONG_CONN_DURATIONS: "600,1800,3600,43200,86400"
-  ZEEK_DISABLE_BEST_GUESS_ICS: ""
-  ZEEK_DISABLE_ICS_ALL: ""
-  ZEEK_DISABLE_ICS_BACNET: ""
-  ZEEK_DISABLE_ICS_BSAP: ""
-  ZEEK_DISABLE_ICS_C1222: ""
-  ZEEK_DISABLE_ICS_DNP3: ""
-  ZEEK_DISABLE_ICS_ENIP: ""
-  ZEEK_DISABLE_ICS_ETHERCAT: ""
-  ZEEK_DISABLE_ICS_GENISYS: "true"
-  ZEEK_DISABLE_ICS_GE_SRTP: ""
-  ZEEK_DISABLE_ICS_IEC104: ""
-  ZEEK_DISABLE_ICS_HART_IP: ""
-  ZEEK_DISABLE_ICS_OMRON_FINS: ""
-  ZEEK_DISABLE_ICS_OPCUA_BINARY: ""
-  ZEEK_DISABLE_ICS_MODBUS: ""
-  ZEEK_DISABLE_ICS_PROFINET: ""
-  ZEEK_DISABLE_ICS_PROFINET_IO_CM: ""
-  ZEEK_DISABLE_ICS_ROC_PLUS: ""
-  ZEEK_DISABLE_ICS_S7COMM: ""
-  ZEEK_DISABLE_ICS_SYNCHROPHASOR: ""
-  ZEEK_C1222_AUTHENTICATION_VALUE: "true"
-  ZEEK_C1222_IDENTIFICATION_SERVICE: "true"
-  ZEEK_C1222_READ_WRITE_SERVICE: "true"
-  ZEEK_C1222_LOGON_SECURITY_SERVICE: "true"
-  ZEEK_C1222_WAIT_SERVICE: "true"
-  ZEEK_C1222_DEREG_REG_SERVICE: "true"
-  ZEEK_C1222_RESOLVE_SERVICE: "true"
-  ZEEK_C1222_TRACE_SERVICE: "true"
-  ZEEK_DISABLE_LOG_PASSWORDS: ""
-  ZEEK_DISABLE_DETECT_ROUTERS: "true"
-  ZEEK_DISABLE_IANA_LOOKUP: ""
-  ZEEK_DISABLE_SPICY_IPSEC: ""
-  ZEEK_DISABLE_SPICY_LDAP: ""
-  ZEEK_DISABLE_SPICY_OPENVPN: ""
-  ZEEK_DISABLE_SPICY_STUN: ""
-  ZEEK_DISABLE_SPICY_TAILSCALE: ""
-  ZEEK_DISABLE_SPICY_TFTP: ""
-  ZEEK_DISABLE_SPICY_WIREGUARD: ""
-  ZEEK_DISABLE_SPICY_ZIP: "true"
-  ZEEK_DISABLE_SSL_VALIDATE_CERTS: ""
-  ZEEK_DISABLE_TRACK_ALL_ASSETS: ""
+  ZEEK_FILE_ANALYZER_TIMEOUT_SEC: "{{ .Values.zeek_env.zeek_file_analyzer_timeout_sec }}"
+  ZEEK_JA4SSH_PACKET_COUNT: "{{ .Values.zeek_env.zeek_ja4ssh_packet_count }}"
+  ZEEK_LONG_CONN_REPEAT_LAST_DURATION: "{{ .Values.zeek_env.zeek_long_conn_repeat_last_duration }}"
+  ZEEK_LONG_CONN_DO_NOTICE: "{{ .Values.zeek_env.zeek_long_conn_do_notice }}"
+  ZEEK_LONG_CONN_DURATIONS: "{{ .Values.zeek_env.zeek_long_conn_durations }}"
+  ZEEK_METRICS_PORT: "{{ .Values.zeek_env.zeek_metrics_port }}"
+  ZEEK_DISABLE_BEST_GUESS_ICS: "{{ .Values.zeek_env.zeek_disable_best_guess_ics }}"
+  ZEEK_DISABLE_ICS_ALL: "{{ .Values.zeek_env.zeek_disable_ics_all }}"
+  ZEEK_DISABLE_ICS_BACNET: "{{ .Values.zeek_env.zeek_disable_ics_bacnet }}"
+  ZEEK_DISABLE_ICS_BSAP: "{{ .Values.zeek_env.zeek_disable_ics_bsap }}"
+  ZEEK_DISABLE_ICS_C1222: "{{ .Values.zeek_env.zeek_disable_ics_c1222 }}"
+  ZEEK_DISABLE_ICS_DNP3: "{{ .Values.zeek_env.zeek_disable_ics_dnp3 }}"
+  ZEEK_DISABLE_ICS_ENIP: "{{ .Values.zeek_env.zeek_disable_ics_enip }}"
+  ZEEK_DISABLE_ICS_ETHERCAT: "{{ .Values.zeek_env.zeek_disable_ics_ethercat }}"
+  ZEEK_DISABLE_ICS_GENISYS: "{{ .Values.zeek_env.zeek_disable_ics_genisys }}"
+  ZEEK_DISABLE_ICS_GE_SRTP: "{{ .Values.zeek_env.zeek_disable_ics_ge_srtp }}"
+  ZEEK_DISABLE_ICS_IEC104: "{{ .Values.zeek_env.zeek_disable_ics_iec104 }}"
+  ZEEK_DISABLE_ICS_HART_IP: "{{ .Values.zeek_env.zeek_disable_ics_hart_ip }}"
+  ZEEK_DISABLE_ICS_OMRON_FINS: "{{ .Values.zeek_env.zeek_disable_ics_omron_fins }}"
+  ZEEK_DISABLE_ICS_OPCUA_BINARY: "{{ .Values.zeek_env.zeek_disable_ics_opcua_binary }}"
+  ZEEK_DISABLE_ICS_MODBUS: "{{ .Values.zeek_env.zeek_disable_ics_modbus }}"
+  ZEEK_DISABLE_ICS_PROFINET: "{{ .Values.zeek_env.zeek_disable_ics_profinet }}"
+  ZEEK_DISABLE_ICS_PROFINET_IO_CM: "{{ .Values.zeek_env.zeek_disable_ics_profinet_io_cm }}"
+  ZEEK_DISABLE_ICS_ROC_PLUS: "{{ .Values.zeek_env.zeek_disable_ics_roc_plus }}"
+  ZEEK_DISABLE_ICS_S7COMM: "{{ .Values.zeek_env.zeek_disable_ics_s7comm }}"
+  ZEEK_DISABLE_ICS_SYNCHROPHASOR: "{{ .Values.zeek_env.zeek_disable_ics_synchrophasor }}"
+  ZEEK_C1222_AUTHENTICATION_VALUE: "{{ .Values.zeek_env.zeek_c1222_authentication_value }}"
+  ZEEK_C1222_IDENTIFICATION_SERVICE: "{{ .Values.zeek_env.zeek_c1222_identification_service }}"
+  ZEEK_C1222_READ_WRITE_SERVICE: "{{ .Values.zeek_env.zeek_c1222_read_write_service }}"
+  ZEEK_C1222_LOGON_SECURITY_SERVICE: "{{ .Values.zeek_env.zeek_c1222_logon_security_service }}"
+  ZEEK_C1222_WAIT_SERVICE: "{{ .Values.zeek_env.zeek_c1222_wait_service }}"
+  ZEEK_C1222_DEREG_REG_SERVICE: "{{ .Values.zeek_env.zeek_c1222_dereg_reg_service }}"
+  ZEEK_C1222_RESOLVE_SERVICE: "{{ .Values.zeek_env.zeek_c1222_resolve_service }}"
+  ZEEK_C1222_TRACE_SERVICE: "{{ .Values.zeek_env.zeek_c1222_trace_service }}"
+  ZEEK_DISABLE_LOG_PASSWORDS: "{{ .Values.zeek_env.zeek_disable_log_passwords }}"
+  ZEEK_DISABLE_DETECT_ROUTERS: "{{ .Values.zeek_env.zeek_disable_detect_routers }}"
+  ZEEK_DISABLE_IANA_LOOKUP: "{{ .Values.zeek_env.zeek_disable_iana_lookup }}"
+  ZEEK_DISABLE_SPICY_IPSEC: "{{ .Values.zeek_env.zeek_disable_spicy_ipsec }}"
+  ZEEK_DISABLE_SPICY_LDAP: "{{ .Values.zeek_env.zeek_disable_spicy_ldap }}"
+  ZEEK_DISABLE_SPICY_OPENVPN: "{{ .Values.zeek_env.zeek_disable_spicy_openvpn }}"
+  ZEEK_DISABLE_SPICY_QUIC: "{{ .Values.zeek_env.zeek_disable_spicy_quic }}"
+  ZEEK_DISABLE_SPICY_STUN: "{{ .Values.zeek_env.zeek_disable_spicy_stun }}"
+  ZEEK_DISABLE_SPICY_TAILSCALE: "{{ .Values.zeek_env.zeek_disable_spicy_tailscale }}"
+  ZEEK_DISABLE_SPICY_TFTP: "{{ .Values.zeek_env.zeek_disable_spicy_tftp }}"
+  ZEEK_DISABLE_SPICY_WIREGUARD: "{{ .Values.zeek_env.zeek_disable_spicy_wireguard }}"
+  ZEEK_DISABLE_SPICY_ZIP: "{{ .Values.zeek_env.zeek_disable_spicy_zip }}"
+  ZEEK_DISABLE_SSL_VALIDATE_CERTS: "{{ .Values.zeek_env.zeek_disable_ssl_validate_certs }}"
+  ZEEK_DISABLE_TRACK_ALL_ASSETS: "{{ .Values.zeek_env.zeek_disable_track_all_assets }}"
   ZEEK_EXTRACTOR_MODE: {{ .Values.zeek_env.extract_mode }}
+  # Path for Zeek-extracted files
   ZEEK_EXTRACTOR_PATH: "/zeek/extract_files"
-  ZEEK_ENIP_PORTS: ""
-  ZEEK_GENISYS_PORTS: ""
+  ZEEK_ENIP_PORTS: "{{ .Values.zeek_env.zeek_enip_ports }}"
+  ZEEK_GENISYS_PORTS: "{{ .Values.zeek_env.zeek_genisys_ports }}"
   ZEEK_INTEL_FEED_SINCE: "{{ .Values.zeek_env.zeek_intel_feed_since }}"
-  ZEEK_INTEL_FEED_SSL_CERTIFICATE_VERIFICATION: "false"
+  ZEEK_INTEL_FEED_SSL_CERTIFICATE_VERIFICATION: "{{ .Values.zeek_env.zeek_intel_feed_ssl_certificate_verification }}"
   ZEEK_INTEL_ITEM_EXPIRATION: "{{ .Values.zeek_env.zeek_intel_item_expiration }}"
-  ZEEK_INTEL_REFRESH_THREADS: "2"
-  ZEEK_SYNCHROPHASOR_DETAILED: ""
-  ZEEK_OMRON_FINS_DETAILED: "true"
-  ZEEK_SYNCHROPHASOR_PORTS: ""
-  ZEEK_LOCAL_NETS: "{{ .Values.pcap_capture_env.home_net }}"
-  ZEEK_JSON: ""
+  ZEEK_INTEL_REFRESH_THREADS: "{{ .Values.zeek_env.zeek_intel_refresh_threads }}"
+  ZEEK_SYNCHROPHASOR_DETAILED: "{{ .Values.zeek_env.zeek_synchrophasor_detailed }}"
+  ZEEK_OMRON_FINS_DETAILED: "{{ .Values.zeek_env.zeek_omron_fins_detailed }}"
+  ZEEK_SYNCHROPHASOR_PORTS: "{{ .Values.zeek_env.zeek_synchrophasor_ports }}"
+  ZEEK_LOCAL_NETS: "{{ .Values.pcap_capture_env.home_net | join "," }}"
+  ZEEK_JSON: "{{ .Values.zeek_env.zeek_json }}"
   PCAP_PROCESSED_DIRECTORY: "/pcap/processed"
   ZEEK_UPLOAD_DIRECTORY: "/zeek/upload"
 kind: ConfigMap
@@ -512,7 +469,7 @@ metadata:
   name: kafka-config
 data:
   ZEEK_KAFKA_ENABLED: "{{ .Values.kafka.enabled }}"
-  ZEEK_KAFKA_BROKERS: "{{ .Values.kafka.brokers }}"
+  ZEEK_KAFKA_BROKERS: "{{ .Values.kafka.brokers | join "," }}"
   ZEEK_KAFKA_TOPIC: "{{ .Values.kafka.topic }}"
 
 ---
