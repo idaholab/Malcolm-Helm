@@ -24,8 +24,8 @@ data:
   FILESCAN_HTTP_SERVER_ZIP: "{{ .Values.filescan_env.extracted_file_http_server_zip }}"
   FILESCAN_HTTP_SERVER_MAGIC: "{{ .Values.filescan_env.extracted_file_http_server_magic }}"
   FILESCAN_HTTP_SERVER_RECURSIVE: "{{ .Values.filescan_env.extracted_file_http_server_recursive }}"
-  FILESCAN_VERBOSITY: {{ .Values.filescan_env.verbosity }}
-  FILESCAN_PRESERVATION: {{ .Values.filescan_env.extracted_file_preservation.local }}
+  FILESCAN_VERBOSITY: "{{ .Values.filescan_env.verbosity }}"
+  FILESCAN_PRESERVATION: "{{ .Values.filescan_env.extracted_file_preservation.local }}"
   FILESCAN_OUTPUT_PATH: "/filescan/data/logs/filescan-%(ts)s.log"
   FILESCAN_HEALTH_PORT: "8001"
   STRELKA_HOST: "strelka-frontend"
