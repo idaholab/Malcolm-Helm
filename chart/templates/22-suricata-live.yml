@@ -13,21 +13,21 @@ data:
   SURICATA_STATS_DECODER_EVENTS: "{{ .Values.suricata_live.suricata_stats_decoder_events }}"
 {{- if .Values.is_production }}
   {{- with .Values.suricata_live.production }}
-  SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
-  SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
-  SURICATA_AF_PACKET_BLOCK_SIZE: "{{ .af_packet_block_size }}"
-  SURICATA_AF_PACKET_BLOCK_TIMEOUT: "{{ .af_packet_block_timeout }}"
-  SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
+  SURICATA_AF_PACKET_IFACE_THREADS: "{{ int64 .af_packet_iface_threads }}"
+  SURICATA_AF_PACKET_RING_SIZE: "{{ int64 .af_packet_ring_size }}"
+  SURICATA_AF_PACKET_BLOCK_SIZE: "{{ int64 .af_packet_block_size }}"
+  SURICATA_AF_PACKET_BLOCK_TIMEOUT: "{{ int64 .af_packet_block_timeout }}"
+  SURICATA_MAX_PENDING_PACKETS: "{{ int64 .max_pending_packets }}"
   SURICATA_EVE_THREADED: "{{ .eve_threaded }}"
   SURICATA_EVE_ROTATE_INTERVAL: "{{ .eve_rotate_interval }}"
   {{- end }}
 {{- else }}
   {{- with .Values.suricata_live.development }}
-  SURICATA_AF_PACKET_IFACE_THREADS: "{{ .af_packet_iface_threads }}"
-  SURICATA_AF_PACKET_RING_SIZE: "{{ .af_packet_ring_size }}"
-  SURICATA_AF_PACKET_BLOCK_SIZE: "{{ .af_packet_block_size }}"
-  SURICATA_AF_PACKET_BLOCK_TIMEOUT: "{{ .af_packet_block_timeout }}"
-  SURICATA_MAX_PENDING_PACKETS: "{{ .max_pending_packets }}"
+  SURICATA_AF_PACKET_IFACE_THREADS: "{{ int64 .af_packet_iface_threads }}"
+  SURICATA_AF_PACKET_RING_SIZE: "{{ int64 .af_packet_ring_size }}"
+  SURICATA_AF_PACKET_BLOCK_SIZE: "{{ int64 .af_packet_block_size }}"
+  SURICATA_AF_PACKET_BLOCK_TIMEOUT: "{{ int64 .af_packet_block_timeout }}"
+  SURICATA_MAX_PENDING_PACKETS: "{{ int64 .max_pending_packets }}"
   SURICATA_EVE_THREADED: "{{ .eve_threaded }}"
   SURICATA_EVE_ROTATE_INTERVAL: "{{ .eve_rotate_interval }}"
   {{- end }}
