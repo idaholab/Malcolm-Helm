@@ -75,6 +75,10 @@ spec:
           {{- if or (eq .Values.auth.mode "keycloak") (eq .Values.auth.mode "keycloak_remote") }}
           - secretRef:
               name: keycloak-env
+          # lua-resty-session 4.x requires an explicit, stable NGINX_SESSION_SECRET.
+          #   Generated/persisted by the secret initialization Job (00-secret-init.yml).
+          - secretRef:
+              name: nginx-session-env
           {{- end }}
           - configMapRef:
               name: upload-common-env

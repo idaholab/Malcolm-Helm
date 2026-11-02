@@ -133,9 +133,13 @@ auth:
   # Internal password hash secret for Arkime viewer cluster (see https://arkime.com/settings#passwordSecret)
   arkime_password: ""
 
-  # If the Arkime WISE plugin is in use, this sets the configuration PIN for the WISE GUI
-  # Users should change this value if using the WISE plugin GUI
-  arkime_wise_pin: WISE2019
+  # If the Arkime WISE plugin is in use, this sets the configuration PIN for the WISE GUI.
+  # Leave blank to have a random PIN generated once by the secret initialization Job and
+  #   persisted in the `arkime-secret-env` Secret; retrieve it with:
+  #   kubectl -n <namespace> get secret arkime-secret-env \
+  #     -o jsonpath='{.data.ARKIME_WISE_CONFIG_PIN_CODE}' | base64 -d
+  # Set it explicitly to pin a known value.
+  arkime_wise_pin: ""
 
   # ARKIME_WISE_SERVICE_URL is used for the Arkime WISE plugin
   #   if Arkime is performing live capture.
@@ -194,6 +198,14 @@ auth:
   role_upload: "upload"
   # ROLE_CAPTURE_SERVICE - Internal-use role for service account used by Arkime capture on remote network sensor
   role_capture_service: "capture_service"
+
+# Malcolm's API service (templates/08-api.yml)
+api:
+  # gunicorn concurrency for the API server. Prior to 26.10.0 gunicorn ran with its
+  #   single-worker, single-thread default, so one slow OpenSearch query blocked every
+  #   other API request (including the Dashboards/Arkime panels that call the API).
+  gunicorn_workers: 2
+  gunicorn_threads: 4
 
 opensearch:
   enabled: true
@@ -431,6 +443,10 @@ logstash:
   reverse_dns: "false"
   # Whether or not Logstash will perform severity scoring on network traffic metadata
   severity_scoring: "true"
+  # Whether or not Logstash will compute a Community ID for Zeek logs that Zeek didn't
+  #   already tag with one. Requires a TCP, UDP or SCTP connection tuple; for log types
+  #   with no proto field, the transport is inferred from the log type when unambiguous.
+  zeek_compute_community_id: "true"
 
   # Enrich with MITRE OTKB
   otkb:
@@ -504,6 +520,18 @@ netbox:
   #       matches a given address decides whether it's eligible. An address that doesn't match anything
   #       in the list is not autopopulated.
   netbox_auto_populate_subnets: []
+
+  # Device-type library import performed by the embedded NetBox instance on startup.
+  # By default the full bundled library is imported once; the completed import is recorded
+  #   in NetBox's persistent database, so later restarts skip it. A new library revision
+  #   (i.e. a new NetBox container image) or a change to the vendor list below triggers a
+  #   fresh import.
+  # The full library is large; to shorten the first startup, list only the manufacturers
+  #   needed as device type library slugs, e.g. ["cisco", "arista"].
+  netbox_devicetype_import_vendors: []
+  # Set to true for one startup to retry a failed import or restore removed device types.
+  #   Leave at false for normal operation.
+  netbox_devicetype_import_force: "false"
 
   # URL of the remote NetBox instance (only used if `mode` is `remote`)
   url: ""
@@ -995,7 +1023,6 @@ zeek_env:
   zeek_disable_log_passwords: ""
   zeek_disable_ssl_validate_certs: ""
   zeek_disable_track_all_assets: ""
-  zeek_disable_detect_routers: "true"
   zeek_disable_iana_lookup: ""
   zeek_disable_spicy_ipsec: ""
   zeek_disable_spicy_ldap: ""
@@ -1037,12 +1064,36 @@ zeek_env:
   zeek_c1222_resolve_service: "true"
   zeek_c1222_trace_service: "true"
 
-  zeek_synchrophasor_ports: ""
   zeek_synchrophasor_detailed: ""
   zeek_omron_fins_detailed: "true"
-  zeek_genisys_ports: ""
-  zeek_enip_ports: ""
   zeek_disable_best_guess_ics: ""
+
+  # Non-default ports on which to register certain Zeek analyzers. Each value is a
+  #   comma-separated list of Zeek ports, e.g. "12345/tcp" or "4041/tcp,4042/udp".
+  #   Leave a value empty to keep the analyzer on its default ports.
+  #   Not every analyzer supports both transports; see the Malcolm documentation
+  #   ("Zeek" under Malcolm Configuration) for the per-analyzer restrictions.
+  zeek_ports:
+    # BACnet is UDP-only
+    bacnet: ""
+    c1222: ""
+    enip: ""
+    # GE-SRTP is TCP-only
+    ge_srtp: ""
+    # Genisys is TCP-only
+    genisys: ""
+    hart_ip: ""
+    # Modbus is TCP-only
+    modbus: ""
+    omron_fins: ""
+    # OPC UA Binary is TCP-only
+    opcua_binary: ""
+    # Profinet IO CM is UDP-only
+    profinet_io_cm: ""
+    roc_plus: ""
+    # S7comm is TCP-only
+    s7comm: ""
+    synchrophasor: ""
 
   development:
     # The maximum size (in bytes) for files to be extracted by Zeek
@@ -1384,6 +1435,14 @@ keycloak:
   keycloak_client_id: ""
   keycloak_client_secret: ""
   keycloak_ssl_verify: "false"
+
+  # Signing secret for the OIDC session cookie issued by Malcolm's nginx reverse proxy.
+  # The nginx image's lua-resty-session 4.x requires this to be set and to stay stable:
+  #   if it changes, every live session is invalidated and users must log in again.
+  # Leave blank to have a random value generated once by the secret initialization Job
+  #   and persisted in the `nginx-session-env` Secret (recommended). Set it explicitly
+  #   (e.g. `openssl rand -hex 32`) to pin a known value or to share it across releases.
+  nginx_session_secret: ""
 
   # variables prefixed by KC_ are only used by Malcolm's embedded Keycloak instance
   kc_cache: "local"
