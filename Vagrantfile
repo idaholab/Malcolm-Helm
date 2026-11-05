@@ -127,7 +127,7 @@ Vagrant.configure("2") do |config|
     systemctl enable set-promisc.service
 
     # Setup RKE2
-    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.37.1+rke2r1 sh -
+    curl -fsSL https://get.rke2.io | INSTALL_RKE2_VERSION=v1.37.2-rc1+rke2r1 sh -
     mkdir -p /etc/rancher/rke2
     echo "cni: calico" > /etc/rancher/rke2/config.yaml
     echo "disable: rke2-ingress-nginx" >> /etc/rancher/rke2/config.yaml
@@ -216,7 +216,7 @@ EOF
     chmod 755 /usr/local/bin/yq
     chown root:root /usr/local/bin/yq
 
-    STERN_VERSION=1.34.0
+    STERN_VERSION=1.35.0
     STERN_URL="https://github.com/stern/stern/releases/download/v${STERN_VERSION}/stern_${STERN_VERSION}_linux_${LINUX_CPU}.tar.gz"
     cd /tmp
     mkdir -p ./stern
@@ -327,7 +327,7 @@ EOF
       helm repo add istio https://istio-release.storage.googleapis.com/charts
       helm repo update istio
 
-      ISTIO_VERSION=1.29.8
+      ISTIO_VERSION=1.30.7
       helm install istio istio/base --version $ISTIO_VERSION -n istio-system --create-namespace
       helm install istiod istio/istiod --version $ISTIO_VERSION -n istio-system --wait
       helm install tenant-ingressgateway istio/gateway --version $ISTIO_VERSION -n istio-system
@@ -361,8 +361,23 @@ EOF
       helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
       kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2
       rm -f /tmp/malcolm_rendered.yaml
-      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set storage_class_name=local-path --set pcap_capture_env.pcap_iface=#{vm_nic} >/dev/null || echo "Helm install --dry-run failed!" >&2
-      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=true --set ingress.enabled=false --set storage_class_name=local-path --set pcap_capture_env.pcap_iface=#{vm_nic}
+      helm install malcolm /vagrant/chart \
+        -n #{malcolm_namespace} \
+        --dry-run \
+        --set auth.existingSecret=malcolm-auth \
+        --set istio.enabled=true \
+        --set ingress.enabled=false \
+        --set storage_class_name=local-path \
+        --set pcap_capture_env.pcap_iface=#{vm_nic} \
+        >/dev/null || echo "Helm install --dry-run failed!" >&2
+
+      helm install malcolm /vagrant/chart \
+        -n #{malcolm_namespace} \
+        --set auth.existingSecret=malcolm-auth \
+        --set istio.enabled=true \
+        --set ingress.enabled=false \
+        --set storage_class_name=local-path \
+        --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       grep -qxF '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' /etc/hosts || echo '10.0.2.100 malcolm.vp.bigbang.dev malcolm.test.dev' >> /etc/hosts
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
@@ -391,8 +406,24 @@ EOF
       helm template malcolm /vagrant/chart -n #{malcolm_namespace} >/tmp/malcolm_rendered.yaml
       kubeconform -strict -ignore-missing-schemas /tmp/malcolm_rendered.yaml || echo "kubeconfirm failed!" >&2
       rm -f /tmp/malcolm_rendered.yaml
-      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --dry-run --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set storage_class_name=local-path --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic} >/dev/null || echo "Helm install --dry-run failed!" >&2
-      helm install malcolm /vagrant/chart -n #{malcolm_namespace} --set auth.existingSecret=malcolm-auth --set istio.enabled=false --set storage_class_name=local-path --set ingress.enabled=true --set pcap_capture_env.pcap_iface=#{vm_nic}
+
+      helm install malcolm /vagrant/chart \
+        -n #{malcolm_namespace} \
+        --dry-run \
+        --set auth.existingSecret=malcolm-auth \
+        --set istio.enabled=false \
+        --set storage_class_name=local-path \
+        --set ingress.enabled=true \
+        --set pcap_capture_env.pcap_iface=#{vm_nic} \
+        >/dev/null || echo "Helm install --dry-run failed!" >&2
+
+      helm install malcolm /vagrant/chart \
+        -n #{malcolm_namespace} \
+        --set auth.existingSecret=malcolm-auth \
+        --set istio.enabled=false \
+        --set storage_class_name=local-path \
+        --set ingress.enabled=true \
+        --set pcap_capture_env.pcap_iface=#{vm_nic}
 
       echo "You may now ssh to your kubernetes cluster using ssh -p 2222 vagrant@localhost" >&2
       hostname -I

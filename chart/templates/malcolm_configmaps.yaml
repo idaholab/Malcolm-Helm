@@ -169,6 +169,15 @@ data:
   SUPERUSER_EMAIL: admin@example.com
   WEBHOOKS_ENABLED: "{{ .Values.netbox.webhooks_enabled }}"
   GRANIAN_EXTRA_ARGS: "--host=0.0.0.0"
+  # NetBox device-type library startup import.
+  # By default the full library is imported once per bundled library revision; later
+  #   container restarts skip a completed import using a marker in NetBox's persistent
+  #   database. A changed library or vendor selection imports again. For a faster first
+  #   startup, select only the manufacturers needed (comma-separated device type library
+  #   slugs, e.g. cisco,arista).
+  NETBOX_DEVICETYPE_IMPORT_VENDORS: "{{ .Values.netbox.netbox_devicetype_import_vendors | join "," }}"
+  # Set to true for one startup to retry a previous import or repopulate removed types.
+  NETBOX_DEVICETYPE_IMPORT_FORCE: "{{ .Values.netbox.netbox_devicetype_import_force }}"
   OPENSSL_FORCE_FIPS_MODE: "0"
 kind: ConfigMap
 metadata:
@@ -429,7 +438,6 @@ data:
   ZEEK_C1222_RESOLVE_SERVICE: "{{ .Values.zeek_env.zeek_c1222_resolve_service }}"
   ZEEK_C1222_TRACE_SERVICE: "{{ .Values.zeek_env.zeek_c1222_trace_service }}"
   ZEEK_DISABLE_LOG_PASSWORDS: "{{ .Values.zeek_env.zeek_disable_log_passwords }}"
-  ZEEK_DISABLE_DETECT_ROUTERS: "{{ .Values.zeek_env.zeek_disable_detect_routers }}"
   ZEEK_DISABLE_IANA_LOOKUP: "{{ .Values.zeek_env.zeek_disable_iana_lookup }}"
   ZEEK_DISABLE_SPICY_IPSEC: "{{ .Values.zeek_env.zeek_disable_spicy_ipsec }}"
   ZEEK_DISABLE_SPICY_LDAP: "{{ .Values.zeek_env.zeek_disable_spicy_ldap }}"
@@ -445,15 +453,28 @@ data:
   ZEEK_EXTRACTOR_MODE: {{ .Values.zeek_env.extract_mode }}
   # Path for Zeek-extracted files
   ZEEK_EXTRACTOR_PATH: "/zeek/extract_files"
-  ZEEK_ENIP_PORTS: "{{ .Values.zeek_env.zeek_enip_ports }}"
-  ZEEK_GENISYS_PORTS: "{{ .Values.zeek_env.zeek_genisys_ports }}"
+  # Non-default ports on which to register certain Zeek analyzers. Each value is a
+  #   comma-separated list of Zeek ports (e.g., "12345/tcp" or "4041/tcp,4042/udp").
+  #   An empty value leaves the analyzer on its default ports.
+  ZEEK_PORTS_BACNET: "{{ .Values.zeek_env.zeek_ports.bacnet }}"
+  ZEEK_PORTS_C1222: "{{ .Values.zeek_env.zeek_ports.c1222 }}"
+  ZEEK_PORTS_ENIP: "{{ .Values.zeek_env.zeek_ports.enip }}"
+  ZEEK_PORTS_GE_SRTP: "{{ .Values.zeek_env.zeek_ports.ge_srtp }}"
+  ZEEK_PORTS_GENISYS: "{{ .Values.zeek_env.zeek_ports.genisys }}"
+  ZEEK_PORTS_HART_IP: "{{ .Values.zeek_env.zeek_ports.hart_ip }}"
+  ZEEK_PORTS_MODBUS: "{{ .Values.zeek_env.zeek_ports.modbus }}"
+  ZEEK_PORTS_OMRON_FINS: "{{ .Values.zeek_env.zeek_ports.omron_fins }}"
+  ZEEK_PORTS_OPCUA_BINARY: "{{ .Values.zeek_env.zeek_ports.opcua_binary }}"
+  ZEEK_PORTS_PROFINET_IO_CM: "{{ .Values.zeek_env.zeek_ports.profinet_io_cm }}"
+  ZEEK_PORTS_ROC_PLUS: "{{ .Values.zeek_env.zeek_ports.roc_plus }}"
+  ZEEK_PORTS_S7COMM: "{{ .Values.zeek_env.zeek_ports.s7comm }}"
+  ZEEK_PORTS_SYNCHROPHASOR: "{{ .Values.zeek_env.zeek_ports.synchrophasor }}"
   ZEEK_INTEL_FEED_SINCE: "{{ .Values.zeek_env.zeek_intel_feed_since }}"
   ZEEK_INTEL_FEED_SSL_CERTIFICATE_VERIFICATION: "{{ .Values.zeek_env.zeek_intel_feed_ssl_certificate_verification }}"
   ZEEK_INTEL_ITEM_EXPIRATION: "{{ .Values.zeek_env.zeek_intel_item_expiration }}"
   ZEEK_INTEL_REFRESH_THREADS: "{{ .Values.zeek_env.zeek_intel_refresh_threads }}"
   ZEEK_SYNCHROPHASOR_DETAILED: "{{ .Values.zeek_env.zeek_synchrophasor_detailed }}"
   ZEEK_OMRON_FINS_DETAILED: "{{ .Values.zeek_env.zeek_omron_fins_detailed }}"
-  ZEEK_SYNCHROPHASOR_PORTS: "{{ .Values.zeek_env.zeek_synchrophasor_ports }}"
   ZEEK_LOCAL_NETS: "{{ .Values.pcap_capture_env.home_net | join "," }}"
   ZEEK_JSON: "{{ .Values.zeek_env.zeek_json }}"
   PCAP_PROCESSED_DIRECTORY: "/pcap/processed"

@@ -46,6 +46,10 @@ spec:
                "gunicorn",
                "--bind",
                "0:5000",
+               "--workers",
+               "{{ .Values.api.gunicorn_workers }}",
+               "--threads",
+               "{{ .Values.api.gunicorn_threads }}",
                "manage:app"]
         ports:
           - name: http
